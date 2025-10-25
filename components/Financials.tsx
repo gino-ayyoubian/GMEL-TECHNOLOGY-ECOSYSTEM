@@ -16,12 +16,13 @@ export const Financials: React.FC = () => {
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
     
-    const initialInvestmentValue = FINANCIAL_DATA.find(d => d.component === 'Qeshm Pilot Implementation Cost')?.value || 80;
-    const initialRAndDValue = FINANCIAL_DATA.find(d => d.component === 'Initial R&D and Registration Cost')?.value || 5;
-    const initialAnnualRevenueValue = FINANCIAL_DATA.find(d => d.component === 'Annual Pilot Revenue')?.value || 45;
-
-    const [investment, setInvestment] = useState(initialInvestmentValue + initialRAndDValue);
-    const [annualRevenue, setAnnualRevenue] = useState(initialAnnualRevenueValue);
+    const initialInvestment = (FINANCIAL_DATA.find(d => d.component === 'Qeshm Pilot Implementation Cost')?.value || 80) + 
+                              (FINANCIAL_DATA.find(d => d.component === 'Initial R&D and Registration Cost')?.value || 5);
+    const annualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Pilot Revenue')?.value || 45;
+    
+    // Sensitivity states
+    const [revenueSensitivity, setRevenueSensitivity] = useState(20); // +/- 20%
+    const [investmentSensitivity, setInvestmentSensitivity] = useState(15); // +/- 15%
 
     const costData = FINANCIAL_DATA.filter(d => d.component.includes('Cost')).map(d => ({ name: d.component, value: d.value }));
     const revenueData = FINANCIAL_DATA.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
@@ -29,12 +30,30 @@ export const Financials: React.FC = () => {
     const pieData = [...costData, ...revenueData].map(d => ({ name: d.name, value: d.value }));
     
     const projectionData = useMemo(() => {
-        return Array.from({ length: 10 }, (_, i) => {
+        const scenarios = { optimistic: [], baseline: [], pessimistic: [] };
+
+        const optimisticRevenue = annualRevenue * (1 + revenueSensitivity / 100);
+        const pessimisticRevenue = annualRevenue * (1 - revenueSensitivity / 100);
+        
+        const optimisticInvestment = initialInvestment * (1 - investmentSensitivity / 100);
+        const pessimisticInvestment = initialInvestment * (1 + investmentSensitivity / 100);
+
+        for (let i = 0; i < 10; i++) {
             const year = i + 1;
-            const net = (annualRevenue * year) - investment;
-            return { year, net };
-        });
-    }, [investment, annualRevenue]);
+            scenarios.optimistic.push({ year, net: (optimisticRevenue * year) - optimisticInvestment });
+            scenarios.baseline.push({ year, net: (annualRevenue * year) - initialInvestment });
+            scenarios.pessimistic.push({ year, net: (pessimisticRevenue * year) - pessimisticInvestment });
+        }
+        
+        const combinedData = scenarios.baseline.map((item, i) => ({
+            year: item.year,
+            optimistic: scenarios.optimistic[i].net,
+            baseline: item.net,
+            pessimistic: scenarios.pessimistic[i].net,
+        }));
+
+        return combinedData;
+    }, [annualRevenue, initialInvestment, revenueSensitivity, investmentSensitivity]);
 
 
     const handleAnalysis = async () => {
@@ -123,27 +142,30 @@ export const Financials: React.FC = () => {
                     </div>
                 </div>
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                    {/* Fix: Corrected the translation key from '10_year_projection' to 'ten_year_projection'. */}
-                    <h2 className="text-xl font-semibold mb-4 text-white">{t('ten_year_projection')}</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-white">{t('sensitivity_analysis')}</h2>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label htmlFor="investment" className="block text-sm font-medium text-slate-400">{t('total_initial_investment')}</label>
+                            <label htmlFor="revenueSensitivity" className="block text-sm font-medium text-slate-400">{t('revenue_variation')} (+/- {revenueSensitivity}%)</label>
                             <input
-                                type="number"
-                                id="investment"
-                                value={investment}
-                                onChange={(e) => setInvestment(Number(e.target.value))}
-                                className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-slate-200"
+                                type="range"
+                                id="revenueSensitivity"
+                                min="0"
+                                max="50"
+                                value={revenueSensitivity}
+                                onChange={(e) => setRevenueSensitivity(Number(e.target.value))}
+                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                          <div>
-                            <label htmlFor="annualRevenue" className="block text-sm font-medium text-slate-400">{t('projected_annual_revenue')}</label>
+                            <label htmlFor="investmentSensitivity" className="block text-sm font-medium text-slate-400">{t('investment_variation')} (+/- {investmentSensitivity}%)</label>
                             <input
-                                type="number"
-                                id="annualRevenue"
-                                value={annualRevenue}
-                                onChange={(e) => setAnnualRevenue(Number(e.target.value))}
-                                className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-slate-200"
+                                type="range"
+                                id="investmentSensitivity"
+                                min="0"
+                                max="50"
+                                value={investmentSensitivity}
+                                onChange={(e) => setInvestmentSensitivity(Number(e.target.value))}
+                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                     </div>
@@ -155,7 +177,9 @@ export const Financials: React.FC = () => {
                                 <YAxis tick={{ fill: '#94a3b8' }} unit=" B"/>
                                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="net" name="Net Revenue (B Toman)" stroke="#8b5cf6" strokeWidth={2} />
+                                <Line type="monotone" dataKey="optimistic" name={t('optimistic_scenario')} stroke="#22c55e" strokeWidth={2} dot={false} />
+                                <Line type="monotone" dataKey="baseline" name={t('baseline_scenario')} stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" />
+                                <Line type="monotone" dataKey="pessimistic" name={t('pessimistic_scenario')} stroke="#ef4444" strokeWidth={2} dot={false} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>

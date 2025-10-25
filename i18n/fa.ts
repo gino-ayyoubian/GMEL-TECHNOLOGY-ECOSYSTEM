@@ -1,4 +1,6 @@
 
+
+
 export const app_title = "KKM | چشم انداز GMEL";
 export const nav_dashboard = "داشبورد";
 export const nav_ip = "نقشه راه مالکیت معنوی";
@@ -36,14 +38,22 @@ export const title = "عنوان";
 export const status = "وضعیت";
 export const path = "مسیر";
 export const no_patents_match = "هیچ اختراعی با فیلتر فعلی مطابقت ندارد.";
+export const search_patents = "جستجوی اختراعات";
+export const search_placeholder = "جستجو بر اساس عنوان، کد، کاربرد...";
+export const patent_timeline_title = "خط زمانی ثبت اختراع";
+export const no_timeline_data = "داده‌ای برای خط زمانی اختراعات موجود نیست.";
 export const financial_analysis_title = "تحلیل مالی";
 export const export_secure_pdf = "خروجی PDF امن";
 export const cost_revenue_breakdown = "تفکیک هزینه و درآمد";
 export const ten_year_projection = "پیش‌بینی درآمد خالص 10 ساله";
-// Fix: Removed redundant and unused translation key.
-// export const a_10_year_projection = "پیش‌بینی درآمد خالص 10 ساله";
 export const total_initial_investment = "کل سرمایه‌گذاری اولیه (میلیارد تومان)";
 export const projected_annual_revenue = "درآمد سالانه پیش‌بینی شده (میلیارد تومان)";
+export const sensitivity_analysis = "پیش‌بینی و حساسیت‌سنجی درآمد خالص";
+export const revenue_variation = "تغییرات درآمد";
+export const investment_variation = "تغییرات سرمایه‌گذاری";
+export const optimistic_scenario = "خوش‌بینانه";
+export const baseline_scenario = "پایه";
+export const pessimistic_scenario = "بدبینانه";
 export const market_analysis_for = "تحلیل بازار برای {region}";
 export const market_analysis_description = "برای دریافت تحلیل بازار به‌روز با استفاده از Gemini و جستجوی گوگل، روی دکمه کلیک کنید.";
 export const market_analysis_prompt = "یک تحلیل بازار فعلی (2024-2025) برای پروژه‌های انرژی زمین‌گرمایی متناسب با {region} ارائه دهید. بر روی روندهای سرمایه‌گذاری، مشوق‌های دولتی در مناطق آزاد تجاری ایران و قابلیت اقتصادی سیستم‌های یکپارچه (برق، شیرین‌سازی آب، هیدروژن) تمرکز کنید. پایلوت پایه دارای ظرفیت 1.5 مگاوات و کارخانه شیرین‌سازی 500 متر مکعب در روز است.";
@@ -124,7 +134,11 @@ export const comparison_prompt = `
 export const error_comparison_generation = "خطایی در هنگام ایجاد مقایسه رخ داد. پاسخ هوش مصنوعی ممکن است در قالب مورد انتظار نبوده باشد.";
 export const metric = "معیار";
 export const narrative_summary = "خلاصه روایی";
+export const generate_deep_analysis = "ایجاد تحلیل استراتژیک عمیق";
+export const strategic_implications_title = "پیامدهای استراتژیک";
 export const feedback_prompt = "آیا این مفید بود؟";
 export const feedback_thanks = "از بازخورد شما متشکریم!";
 export const feedback_yes = "بله";
 export const feedback_no = "خیر";
+// Fix: Removed redundant and unused translation key.
+// export const a_10_year_projection = "پیش‌بینی درآمد خالص 10 ساله";

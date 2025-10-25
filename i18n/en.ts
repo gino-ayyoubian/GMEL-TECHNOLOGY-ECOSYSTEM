@@ -1,4 +1,6 @@
 
+
+
 export const app_title = "KKM | GMEL Vision";
 export const nav_dashboard = "Dashboard";
 export const nav_ip = "IP Roadmap";
@@ -36,12 +38,22 @@ export const title = "Title";
 export const status = "Status";
 export const path = "Path";
 export const no_patents_match = "No patents match the current filter.";
+export const search_patents = "Search Patents";
+export const search_placeholder = "Search by title, code, application...";
+export const patent_timeline_title = "Patent Registration Timeline";
+export const no_timeline_data = "No timeline data available for patents.";
 export const financial_analysis_title = "Financial Analysis";
 export const export_secure_pdf = "Export Secure PDF";
 export const cost_revenue_breakdown = "Cost vs. Revenue Breakdown";
 export const ten_year_projection = "10-Year Net Revenue Projection";
 export const total_initial_investment = "Total Initial Investment (B Toman)";
 export const projected_annual_revenue = "Projected Annual Revenue (B Toman)";
+export const sensitivity_analysis = "Net Revenue Projection & Sensitivity";
+export const revenue_variation = "Revenue Variation";
+export const investment_variation = "Investment Variation";
+export const optimistic_scenario = "Optimistic";
+export const baseline_scenario = "Baseline";
+export const pessimistic_scenario = "Pessimistic";
 export const market_analysis_for = "Market Analysis for {region}";
 export const market_analysis_description = "Click the button to get an up-to-date market analysis using Gemini with Google Search grounding.";
 export const market_analysis_prompt = "Provide a current (2024-2025) market analysis for geothermal energy projects tailored for the {region}. Focus on investment trends, government incentives in Iranian free trade zones, and the economic viability of integrated systems (power, desalination, hydrogen). The baseline pilot has a 1.5 MW capacity and 500 m³/day desalination plant.";
@@ -122,6 +134,8 @@ export const comparison_prompt = `
 export const error_comparison_generation = "An error occurred while generating the comparison. The AI's response may not have been in the expected format.";
 export const metric = "Metric";
 export const narrative_summary = "Narrative Summary";
+export const generate_deep_analysis = "Generate Deeper Strategic Insights";
+export const strategic_implications_title = "Strategic Implications";
 export const feedback_prompt = "Was this helpful?";
 export const feedback_thanks = "Thank you for your feedback!";
 export const feedback_yes = "Yes";

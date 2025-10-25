@@ -26,12 +26,13 @@ const regionSpecificContexts = {
 const buildDynamicContext = (query: string, region: Region): string => {
     let context = `You are a helpful assistant for the GMEL Geothermal Vision project. The current focus is on a proposal for the ${region}. Answer questions based ONLY on the following context. Do not make up information. If the answer is not in the context, say that you don't have that information.\n\n`;
     const lowerQuery = query.toLowerCase();
-
+    
     // --- Core Regional Context ---
     context += `---CORE PROJECT CONTEXT FOR ${region}---\n`;
-    context += `Core Technology: GMEL-CLG, a closed-loop geothermal system for low-gradient resources using a pump-free thermosiphon mechanism.\n`;
+    context += `Core Technology: GMEL-CLG, a closed-loop geothermal system for low-gradient resources.\n`;
     context += regionSpecificContexts[region] + '\n';
 
+    let specificContext = '';
     const allPatents = [CORE_PATENT, ...PATENT_PORTFOLIO];
 
     // --- Patent Context ---
@@ -40,22 +41,22 @@ const buildDynamicContext = (query: string, region: Region): string => {
         lowerQuery.includes(p.title.toLowerCase())
     );
     if (mentionedPatents.length > 0) {
-        context += `---RELEVANT PATENT DETAILS---\n${mentionedPatents.map(p => `- ${p.title} (${p.code}): ${p.application}. Status: ${p.status}, Path: ${p.path}`).join('\n')}\n\n`;
+        specificContext += `---RELEVANT PATENT DETAILS---\n${mentionedPatents.map(p => `- ${p.title} (${p.code}): ${p.application}. Status: ${p.status}, Path: ${p.path}`).join('\n')}\n\n`;
     } else {
         const patentKeywords = ['patent', 'ip', 'intellectual property', 'roadmap'];
         if (patentKeywords.some(k => lowerQuery.includes(k))) {
-            context += `---PATENT PORTFOLIO OVERVIEW---\n${allPatents.map(p => `- ${p.title} (${p.code})`).join('\n')}\n\n`;
+            specificContext += `---PATENT PORTFOLIO OVERVIEW---\n${allPatents.map(p => `- ${p.title} (${p.code})`).join('\n')}\n\n`;
         }
     }
     
     // --- Financial Context ---
     const mentionedFinancials = FINANCIAL_DATA.filter(d => lowerQuery.includes(d.component.toLowerCase()));
     if (mentionedFinancials.length > 0) {
-        context += `---RELEVANT FINANCIAL DETAILS---\n${mentionedFinancials.map(d => `- ${d.component}: ${d.value} ${d.unit} (${d.description})`).join('\n')}\n\n`;
+        specificContext += `---RELEVANT FINANCIAL DETAILS---\n${mentionedFinancials.map(d => `- ${d.component}: ${d.value} ${d.unit} (${d.description})`).join('\n')}\n\n`;
     } else {
         const financialKeywords = ['financial', 'cost', 'revenue', 'investment', 'roi', 'toman', 'price', 'money', 'economic'];
         if (financialKeywords.some(k => lowerQuery.includes(k))) {
-            context += `---FINANCIAL DATA (BASELINE)---\n${FINANCIAL_DATA.map(d => `- ${d.component}: ${d.value} ${d.unit}`).join('\n')}\n\n`;
+            specificContext += `---FINANCIAL DATA (BASELINE)---\n${FINANCIAL_DATA.map(d => `- ${d.component}: ${d.value} ${d.unit}`).join('\n')}\n\n`;
         }
     }
     
@@ -65,12 +66,25 @@ const buildDynamicContext = (query: string, region: Region): string => {
         lowerQuery.includes(m.date.toLowerCase())
     );
     if (mentionedMilestones.length > 0) {
-        context += `---RELEVANT MILESTONE DETAILS---\n${mentionedMilestones.map(m => `- ${m.title} (${m.date}): ${m.status}. ${m.description}`).join('\n')}\n\n`;
+        specificContext += `---RELEVANT MILESTONE DETAILS---\n${mentionedMilestones.map(m => `- ${m.title} (${m.date}): ${m.status}. ${m.description}`).join('\n')}\n\n`;
     } else {
         const milestoneKeywords = ['milestone', 'timeline', 'schedule', 'date', 'status', 'completed', 'progress', 'planned'];
         if (milestoneKeywords.some(k => lowerQuery.includes(k))) {
-            context += `---PROJECT MILESTONES---\n${PROJECT_MILESTONES.map(m => `- ${m.title} (${m.date}): ${m.status}`).join('\n')}\n\n`;
+            specificContext += `---PROJECT MILESTONES---\n${PROJECT_MILESTONES.map(m => `- ${m.title} (${m.date}): ${m.status}`).join('\n')}\n\n`;
         }
+    }
+
+    // --- General Query Enhancement ---
+    // If no specific context was added, provide more detail on the core technology
+    if (specificContext.length === 0) {
+        context += `---CORE TECHNOLOGY UNIQUE SELLING PROPOSITIONS (GMEL-CLG)---\n`;
+        context += `- System Type: Closed-Loop Geothermal System for low-gradient thermal resources.\n`;
+        context += `- Key Innovation: Utilizes a natural thermosiphon effect for fluid circulation.\n`;
+        context += `- Major Advantage 1: Pump-free operation, which significantly reduces parasitic energy loss and operational costs.\n`;
+        context += `- Major Advantage 2: Does not require water injection (fracking), eliminating associated environmental risks and water sourcing issues.\n`;
+        context += `- Efficiency: Designed to be highly efficient in geological areas where traditional geothermal systems are not viable.\n\n`;
+    } else {
+        context += specificContext;
     }
     
     return context;

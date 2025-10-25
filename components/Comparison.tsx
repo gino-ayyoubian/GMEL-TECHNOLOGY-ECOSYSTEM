@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { generateTextWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
+import { Feedback } from './shared/Feedback';
 
 interface ComparisonData {
     metric: string;
@@ -14,6 +15,9 @@ export const Comparison: React.FC = () => {
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [strategicInsights, setStrategicInsights] = useState<string>('');
+    const [isInsightsLoading, setIsInsightsLoading] = useState<boolean>(false);
+
 
     useEffect(() => {
         const fetchComparison = async () => {
@@ -35,6 +39,21 @@ export const Comparison: React.FC = () => {
         };
         fetchComparison();
     }, [t]);
+
+    const handleGenerateInsights = async () => {
+        if (!narrative || comparisonData.length === 0) return;
+        setIsInsightsLoading(true);
+        const context = `
+            Based on the following comparison data:
+            Table: ${JSON.stringify(comparisonData)}
+            Narrative: ${narrative}
+
+            Generate a deeper strategic analysis. For each region (Qeshm and Makoo), elaborate on the primary risks, hidden opportunities, and long-term strategic implications for KKM International. Go beyond the information already provided and infer potential outcomes. Structure your response in well-defined paragraphs.
+        `;
+        const result = await generateTextWithThinking(context);
+        setStrategicInsights(result);
+        setIsInsightsLoading(false);
+    }
 
     return (
         <div className="space-y-8">
@@ -85,7 +104,22 @@ export const Comparison: React.FC = () => {
                         {t('narrative_summary')}
                         <SpeakerIcon text={narrative} />
                     </h2>
-                     <p className="text-slate-300 whitespace-pre-wrap">{narrative}</p>
+                     <p className="text-slate-300 whitespace-pre-wrap mb-4">{narrative}</p>
+                     
+                     <button onClick={handleGenerateInsights} disabled={isInsightsLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
+                        {isInsightsLoading ? t('analyzing') : t('generate_deep_analysis')}
+                     </button>
+
+                     {strategicInsights && (
+                        <div className="mt-6 p-4 bg-slate-900 rounded-lg border border-sky-500/30">
+                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">
+                                {t('strategic_implications_title')}
+                                <SpeakerIcon text={strategicInsights} />
+                            </h3>
+                            <p className="text-slate-300 text-sm whitespace-pre-wrap">{strategicInsights}</p>
+                            <Feedback sectionId="strategic-comparison-insights" />
+                        </div>
+                     )}
                 </div>
             )}
 
