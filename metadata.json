@@ -1,0 +1,5 @@
+{
+  "name": "GMEL Geothermal Vision",
+  "description": "An interactive web application to explore the GMEL Geothermal Technology Ecosystem proposal. It provides a comprehensive analysis of the intellectual property roadmap, technical specifications, financial projections, and international benchmarking for the project, leveraging the Gemini API for data analysis, visualization, and up-to-date information grounding.",
+  "requestFramePermissions": []
+}
