@@ -1,3 +1,4 @@
+
 export const app_title = "KKM | چشم انداز GMEL";
 export const nav_dashboard = "داشبورد";
 export const nav_ip = "نقشه راه مالکیت معنوی";
@@ -117,6 +118,8 @@ export const comparison_prompt = `
     - هم‌افزایی مرتبط با آب و هوا
     - محرک اقتصادی اصلی
     - تمرکز زیرساختی
+    - محیط نظارتی و قانونی
+    - تأثیر بر جامعه محلی
 `;
 export const error_comparison_generation = "خطایی در هنگام ایجاد مقایسه رخ داد. پاسخ هوش مصنوعی ممکن است در قالب مورد انتظار نبوده باشد.";
 export const metric = "معیار";

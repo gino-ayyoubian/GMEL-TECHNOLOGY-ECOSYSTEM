@@ -5,38 +5,74 @@ import { PATENT_PORTFOLIO, FINANCIAL_DATA, CORE_PATENT, PROJECT_MILESTONES, WATE
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 
+const regionSpecificContexts = {
+    'Qeshm Free Zone': `
+- Strategic location in the Persian Gulf, critical need for fresh water (desalination is a primary value proposition).
+- Logistical and energy hub with synergies with existing industries.
+- Pilot Project: 1.5MW capacity, 500 m³/day desalination, 80 billion Toman cost, ~3.5 year ROI.
+- Integrated Applications: Thermal desalination, thermal agriculture, lithium extraction from brine.
+- Export Potential: Ideal port infrastructure for exporting portable GMEL-ORC units to Gulf countries.
+`,
+    'Makoo Free Zone': `
+- Strategic location as a gateway to Turkey and Europe, potential for cross-border energy sales.
+- Cold climate makes geothermal heating for agriculture (greenhouses) and industry highly valuable.
+- Pilot Project: 1.5MW capacity, 80 billion Toman cost, ~3.5 year ROI, focused on electricity export and direct heat.
+- Integrated Applications: Thermal agriculture, process heat for industrial parks.
+- Export Potential: Technology showcase for export to Turkey, Caucasus, and Central Asia.
+`
+};
+
+
 const buildDynamicContext = (query: string, region: Region): string => {
     let context = `You are a helpful assistant for the GMEL Geothermal Vision project. The current focus is on a proposal for the ${region}. Answer questions based ONLY on the following context. Do not make up information. If the answer is not in the context, say that you don't have that information.\n\n`;
     const lowerQuery = query.toLowerCase();
 
-    // Always include project summary context to give the AI a baseline
-    context += `---PROJECT SUMMARY CONTEXT---\nThis is a summary of the project proposal for ${region}. Key points: closed-loop geothermal for low-gradient resources, pump-free thermosiphon mechanism. For ${region}, the focus is on its unique geographical and economic advantages.\n\n`;
+    // --- Core Regional Context ---
+    context += `---CORE PROJECT CONTEXT FOR ${region}---\n`;
+    context += `Core Technology: GMEL-CLG, a closed-loop geothermal system for low-gradient resources using a pump-free thermosiphon mechanism.\n`;
+    context += regionSpecificContexts[region] + '\n';
 
-    const financialKeywords = ['financial', 'cost', 'revenue', 'investment', 'roi', 'toman', 'price', 'money', 'economic'];
-    if (financialKeywords.some(k => lowerQuery.includes(k))) {
-        context += `---FINANCIAL DATA (BASELINE)---\n${FINANCIAL_DATA.map(d => `- ${d.component}: ${d.value} ${d.unit}`).join('\n')}\n\n`;
-    }
-
-    const patentKeywords = ['patent', 'ip', 'intellectual property', 'roadmap'];
     const allPatents = [CORE_PATENT, ...PATENT_PORTFOLIO];
+
+    // --- Patent Context ---
     const mentionedPatents = allPatents.filter(p => 
         lowerQuery.includes(p.code.toLowerCase()) || 
-        lowerQuery.includes(p.title.toLowerCase().split(' ')[0])
+        lowerQuery.includes(p.title.toLowerCase())
     );
-
-    if (patentKeywords.some(k => lowerQuery.includes(k)) || mentionedPatents.length > 0) {
-        if (mentionedPatents.length > 0) {
-             context += `---RELEVANT PATENT DETAILS---\n${mentionedPatents.map(p => `- ${p.title} (${p.code}): ${p.application}. Status: ${p.status}, Path: ${p.path}`).join('\n')}\n\n`;
-        } else {
-             context += `---PATENT PORTFOLIO OVERVIEW---\n${allPatents.map(p => `- ${p.title}: ${p.application}`).join('\n')}\n\n`;
+    if (mentionedPatents.length > 0) {
+        context += `---RELEVANT PATENT DETAILS---\n${mentionedPatents.map(p => `- ${p.title} (${p.code}): ${p.application}. Status: ${p.status}, Path: ${p.path}`).join('\n')}\n\n`;
+    } else {
+        const patentKeywords = ['patent', 'ip', 'intellectual property', 'roadmap'];
+        if (patentKeywords.some(k => lowerQuery.includes(k))) {
+            context += `---PATENT PORTFOLIO OVERVIEW---\n${allPatents.map(p => `- ${p.title} (${p.code})`).join('\n')}\n\n`;
         }
     }
-
-    const milestoneKeywords = ['milestone', 'timeline', 'schedule', 'date', 'status', 'q1', 'q2', 'q3', 'q4', '1403', '1404', '1405', '1406', 'completed', 'progress', 'planned'];
-    if (milestoneKeywords.some(k => lowerQuery.includes(k))) {
-        context += `---PROJECT MILESTONES---\n${PROJECT_MILESTONES.map(m => `- ${m.title} (${m.date}): ${m.status}. ${m.description}`).join('\n')}\n\n`;
+    
+    // --- Financial Context ---
+    const mentionedFinancials = FINANCIAL_DATA.filter(d => lowerQuery.includes(d.component.toLowerCase()));
+    if (mentionedFinancials.length > 0) {
+        context += `---RELEVANT FINANCIAL DETAILS---\n${mentionedFinancials.map(d => `- ${d.component}: ${d.value} ${d.unit} (${d.description})`).join('\n')}\n\n`;
+    } else {
+        const financialKeywords = ['financial', 'cost', 'revenue', 'investment', 'roi', 'toman', 'price', 'money', 'economic'];
+        if (financialKeywords.some(k => lowerQuery.includes(k))) {
+            context += `---FINANCIAL DATA (BASELINE)---\n${FINANCIAL_DATA.map(d => `- ${d.component}: ${d.value} ${d.unit}`).join('\n')}\n\n`;
+        }
     }
-
+    
+    // --- Milestone Context ---
+    const mentionedMilestones = PROJECT_MILESTONES.filter(m => 
+        lowerQuery.includes(m.title.toLowerCase()) ||
+        lowerQuery.includes(m.date.toLowerCase())
+    );
+    if (mentionedMilestones.length > 0) {
+        context += `---RELEVANT MILESTONE DETAILS---\n${mentionedMilestones.map(m => `- ${m.title} (${m.date}): ${m.status}. ${m.description}`).join('\n')}\n\n`;
+    } else {
+        const milestoneKeywords = ['milestone', 'timeline', 'schedule', 'date', 'status', 'completed', 'progress', 'planned'];
+        if (milestoneKeywords.some(k => lowerQuery.includes(k))) {
+            context += `---PROJECT MILESTONES---\n${PROJECT_MILESTONES.map(m => `- ${m.title} (${m.date}): ${m.status}`).join('\n')}\n\n`;
+        }
+    }
+    
     return context;
 };
 

@@ -1,3 +1,4 @@
+
 export const app_title = "KKM | GMEL Vision";
 export const nav_dashboard = "Dashboard";
 export const nav_ip = "IP Roadmap";
@@ -115,6 +116,8 @@ export const comparison_prompt = `
     - Climate-Related Synergy
     - Primary Economic Driver
     - Infrastructure Focus
+    - Regulatory Environment
+    - Community Impact
 `;
 export const error_comparison_generation = "An error occurred while generating the comparison. The AI's response may not have been in the expected format.";
 export const metric = "Metric";
