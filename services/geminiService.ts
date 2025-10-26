@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse, Type, ChatMessage as GeminiChatMessage, Chat } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type, ChatMessage as GeminiChatMessage, Chat, Content } from "@google/genai";
 import { ChatMessage } from '../types';
 
 if (!process.env.API_KEY) {
@@ -82,32 +82,28 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
   }
 };
 
-// Fix: Correctly initialize chat and send messages. `history` is not a direct parameter for `create`.
-// The history is built by sending messages sequentially.
 export const continueChat = async (history: ChatMessage[]): Promise<string> => {
-  const chat: Chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
-  });
+    // The last message is the new prompt, the rest is history
+    const geminiHistory: Content[] = history.slice(0, -1).map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.text }],
+    }));
 
-  const lastMessage = history[history.length - 1];
+    const chat: Chat = ai.chats.create({
+        model: 'gemini-2.5-flash',
+        history: geminiHistory,
+    });
 
-  try {
-    // Send all but the last message to build up history
-    for (let i = 0; i < history.length - 1; i++) {
-        // This is a simplified way to rebuild state; for a real app, you'd persist the chat object.
-        // For this implementation, we just send messages to simulate history.
-        // A more optimal approach would be to pass the full history if the API supported it directly on creation,
-        // but the current guideline is to send messages. We will send them without awaiting the response
-        // for all but the last one.
-        if (i < history.length - 1) {
-            await chat.sendMessage({ message: history[i].text });
-        }
+    const lastMessage = history[history.length - 1];
+    if (!lastMessage) {
+        return "No message to send.";
     }
 
-    const response: GenerateContentResponse = await chat.sendMessage({ message: lastMessage.text });
-    return response.text;
-  } catch (error) {
-    console.error("Error in chat:", error);
-    return "Sorry, I encountered an error. Please try again.";
-  }
+    try {
+        const response: GenerateContentResponse = await chat.sendMessage({ message: lastMessage.text });
+        return response.text;
+    } catch (error) {
+        console.error("Error in chat:", error);
+        return "Sorry, I encountered an error. Please try again.";
+    }
 };

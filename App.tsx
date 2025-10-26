@@ -10,6 +10,8 @@ import { Benchmark } from './components/Benchmark';
 import { ImageGenerator } from './components/ImageGenerator';
 import { SiteAnalysis } from './components/SiteAnalysis';
 import { Comparison } from './components/Comparison';
+import { Correspondence } from './components/Correspondence';
+import { AccessControl } from './components/AccessControl';
 import { Region } from './types';
 import { KKM_LOGO_DATA_URL } from './constants';
 // Fix: Import 'en' to use its keys for strong typing
@@ -17,11 +19,11 @@ import * as en from './i18n/en';
 
 // --- KKM LOGO COMPONENT ---
 const KkmLogo = () => (
-    <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className="h-12 w-12" />
+    <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className="h-12 w-auto" />
 );
 
 // --- APP ---
-type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'chat' | 'site' | 'comparison';
+type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'chat' | 'site' | 'comparison' | 'correspondence' | 'access';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('dashboard');
@@ -35,7 +37,7 @@ const App: React.FC = () => {
       aria-label={t(labelKey)}
       className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
         activeView === view
-          ? 'bg-slate-700 text-white'
+          ? 'bg-amber-600 text-white'
           : 'text-slate-400 hover:bg-slate-800 hover:text-white'
       }`}
     >
@@ -53,6 +55,8 @@ const App: React.FC = () => {
       case 'benchmark': return <Benchmark />;
       case 'site': return <SiteAnalysis />;
       case 'comparison': return <Comparison />;
+      case 'access': return <AccessControl />;
+      case 'correspondence': return <Correspondence />;
       case 'image': return <ImageGenerator />;
       case 'chat': return <GeminiChat />;
       default: return <Dashboard />;
@@ -63,7 +67,7 @@ const App: React.FC = () => {
     <div className="flex h-screen bg-slate-900 text-slate-100" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
       <aside className={`w-64 flex-shrink-0 bg-slate-800 p-4 border-slate-700 flex flex-col ${lang === 'fa' ? 'border-l' : 'border-r'}`}>
         <div className="flex items-center mb-8">
-          <div className="p-1 bg-slate-700 rounded-lg">
+          <div className="p-1 bg-white rounded-lg">
             <KkmLogo />
           </div>
           <h1 className="mx-3 text-xl font-bold text-white">{t('app_title')}</h1>
@@ -76,6 +80,8 @@ const App: React.FC = () => {
           <NavItem view="benchmark" labelKey="nav_benchmark" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.737 10.512l3.428-3.428a.5.5 0 01.707 0l3.429 3.428m-11.314 0l3.428 3.428a.5.5 0 00.707 0l3.429-3.428" /></svg>} />
           <NavItem view="site" labelKey="nav_site" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />
           <NavItem view="comparison" labelKey="nav_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>} />
+          <NavItem view="access" labelKey="nav_access_control" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.604-3.749m-15.01-1.548a11.959 11.959 0 0112.02-3.045c1.244.243 2.422.69 3.536 1.288" /></svg>} />
+          <NavItem view="correspondence" labelKey="nav_correspondence" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} />
           <NavItem view="image" labelKey="nav_concept" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
         </nav>
         <div className="mt-auto space-y-2">
@@ -130,30 +136,17 @@ const App: React.FC = () => {
   );
 };
 
-// --- NARRATOR CONTROLS ---
-const NarratorControls = () => {
-    const context = useContext(AppContext);
+const Footer = () => {
     const { t } = useI18n();
-
-    if (!context) return null;
-    const { isSpeaking, cancelNarration, narratorVoice, setNarratorVoice, availableVoices } = context;
-
+    const { isSpeaking, cancelNarration } = useContext(AppContext)!;
     return (
-        <div className="flex items-center justify-center gap-4">
-             <label htmlFor="voice-select" className="text-xs text-slate-500">{t('narrator')}</label>
-             <select
-                id="voice-select"
-                value={narratorVoice || ''}
-                onChange={(e) => setNarratorVoice(e.target.value)}
-                disabled={availableVoices.length === 0}
-                className="bg-slate-700 border-slate-600 rounded text-xs text-slate-300 focus:ring-sky-500 focus:border-sky-500"
-                aria-label={t('select_narrator_voice')}
-             >
-                {availableVoices.map(voice => (
-                    <option key={voice.name} value={voice.name}>{voice.name} ({voice.lang})</option>
-                ))}
-             </select>
-            <button 
+        <footer className="w-full text-center py-4 px-8 mt-auto flex justify-between items-center border-t border-slate-800 pt-4">
+          <p className="text-xs text-slate-600 max-w-lg text-left">
+            {t('footer_disclaimer')}
+          </p>
+           <div className="flex items-center justify-center gap-4">
+            <p className="text-xs text-slate-500">{t('narrator')}</p>
+             <button 
                 onClick={cancelNarration} 
                 disabled={!isSpeaking}
                 className="disabled:opacity-50 text-slate-400 hover:text-white transition-colors"
@@ -164,18 +157,6 @@ const NarratorControls = () => {
                 </svg>
             </button>
         </div>
-    );
-};
-
-
-const Footer = () => {
-    const { t } = useI18n();
-    return (
-        <footer className="w-full text-center py-4 px-8 mt-auto flex justify-between items-center border-t border-slate-800 pt-4">
-          <p className="text-xs text-slate-600 max-w-lg text-left">
-            {t('footer_disclaimer')}
-          </p>
-          <NarratorControls />
         </footer>
     );
 }

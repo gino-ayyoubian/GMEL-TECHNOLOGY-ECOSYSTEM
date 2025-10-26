@@ -1,6 +1,3 @@
-
-
-
 export const app_title = "KKM | چشم انداز GMEL";
 export const nav_dashboard = "داشبورد";
 export const nav_ip = "نقشه راه مالکیت معنوی";
@@ -9,12 +6,14 @@ export const nav_financials = "تحلیل مالی";
 export const nav_benchmark = "ارزیابی جهانی";
 export const nav_site = "تحلیل سایت";
 export const nav_comparison = "مقایسه";
+export const nav_access_control = "کنترل دسترسی";
 export const nav_concept = "تولید مفهوم";
+export const nav_correspondence = "خروجی مکاتبات رسمی";
 export const nav_assistant = "دستیار پروژه";
 export const contact_us = "تماس با ما";
 export const proposal_for = "طرح پیشنهادی برای:";
 export const language = "زبان";
-export const narrator = "گوینده:";
+export const narrator = "صدای گوینده";
 export const select_narrator_voice = "انتخاب صدای گوینده";
 export const stop_narration = "توقف گویندگی";
 export const footer_disclaimer = "تمامی حقوق برای مخترع، جینو ایوبیان و گروه بین‌المللی KKM محفوظ است. هرگونه استفاده یا بهره‌برداری به هر شکل ممنوع بوده و پیگرد قانونی دارد.";
@@ -45,9 +44,10 @@ export const no_timeline_data = "داده‌ای برای خط زمانی اخت
 export const financial_analysis_title = "تحلیل مالی";
 export const export_secure_pdf = "خروجی PDF امن";
 export const cost_revenue_breakdown = "تفکیک هزینه و درآمد";
-export const ten_year_projection = "پیش‌بینی درآمد خالص 10 ساله";
-export const total_initial_investment = "کل سرمایه‌گذاری اولیه (میلیارد تومان)";
-export const projected_annual_revenue = "درآمد سالانه پیش‌بینی شده (میلیارد تومان)";
+export const net_revenue_projection_title = "پیش‌بینی درآمد خالص 10 ساله (قابل تنظیم)";
+export const custom_annual_revenue = "درآمد سالانه مفروض شما";
+export const custom_initial_investment = "سرمایه‌گذاری اولیه مفروض شما";
+export const net_revenue = "درآمد خالص";
 export const sensitivity_analysis = "پیش‌بینی و حساسیت‌سنجی درآمد خالص";
 export const revenue_variation = "تغییرات درآمد";
 export const investment_variation = "تغییرات سرمایه‌گذاری";
@@ -78,11 +78,11 @@ export const generating_diagram = "در حال ایجاد دیاگرام";
 export const generating_explanation = "در حال ایجاد توضیح";
 export const detailed_explanation = "توضیحات دقیق";
 export const benchmark_title = "ارزیابی جهانی زمین‌گرمایی";
-export const benchmark_description = "تحلیل پروژه‌های موفق بین‌المللی زمین‌گرمایی، زمینه و اعتبار رویکرد GMEL را فراهم می‌کند. در اینجا خلاصه‌ای از مناطق کلیدی، از جمله تحلیل آینده‌نگر برای {region}، که توسط Gemini با نتایج جستجوی مستند ایجاد شده است، ارائه می‌شود.";
+export const benchmark_description = "طرح پیشنهادی پروژه GMEL را با سایت‌های کلیدی بین‌المللی زمین‌گرمایی مقایسه کنید. دو منطقه را در زیر انتخاب کنید تا یک تحلیل مقایسه‌ای هوشمند ایجاد شود.";
 export const benchmark_prompt = "خلاصه‌ای کوتاه از پروژه‌ها و فناوری انرژی زمین‌گرمایی در {region} ارائه دهید. بر رویکرد آنها (مانند حلقه بسته، بخار آنی)، ظرفیت و هر جنبه اقتصادی یا فنی منحصر به فرد مرتبط برای مقایسه با یک پروژه جدید با گرادیان پایین تمرکز کنید.";
 export const image_generator_title = "تولید کننده مفهوم پروژه";
 export const image_generator_description = "از قابلیت‌های تولید تصویر Gemini (Imagen 4) برای تجسم مفاهیم پروژه GMEL در {region} استفاده کنید. یک صحنه را توصیف کنید و اجازه دهید هوش مصنوعی آن را به زندگی بیاورد.";
-export const image_generator_default_prompt = "یک نیروگاه زمین‌گرمایی مدرن و تمیز در ساحل {region}، ایران، هنگام غروب آفتاب. یکپارچه با یک تأسیسات شیرین‌سازی آب مدرن. شیک، با فناوری پیشرفته، با خطوط لوله درخشان. فوتورئالیستی، 8k.";
+export const image_generator_default_prompt = "یک تصویر 8k و فوتورئالیستی از یک نیروگاه زمین‌گرمایی مدرن و تمیز در ساحل {region}، ایران، هنگام غروب آفتاب. طراحی بر اساس مهندسی قابل قبول در آینده نزدیک است و جزئیاتی مانند خطوط لوله صنعتی، پنل‌های کنترل و ویژگی‌های ایمنی با زیبایی‌شناسی شیک و با فناوری پیشرفته را به نمایش می‌گذارد. این نیروگاه با یک تأسیسات شیرین‌سازی آب مدرن یکپارچه شده است.";
 export const image_prompt = "درخواست تصویر";
 export const image_generator_placeholder = "مثلاً، دیاگرامی از یک سیستم زمین‌گرمایی حلقه بسته...";
 export const aspect_ratio = "نسبت تصویر";
@@ -140,5 +140,73 @@ export const feedback_prompt = "آیا این مفید بود؟";
 export const feedback_thanks = "از بازخورد شما متشکریم!";
 export const feedback_yes = "بله";
 export const feedback_no = "خیر";
-// Fix: Removed redundant and unused translation key.
-// export const a_10_year_projection = "پیش‌بینی درآمد خالص 10 ساله";
+export const select_region_1 = "انتخاب منطقه ۱";
+export const select_region_2 = "انتخاب منطقه ۲";
+export const compare_regions = "مقایسه";
+export const benchmark_comparison_prompt = `
+    یک تحلیل مقایسه‌ای از پروژه‌های انرژی زمین‌گرمایی بین {region1} و {region2} ایجاد کنید.
+    خروجی را به عنوان یک شیء JSON واحد ارائه دهید. شیء JSON باید دو کلید داشته باشد: "table" و "narrative".
+    مقدار "table" باید آرایه‌ای از اشیاء باشد که هر شیء سه کلید دارد: "metric"، "region1" و "region2".
+    مقدار "region1" باید مربوط به {region1} باشد و "region2" مربوط به {region2}.
+    مقدار "narrative" باید یک رشته باشد که تفاوت‌های استراتژیک کلیدی را در 2-3 پاراگراف خلاصه می‌کند.
+    این معیارها را پوشش دهید: پتانسیل زمین‌شناسی، رویکرد فناوری، مقیاس/ظرفیت معمول پروژه، کاربردهای کلیدی (مانند برق، گرما، شیرین‌سازی آب)، جو سرمایه‌گذاری دولتی/خصوصی و چالش‌های عملیاتی عمده.
+`;
+export const error_generating_comparison = "خطا در ایجاد مقایسه. پاسخ هوش مصنوعی ممکن است در قالب غیرمنتظره‌ای باشد. لطفاً دوباره تلاش کنید.";
+export const error_select_different_regions = "لطفاً دو منطقه متفاوت برای مقایسه انتخاب کنید.";
+export const comparison_between = "مقایسه: {region1} در مقابل {region2}";
+export const correspondence_title = "خروجی مکاتبات رسمی";
+export const correspondence_description = "نامه‌های رسمی به سازمان‌های مرتبط ایجاد کنید. جزئیات زیر را پر کنید تا هوش مصنوعی یک نامه رسمی بر اساس زمینه پروژه تهیه کند. خروجی را می‌توان به صورت PDF امن و دارای واترمارک چاپ کرد.";
+export const recipient_org = "سازمان گیرنده";
+export const subject = "موضوع";
+export const letter_prompt = "نکات کلیدی برای گنجاندن در نامه";
+export const recipient_placeholder = "مثال: سازمان منطقه آزاد قشم";
+export const subject_placeholder = "مثال: پیشنهاد پروژه پایلوت زمین‌گرمایی GMEL";
+export const prompt_placeholder = "مثال: درخواست جلسه برای بحث در مورد پیشنهاد، برجسته کردن مزایای اقتصادی مانند خودکفایی آب و برق، اشاره به سند مشخصات فنی پیوست شده...";
+export const generate_letter = "ایجاد نامه";
+export const print_secure_pdf = "چاپ PDF امن";
+export const generated_letter_title = "نامه رسمی ایجاد شده";
+export const attachments = "پیوست‌ها";
+export const letter_generation_error = "نامه ایجاد نشد. لطفاً دوباره تلاش کنید.";
+export const letter_generation_prompt = `
+    شما یک دستیار هوش مصنوعی برای گروه بین‌المللی کیمیا کاران ماد (KKM) هستید. وظیفه شما نوشتن یک نامه رسمی و حرفه‌ای به زبان فارسی است.
+    
+    فرستنده: گروه بین‌المللی کیمیا کاران ماد (KKM)، به نمایندگی از مخترع جینو ایوبیان.
+    زمینه: این نامه در مورد پروژه چشم‌انداز زمین‌گرمایی GMEL است.
+    تمرکز فعلی پیشنهاد: {region}
+    
+    گیرنده: {recipient}
+    موضوع: {subject}
+    نکات کلیدی برای گنجاندن: {prompt}
+    
+    نامه را با یک سلام رسمی، بدنه‌ای واضح که به نکات کلیدی می‌پردازد و یک پایان حرفه‌ای ساختار دهید.
+    لحن باید مطمئن، شایسته و مبتنی بر همکاری باشد.
+`;
+export const access_control_title = "پروتکل امضای NDA و دسترسی";
+export const access_control_description = "برای دسترسی به اسناد دقیق پروژه، باید فرآیند امن احراز هویت زیر را تکمیل کرده و توافق‌نامه عدم افشا (NDA) را امضا کنید.";
+export const step_1_title = "مرحله ۱: اطلاعات هویتی";
+export const step_2_title = "مرحله ۲: احراز هویت";
+export const step_3_title = "مرحله ۳: امضای NDA";
+export const step_4_title = "مرحله ۴: دسترسی اعطا شد";
+export const full_name = "نام کامل";
+export const full_name_placeholder = "نام کامل خود را وارد کنید";
+export const email_address = "آدرس ایمیل";
+export const email_address_placeholder = "ایمیل خود را وارد کنید";
+export const user_id = "شناسه کاربری";
+export const upload_id = "بارگذاری مدرک شناسایی (پاسپورت/کارت ملی)";
+export const upload_liveness = "انجام بررسی زنده بودن (Liveness)";
+export const file_chosen = "فایل انتخاب شد";
+export const video_recorded = "ویدیو ضبط شد";
+export const next_step = "مرحله بعد";
+export const verifying_identity = "در حال تأیید هویت...";
+export const id_verified = "مدرک شناسایی تأیید شد";
+export const liveness_passed = "بررسی زنده بودن با موفقیت انجام شد";
+export const verification_successful = "احراز هویت موفقیت‌آمیز بود";
+export const proceed_to_nda = "ادامه به سمت NDA";
+export const nda_title = "قرارداد همکاری پژوهشی و توافق‌نامه عدم افشا";
+export const nda_body = `اینجانب، امضاکننده زیر که در سامانه KKM با عنوان «امضاکننده» ثبت شده‌ام، متعهد می‌شوم کلیه اطلاعات، اسناد، داده‌ها، کدها و هر مطلب غیرعمومی مرتبط با پروژه GMEL را محرمانه نگهدارم و بدون اجازه کتبی شرکت کیمیا کاران ماد یا نماینده قانونی آن، آن‌ها را افشا، منتشر یا بهره‌برداری نکنم. دوره تعهد محرمانگی ده سال از تاریخ خاتمه همکاری است. در صورت هر گونه افشا یا استفاده غیرمجاز، من متعهد به پرداخت جریمه پنج میلیارد تومان (50,000,000,000 ریال) و پذیرش پیگردهای حقوقی و کیفری خواهم بود. شرکت حق تعلیق یا لغو دسترسی و مطالبه خسارت بیش از مبلغ جریمه را خواهد داشت. این قرارداد از تاریخ امضای الکترونیکی معتبر و لازم‌الاجرا است. امضای الکترونیکی با ثبت بسته شواهد JSON شامل شناسه امضاکننده، هش سند، زمان UTC، آدرس IP، نتیجه KYC و liveness و شناسه تراکنش ثبت شواهد، به منزله امضای مکتوب است و برای طرح در مراجع قضایی پذیرفتنی است.`;
+export const nda_agree = "من شرایط توافق‌نامه عدم افشا را خوانده و با آن موافقت می‌کنم.";
+export const sign_and_activate = "امضا و فعال‌سازی دسترسی";
+export const access_granted_title = "دسترسی اعطا شد!";
+export const access_granted_message = "دسترسی شما فعال شد. اکنون می‌توانید به اسناد دقیق پروژه دسترسی داشته باشید. در زیر، گواهی ضد دستکاری امضای شما آورده شده است.";
+export const signature_proof = "بسته شواهد امضا (JSON)";
+export const return_to_dashboard = "بازگشت به داشبورد";

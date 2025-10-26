@@ -11,9 +11,6 @@ interface AppContextType {
   narrateText: (text: string) => void;
   cancelNarration: () => void;
   isSpeaking: boolean;
-  narratorVoice: string | null;
-  setNarratorVoice: (voiceName: string) => void;
-  availableVoices: SpeechSynthesisVoice[];
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -21,45 +18,13 @@ export const AppContext = createContext<AppContextType | null>(null);
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
     const [lang, setLang] = useState<Language>('en');
-    
-    // Narration State
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [narratorVoice, setNarratorVoice] = useState<string | null>(null);
 
     const supportedLangs = [
         { code: 'en' as Language, name: 'English' },
         { code: 'fa' as Language, name: 'فارسی (Persian)' },
     ];
     
-    // --- Voice Loading and Selection ---
-    useEffect(() => {
-        const loadVoices = () => {
-            setAvailableVoices(speechSynthesis.getVoices());
-        };
-        // Voices load asynchronously
-        speechSynthesis.onvoiceschanged = loadVoices;
-        loadVoices(); // Initial call
-
-        return () => {
-            speechSynthesis.onvoiceschanged = null;
-        };
-    }, []);
-
-    useEffect(() => {
-        if (availableVoices.length === 0) return;
-        // When language or available voices change, select the best one.
-        const bestVoiceForLang = 
-            availableVoices.find(v => v.lang.startsWith(locales[lang])) || 
-            availableVoices.find(v => v.lang.startsWith('en')) || 
-            availableVoices[0]; // Fallback to the first voice
-        
-        if (bestVoiceForLang) {
-            setNarratorVoice(bestVoiceForLang.name);
-        }
-    }, [lang, availableVoices]);
-    
-    // --- Narration Control ---
     const cancelNarration = () => {
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
@@ -80,8 +45,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const cleanText = text.replace(/---\n\*.+\*/g, '').trim();
         if (!cleanText) return;
 
-        // Chunk text to prevent errors with long strings in speech synthesis APIs
-        const MAX_CHUNK_LENGTH = 200; // A safe length for utterances
+        const MAX_CHUNK_LENGTH = 200;
         const chunks: string[] = [];
         let remainingText = cleanText;
 
@@ -90,13 +54,10 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 chunks.push(remainingText);
                 break;
             }
-
-            // Find last space within the max length to avoid splitting words
             let chunkEnd = remainingText.lastIndexOf(' ', MAX_CHUNK_LENGTH);
             if (chunkEnd === -1) {
                 chunkEnd = MAX_CHUNK_LENGTH;
             }
-
             chunks.push(remainingText.substring(0, chunkEnd));
             remainingText = remainingText.substring(chunkEnd).trim();
         }
@@ -111,23 +72,22 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 setIsSpeaking(false);
                 return;
             }
-
             const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
-            const selectedVoice = availableVoices.find(v => v.name === narratorVoice);
+            const allVoices = speechSynthesis.getVoices();
+
+            const desiredLangCode = locales[lang]; // e.g., 'en-US' or 'fa-IR'
+            const selectedVoice = allVoices.find(v => v.lang === desiredLangCode) || allVoices.find(v => v.lang.startsWith(lang));
             
             if (selectedVoice) {
                 utterance.voice = selectedVoice;
-                utterance.lang = selectedVoice.lang;
-            } else {
-                utterance.lang = locales[lang];
             }
+            utterance.lang = desiredLangCode;
 
             utterance.onend = () => {
                 currentChunkIndex++;
                 speakNextChunk();
             };
 
-            // Fix: Log the specific error message from the event
             utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
                 console.error("Speech synthesis error:", e.error);
                 setIsSpeaking(false);
@@ -135,10 +95,13 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
             speechSynthesis.speak(utterance);
         };
-
-        speakNextChunk();
+        // Voices may load async, give them a moment.
+        if (speechSynthesis.getVoices().length === 0) {
+            speechSynthesis.onvoiceschanged = speakNextChunk;
+        } else {
+            speakNextChunk();
+        }
     };
-
 
     const value = {
         region, setRegion,
@@ -147,9 +110,6 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         narrateText,
         cancelNarration,
         isSpeaking,
-        narratorVoice,
-        setNarratorVoice,
-        availableVoices
     };
 
     return (

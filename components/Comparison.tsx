@@ -6,9 +6,20 @@ import { Feedback } from './shared/Feedback';
 
 interface ComparisonData {
     metric: string;
-    qeshm: string;
-    makoo: string;
+    qeshm: string | { [key: string]: any };
+    makoo: string | { [key: string]: any };
 }
+
+// Helper to safely render content that might be an object
+const renderCellContent = (content: any): string => {
+    if (typeof content === 'object' && content !== null) {
+        if (typeof content.value === 'string') {
+            return content.value;
+        }
+        return JSON.stringify(content);
+    }
+    return String(content);
+};
 
 export const Comparison: React.FC = () => {
     const { t } = useI18n();
@@ -53,7 +64,7 @@ export const Comparison: React.FC = () => {
         const result = await generateTextWithThinking(context);
         setStrategicInsights(result);
         setIsInsightsLoading(false);
-    }
+    };
 
     return (
         <div className="space-y-8">
@@ -89,8 +100,8 @@ export const Comparison: React.FC = () => {
                             {comparisonData.map((row, index) => (
                                 <tr key={index} className="hover:bg-slate-700/50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{row.metric}</td>
-                                    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{row.qeshm}</td>
-                                    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{row.makoo}</td>
+                                    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.qeshm)}</td>
+                                    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.makoo)}</td>
                                 </tr>
                             ))}
                         </tbody>

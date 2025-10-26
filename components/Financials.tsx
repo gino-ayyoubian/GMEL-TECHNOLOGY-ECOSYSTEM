@@ -8,7 +8,7 @@ import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
 
-const COLORS = ['#0ea5e9', '#06b6d4', '#f59e0b', '#f97316', '#8b5cf6'];
+const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
 export const Financials: React.FC = () => {
     const { region } = useContext(AppContext)!;
@@ -16,13 +16,14 @@ export const Financials: React.FC = () => {
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
     
-    const initialInvestment = (FINANCIAL_DATA.find(d => d.component === 'Qeshm Pilot Implementation Cost')?.value || 80) + 
+    const baseInitialInvestment = (FINANCIAL_DATA.find(d => d.component === 'Qeshm Pilot Implementation Cost')?.value || 80) + 
                               (FINANCIAL_DATA.find(d => d.component === 'Initial R&D and Registration Cost')?.value || 5);
-    const annualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Pilot Revenue')?.value || 45;
+    const baseAnnualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Pilot Revenue')?.value || 45;
     
-    // Sensitivity states
-    const [revenueSensitivity, setRevenueSensitivity] = useState(20); // +/- 20%
-    const [investmentSensitivity, setInvestmentSensitivity] = useState(15); // +/- 15%
+    // Custom projection states
+    const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
+    const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
+
 
     const costData = FINANCIAL_DATA.filter(d => d.component.includes('Cost')).map(d => ({ name: d.component, value: d.value }));
     const revenueData = FINANCIAL_DATA.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
@@ -30,30 +31,14 @@ export const Financials: React.FC = () => {
     const pieData = [...costData, ...revenueData].map(d => ({ name: d.name, value: d.value }));
     
     const projectionData = useMemo(() => {
-        const scenarios = { optimistic: [], baseline: [], pessimistic: [] };
-
-        const optimisticRevenue = annualRevenue * (1 + revenueSensitivity / 100);
-        const pessimisticRevenue = annualRevenue * (1 - revenueSensitivity / 100);
-        
-        const optimisticInvestment = initialInvestment * (1 - investmentSensitivity / 100);
-        const pessimisticInvestment = initialInvestment * (1 + investmentSensitivity / 100);
-
-        for (let i = 0; i < 10; i++) {
-            const year = i + 1;
-            scenarios.optimistic.push({ year, net: (optimisticRevenue * year) - optimisticInvestment });
-            scenarios.baseline.push({ year, net: (annualRevenue * year) - initialInvestment });
-            scenarios.pessimistic.push({ year, net: (pessimisticRevenue * year) - pessimisticInvestment });
+        const data = [];
+        for (let i = 0; i < 11; i++) { // From year 0 to 10
+            const year = i;
+            const netRevenue = (customAnnualRevenue * year) - customInitialInvestment;
+            data.push({ year, net: netRevenue });
         }
-        
-        const combinedData = scenarios.baseline.map((item, i) => ({
-            year: item.year,
-            optimistic: scenarios.optimistic[i].net,
-            baseline: item.net,
-            pessimistic: scenarios.pessimistic[i].net,
-        }));
-
-        return combinedData;
-    }, [annualRevenue, initialInvestment, revenueSensitivity, investmentSensitivity]);
+        return data;
+    }, [customAnnualRevenue, customInitialInvestment]);
 
 
     const handleAnalysis = async () => {
@@ -68,48 +53,56 @@ export const Financials: React.FC = () => {
     }
 
     const handleExport = async () => {
-        try {
-            const logoDataUrl = KKM_LOGO_DATA_URL;
-            const doc = new jsPDF();
+        const doc = new jsPDF();
+        
+        const tableData = FINANCIAL_DATA.map(row => [row.component, row.value, row.unit, row.description]);
+        const tableHeaders = ["Component", "Value", "Unit", "Description"];
+
+        autoTable(doc, {
+            head: [tableHeaders],
+            body: tableData,
+            startY: 20,
+            didDrawPage: (data) => {
+                // Header
+                doc.setFontSize(18);
+                doc.setTextColor(40);
+                doc.text("GMEL Geothermal Vision - Financial Data", data.settings.margin.left, 15);
+            },
+        });
+
+        const totalPages = (doc as any).internal.getNumberOfPages();
+
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
             
-            const tableData = FINANCIAL_DATA.map(row => [row.component, row.value, row.unit, row.description]);
-            const tableHeaders = ["Component", "Value", "Unit", "Description"];
-    
-            autoTable(doc, {
-                head: [tableHeaders],
-                body: tableData,
-                didDrawPage: (data) => {
-                    // Watermark
-                    doc.saveGraphicsState();
-                    doc.setGState(new (doc as any).GState({opacity: 0.05}));
-                    
-                    const pageWidth = doc.internal.pageSize.getWidth();
-                    const pageHeight = doc.internal.pageSize.getHeight();
-                    const centerX = pageWidth / 2;
-                    const centerY = pageHeight / 2;
+            // WATERMARK
+            doc.saveGraphicsState();
+            doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+            doc.setFontSize(45);
+            doc.setTextColor(150);
+            const text = "KKM Int'l | Gino Ayyoubian | info@kkm-intl.xyz";
+            const textRotationAngle = 45;
+            const centerX = doc.internal.pageSize.getWidth() / 2;
+            const centerY = doc.internal.pageSize.getHeight() / 2;
+            doc.text(text, centerX, centerY, { align: 'center', angle: textRotationAngle });
+            if (KKM_LOGO_DATA_URL) {
+                doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
+            }
+            doc.restoreGraphicsState();
 
-                    if (logoDataUrl) {
-                        doc.addImage(logoDataUrl, 'JPEG', centerX - 50, centerY - 50, 100, 100);
-                    }
-                    
-                    doc.setFontSize(20);
-                    doc.setTextColor(150);
-                    doc.text("KKM International Group - Confidential", centerX, centerY + 60, { align: 'center' });
-
-                    doc.restoreGraphicsState();
-                }
-            });
-            
-            doc.setProperties({
-                title: 'GMEL Financial Data',
-                creator: 'KKM International Group',
-            });
-            doc.save('gmel_financial_data_secure.pdf');
-
-        } catch (error) {
-            console.error("Failed to generate PDF:", error);
-            alert("An error occurred while creating the PDF file.");
+            // FOOTER (Timestamp and Page Number)
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            const footerText = `Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`;
+            doc.text(footerText, 14, doc.internal.pageSize.getHeight() - 10);
         }
+        
+        doc.setProperties({
+            title: 'GMEL Financial Data (Confidential)',
+            creator: 'KKM International Group',
+        });
+
+        doc.save(`KKM_GMEL_Financials_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
     return (
@@ -142,31 +135,37 @@ export const Financials: React.FC = () => {
                     </div>
                 </div>
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                    <h2 className="text-xl font-semibold mb-4 text-white">{t('sensitivity_analysis')}</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <h2 className="text-xl font-semibold mb-4 text-white">{t('net_revenue_projection_title')}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 p-4 bg-slate-900/50 rounded-lg">
                         <div>
-                            <label htmlFor="revenueSensitivity" className="block text-sm font-medium text-slate-400">{t('revenue_variation')} (+/- {revenueSensitivity}%)</label>
-                            <input
-                                type="range"
-                                id="revenueSensitivity"
-                                min="0"
-                                max="50"
-                                value={revenueSensitivity}
-                                onChange={(e) => setRevenueSensitivity(Number(e.target.value))}
-                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                            />
+                            <label htmlFor="customAnnualRevenue" className="block text-sm font-medium text-slate-300">{t('custom_annual_revenue')}</label>
+                            <div className="mt-1 relative rounded-md shadow-sm">
+                                <input
+                                    type="number"
+                                    id="customAnnualRevenue"
+                                    value={customAnnualRevenue}
+                                    onChange={(e) => setCustomAnnualRevenue(Number(e.target.value) || 0)}
+                                    className="w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white"
+                                />
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span className="text-slate-400 sm:text-sm">B Toman</span>
+                                </div>
+                            </div>
                         </div>
-                         <div>
-                            <label htmlFor="investmentSensitivity" className="block text-sm font-medium text-slate-400">{t('investment_variation')} (+/- {investmentSensitivity}%)</label>
-                            <input
-                                type="range"
-                                id="investmentSensitivity"
-                                min="0"
-                                max="50"
-                                value={investmentSensitivity}
-                                onChange={(e) => setInvestmentSensitivity(Number(e.target.value))}
-                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                            />
+                        <div>
+                            <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300">{t('custom_initial_investment')}</label>
+                            <div className="mt-1 relative rounded-md shadow-sm">
+                                <input
+                                    type="number"
+                                    id="customInitialInvestment"
+                                    value={customInitialInvestment}
+                                    onChange={(e) => setCustomInitialInvestment(Number(e.target.value) || 0)}
+                                    className="w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white"
+                                />
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span className="text-slate-400 sm:text-sm">B Toman</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div style={{ width: '100%', height: 250 }}>
@@ -177,9 +176,7 @@ export const Financials: React.FC = () => {
                                 <YAxis tick={{ fill: '#94a3b8' }} unit=" B"/>
                                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="optimistic" name={t('optimistic_scenario')} stroke="#22c55e" strokeWidth={2} dot={false} />
-                                <Line type="monotone" dataKey="baseline" name={t('baseline_scenario')} stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" />
-                                <Line type="monotone" dataKey="pessimistic" name={t('pessimistic_scenario')} stroke="#ef4444" strokeWidth={2} dot={false} />
+                                <Line type="monotone" dataKey="net" name={t('net_revenue')} stroke="#3b82f6" strokeWidth={2} dot={{r: 4}} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>

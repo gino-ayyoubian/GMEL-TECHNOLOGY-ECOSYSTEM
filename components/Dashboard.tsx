@@ -8,13 +8,13 @@ import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 
-const COLORS = ['#0ea5e9', '#06b6d4', '#f59e0b', '#f97316', '#8b5cf6'];
+const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
 
 const DataCard: React.FC<{ title: string; value: string; description: string }> = ({ title, value, description }) => (
-  <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-    <h3 className="text-sm font-medium text-slate-400">{title}</h3>
-    <p className="mt-1 text-3xl font-semibold text-white">{value}</p>
+  <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:border-sky-500 cursor-pointer">
+    <h3 className="text-sm font-medium text-sky-400 uppercase tracking-wider">{title}</h3>
+    <p className="mt-2 text-4xl font-bold text-white tracking-tight">{value}</p>
     <p className="mt-2 text-xs text-slate-500">{description}</p>
   </div>
 );
