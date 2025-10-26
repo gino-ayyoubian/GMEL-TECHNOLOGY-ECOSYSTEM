@@ -50,7 +50,7 @@ export const Correspondence: React.FC = () => {
                     doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
                     doc.setFontSize(45);
                     doc.setTextColor(150);
-                    const text = "KKM Int'l | Gino Ayyoubian | info@kkm-intl.xyz";
+                    const text = "KKM Int'l | Gino Ayyoubian | info@kkm-intl.org";
                     const textRotationAngle = 45;
                     const centerX = doc.internal.pageSize.getWidth() / 2;
                     const centerY = doc.internal.pageSize.getHeight() / 2;
@@ -136,7 +136,7 @@ export const Correspondence: React.FC = () => {
                                 <div className="text-right text-xs">
                                     <p className="font-bold">Kimia Karan Maad (KKM) International</p>
                                     <p>On behalf of Gino Ayyoubian, Inventor</p>
-                                    <p>info@kkm-intl.xyz</p>
+                                    <p>info@kkm-intl.org</p>
                                 </div>
                             </div>
                             <div className="text-xs mb-6">

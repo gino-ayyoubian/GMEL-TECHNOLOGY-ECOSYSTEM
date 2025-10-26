@@ -3,6 +3,8 @@ import { Region } from '../types';
 import { Language, locales } from '../hooks/useI18n';
 
 interface AppContextType {
+  isAccessGranted: boolean;
+  grantAccess: () => void;
   region: Region;
   setRegion: (region: Region) => void;
   lang: Language;
@@ -16,6 +18,7 @@ interface AppContextType {
 export const AppContext = createContext<AppContextType | null>(null);
 
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [isAccessGranted, setIsAccessGranted] = useState(false);
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
     const [lang, setLang] = useState<Language>('en');
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -25,6 +28,10 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         { code: 'fa' as Language, name: 'فارسی (Persian)' },
     ];
     
+    const grantAccess = () => {
+        setIsAccessGranted(true);
+    };
+
     const cancelNarration = () => {
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
@@ -104,6 +111,8 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     const value = {
+        isAccessGranted,
+        grantAccess,
         region, setRegion,
         lang, setLang,
         supportedLangs,
