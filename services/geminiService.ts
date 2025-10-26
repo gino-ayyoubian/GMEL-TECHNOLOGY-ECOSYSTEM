@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse, Type, ChatMessage as GeminiChatMessage, Chat, Content } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type, Chat, Content } from "@google/genai";
 import { ChatMessage } from '../types';
 
 if (!process.env.API_KEY) {
