@@ -19,6 +19,7 @@ export const SiteAnalysis: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null); // To hold the map instance
     const markerRef = useRef<any>(null); // To hold the region marker instance
+    const userMarkerRef = useRef<any>(null); // To hold user location marker
 
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -32,7 +33,16 @@ export const SiteAnalysis: React.FC = () => {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(mapRef.current);
             
-             mapRef.current.on('locationerror', (e: any) => {
+            mapRef.current.on('locationfound', (e: any) => {
+                if (userMarkerRef.current) {
+                    mapRef.current.removeLayer(userMarkerRef.current);
+                }
+                userMarkerRef.current = L.marker(e.latlng).addTo(mapRef.current)
+                    .bindPopup("You are here.")
+                    .openPopup();
+            });
+
+            mapRef.current.on('locationerror', (e: any) => {
                 alert(`Location error: ${e.message}`);
             });
         }
@@ -83,11 +93,6 @@ export const SiteAnalysis: React.FC = () => {
     const handleLocate = () => {
         if (mapRef.current) {
             mapRef.current.locate({setView: true, maxZoom: 13});
-             mapRef.current.on('locationfound', (e: any) => {
-                L.marker(e.latlng).addTo(mapRef.current)
-                .bindPopup("You are here.")
-                .openPopup();
-            });
         }
     };
 
@@ -105,8 +110,7 @@ export const SiteAnalysis: React.FC = () => {
                      <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-lg z-0"></div>
                      <button onClick={handleLocate} title="Find my location" className="absolute top-20 right-6 z-10 p-2 bg-slate-700 text-white rounded-md shadow-lg hover:bg-slate-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                           <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                           <path fillRule="evenodd" d="M.458 10C.026 9.485 0 8.868 0 8.236c0-1.42.796-2.67 2-3.418V3a1 1 0 011-1h1.5a1 1 0 011 1v1.018a4.996 4.996 0 015 0V3a1 1 0 011-1H13a1 1 0 011 1v1.818c1.204.748 2 1.998 2 3.418 0 .632-.026 1.25-.458 1.764l-4.99 4.99a1 1 0 01-1.414 0L.458 10zM12 8.236c0-.632.026-1.25.458-1.764L10 3.586 7.542 6.472c.432.514.458 1.132.458 1.764a2 2 0 104 0z" clipRule="evenodd" />
+                           <path fillRule="evenodd" d="M10.022 1.13a.5.5 0 0 0-.044 0l-8.5 3a.5.5 0 0 0 .022.976l8.5-3a.5.5 0 0 0 .022-.976zM10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 1a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm-8.478 3.403a.5.5 0 0 0-.022.976l8.5 3a.5.5 0 0 0 .478-.022l8.5-3a.5.5 0 0 0-.022-.976l-8.5 3a.5.5 0 0 0-.456 0l-8.5-3z" clipRule="evenodd"/>
                         </svg>
                      </button>
                 </div>
