@@ -82,6 +82,44 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
   }
 };
 
+export const generateVideo = async (prompt: string, config: any): Promise<any> => {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY environment variable not set");
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    try {
+        const operation = await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt,
+            config
+        });
+        return operation;
+    } catch (error) {
+        console.error("Error generating video:", error);
+        if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
+            throw new Error("API_KEY_INVALID");
+        }
+        throw error;
+    }
+};
+
+export const getVideoOperation = async (operation: any): Promise<any> => {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY environment variable not set");
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    try {
+        const result = await ai.operations.getVideosOperation({ operation });
+        return result;
+    } catch (error) {
+        console.error("Error getting video operation status:", error);
+        if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
+            throw new Error("API_KEY_INVALID");
+        }
+        throw error;
+    }
+};
+
 export const continueChat = async (history: ChatMessage[]): Promise<string> => {
     // The last message is the new prompt, the rest is history
     const geminiHistory: Content[] = history.slice(0, -1).map(msg => ({

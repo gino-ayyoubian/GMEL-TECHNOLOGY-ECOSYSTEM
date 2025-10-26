@@ -45,6 +45,7 @@ const CLGSystemDiagram = () => (
 
 export const Technical: React.FC = () => {
     const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
+    const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
     const [diagrams, setDiagrams] = useState<Record<string, {isLoading: boolean, url: string | null, error: string | null}>>({});
     const [activeTopic, setActiveTopic] = useState<string | null>(null);
     const { t } = useI18n();
@@ -56,21 +57,26 @@ export const Technical: React.FC = () => {
         "Power Conversion (GMEL-ORC Compact)": t('tech_detail_power'),
         "Control System (GMEL-EHS)": t('tech_detail_control')
     };
+    
+    const handleToggleTopic = (topic: string) => {
+        setActiveTopic(activeTopic === topic ? null : topic);
+    };
 
     const getExplanation = async (topic: string, detail: string) => {
-        if (activeTopic === topic) {
-            setActiveTopic(null);
-            return;
-        }
-        
-        setActiveTopic(topic);
-        
         if (explanations[topic]?.text) return;
 
         setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
         const prompt = t('technical_explanation_prompt', { topic, detail });
         const result = await generateText(prompt, 'gemini-2.5-flash-lite');
         setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result ? result : t('error_no_explanation')} }));
+    };
+
+    const getDemystification = async (topic: string, detail: string) => {
+        if (demystified[topic]?.text) return;
+        setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
+        const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}`;
+        const result = await generateText(prompt, 'gemini-2.5-flash-lite');
+        setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result ? result : t('error_no_explanation')} }));
     };
 
     const getDiagram = async (topic: string) => {
@@ -95,31 +101,36 @@ export const Technical: React.FC = () => {
             <div className="space-y-4">
                 {Object.entries(techDetails).map(([topic, detail]) => (
                     <div key={topic} className="bg-slate-800 p-5 rounded-lg border border-slate-700">
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start cursor-pointer" onClick={() => handleToggleTopic(topic)}>
                             <div>
                                 <h3 className="text-lg font-semibold text-white flex items-center">
                                     {topic}
                                     <SpeakerIcon text={`${topic}. ${detail}`} />
+                                    <span className="ml-2 text-slate-500 transform transition-transform">
+                                        {activeTopic === topic ? '▼' : '▶'}
+                                    </span>
                                 </h3>
                                 <p className="text-sm text-slate-400 mt-1 max-w-xl">{detail}</p>
                             </div>
-                            <div className="flex items-center space-x-3 ms-4 flex-shrink-0">
-                                <button onClick={() => getDiagram(topic)} disabled={diagrams[topic]?.isLoading} title={t('generate_diagram')} className="p-2 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                </button>
-                                <button 
-                                    onClick={() => getExplanation(topic, detail)}
-                                    className="text-sky-400 hover:text-sky-300 transition-colors text-sm font-medium"
-                                >
-                                    {activeTopic === topic ? t('hide_details') : t('explain_more')}
-                                </button>
-                            </div>
                         </div>
-
-                        {topic === "Core System (GMEL-CLG)" && <CLGSystemDiagram />}
                         
-                        {(diagrams[topic] || (activeTopic === topic && explanations[topic])) && (
+                        {activeTopic === topic && (
                             <div className="mt-4 pt-4 border-t border-slate-700 space-y-4">
+                                <div className="flex items-center space-x-3 flex-wrap">
+                                    <button onClick={(e) => { e.stopPropagation(); getDiagram(topic); }} disabled={diagrams[topic]?.isLoading} title={t('generate_diagram')} className="flex items-center gap-2 text-sm px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        {t('generate_diagram')}
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); getExplanation(topic, detail); }} className="text-sky-400 hover:text-sky-300 transition-colors text-sm font-medium px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600">
+                                        {t('explain_more')}
+                                    </button>
+                                     <button onClick={(e) => { e.stopPropagation(); getDemystification(topic, detail); }} className="text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600">
+                                        {t('demystify_spec')}
+                                    </button>
+                                </div>
+                                
+                                {topic === "Core System (GMEL-CLG)" && <CLGSystemDiagram />}
+                                
                                 {diagrams[topic] && (
                                     <div>
                                         {diagrams[topic].isLoading && (
@@ -129,8 +140,25 @@ export const Technical: React.FC = () => {
                                         {diagrams[topic].url && <img src={diagrams[topic].url} alt={`Diagram for ${topic}`} className="w-full max-w-md mx-auto rounded-lg" />}
                                     </div>
                                 )}
-                                 {activeTopic === topic && explanations[topic] && (
-                                    <div>
+
+                                {demystified[topic] && (
+                                     <div className="p-4 bg-amber-900/20 rounded-lg border border-amber-500/30">
+                                        {demystified[topic].isLoading ? (
+                                            <p className="text-slate-500">{t('generating_explanation')}...</p>
+                                        ) : (
+                                            <div className="text-amber-300 text-sm whitespace-pre-wrap">
+                                                <div className="flex items-center">
+                                                    <h4 className="text-base font-semibold text-amber-200 mb-2">Simplified</h4>
+                                                    <SpeakerIcon text={demystified[topic].text || ''} />
+                                                </div>
+                                                <p>{demystified[topic].text}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                 
+                                {explanations[topic] && (
+                                    <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-600/50">
                                         {explanations[topic].isLoading ? (
                                             <p className="text-slate-500">{t('generating_explanation')}...</p>
                                         ) : (

@@ -12,18 +12,19 @@ import { SiteAnalysis } from './components/SiteAnalysis';
 import { Comparison } from './components/Comparison';
 import { Correspondence } from './components/Correspondence';
 import { AccessControl } from './components/AccessControl';
+import { VideoGenerator } from './components/VideoGenerator';
 import { Region } from './types';
 import { KKM_LOGO_DATA_URL } from './constants';
 // Fix: Import 'en' to use its keys for strong typing
 import * as en from './i18n/en';
 
 // --- KKM LOGO COMPONENT ---
-const KkmLogo = () => (
-    <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className="h-12 w-auto" />
+const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
+    <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className={className} />
 );
 
 // --- APP ---
-type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'chat' | 'site' | 'comparison' | 'correspondence';
+type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'video' | 'chat' | 'site' | 'comparison' | 'correspondence';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('dashboard');
@@ -57,6 +58,7 @@ const App: React.FC = () => {
       case 'comparison': return <Comparison />;
       case 'correspondence': return <Correspondence />;
       case 'image': return <ImageGenerator />;
+      case 'video': return <VideoGenerator />;
       case 'chat': return <GeminiChat />;
       default: return <Dashboard />;
     }
@@ -77,7 +79,7 @@ const App: React.FC = () => {
       <aside className={`w-64 flex-shrink-0 bg-slate-800 p-4 border-slate-700 flex flex-col ${lang === 'fa' ? 'border-l' : 'border-r'}`}>
         <div className="flex items-center mb-8">
           <div className="p-1 bg-white rounded-lg">
-            <KkmLogo />
+            <KkmLogo className="h-12 w-auto" />
           </div>
           <h1 className="mx-3 text-xl font-bold text-white">{t('app_title')}</h1>
         </div>
@@ -91,6 +93,7 @@ const App: React.FC = () => {
           <NavItem view="comparison" labelKey="nav_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>} />
           <NavItem view="correspondence" labelKey="nav_correspondence" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} />
           <NavItem view="image" labelKey="nav_concept" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
+          <NavItem view="video" labelKey="nav_video_generator" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>} />
         </nav>
         <div className="mt-auto space-y-2">
             <a
@@ -109,29 +112,34 @@ const App: React.FC = () => {
       </aside>
       <main className="flex-1 p-8 overflow-y-auto flex flex-col">
          <header className="flex-shrink-0 mb-8">
-            <div className="flex justify-end items-center gap-6">
-                <div className="flex items-center">
-                    <label htmlFor="region-select" className="text-sm font-medium text-slate-400 mx-3">{t('proposal_for')}</label>
-                    <select
-                        id="region-select"
-                        value={region}
-                        onChange={(e) => setRegion(e.target.value as Region)}
-                        className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold"
-                    >
-                        <option value="Qeshm Free Zone">Qeshm Free Zone</option>
-                        <option value="Makoo Free Zone">Makoo Free Zone</option>
-                    </select>
+            <div className="flex justify-between items-center gap-6">
+                 <div className="p-1 bg-white rounded-lg">
+                    <KkmLogo className="h-12 w-auto" />
                 </div>
-                <div className="flex items-center">
-                    <label htmlFor="lang-select" className="text-sm font-medium text-slate-400 mx-3">{t('language')}</label>
-                    <select
-                        id="lang-select"
-                        value={lang}
-                        onChange={(e) => setLang(e.target.value as Language)}
-                         className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold"
-                    >
-                        {supportedLangs.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
-                    </select>
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center">
+                        <label htmlFor="region-select" className="text-sm font-medium text-slate-400 mx-3">{t('proposal_for')}</label>
+                        <select
+                            id="region-select"
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value as Region)}
+                            className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold"
+                        >
+                            <option value="Qeshm Free Zone">Qeshm Free Zone</option>
+                            <option value="Makoo Free Zone">Makoo Free Zone</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center">
+                        <label htmlFor="lang-select" className="text-sm font-medium text-slate-400 mx-3">{t('language')}</label>
+                        <select
+                            id="lang-select"
+                            value={lang}
+                            onChange={(e) => setLang(e.target.value as Language)}
+                             className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold"
+                        >
+                            {supportedLangs.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
         </header>

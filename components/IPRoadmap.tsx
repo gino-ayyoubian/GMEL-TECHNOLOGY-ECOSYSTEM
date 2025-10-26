@@ -21,9 +21,27 @@ const PatentCard: React.FC<{ patent: Patent }> = ({ patent }) => {
     <div className={`relative bg-slate-800 p-4 rounded-lg border-l-4 ${levelColor} transition-colors h-full flex flex-col`}>
       <h3 className="font-bold text-white flex items-center">{patent.title} ({patent.code}) <SpeakerIcon text={narrationText} /></h3>
       <p className="text-sm text-slate-400 mt-1 flex-grow">{patent.application}</p>
-      <div className="mt-3 text-xs flex justify-between items-center text-slate-500">
-        <span>{t('status')}: <span className="font-medium text-slate-300">{patent.status}</span></span>
-        <span>{t('path')}: <span className="font-medium text-slate-300">{patent.path}</span></span>
+      
+      {patent.kpi && (
+        <div className="mt-3 text-xs font-semibold text-sky-400 bg-sky-500/10 p-2 rounded">
+            KPI: {patent.kpi}
+        </div>
+      )}
+
+      <div className="mt-3 space-y-2">
+         <div className="flex items-center gap-3">
+            <div className="w-full bg-slate-700 rounded-full h-2">
+                <div 
+                    className="bg-teal-400 h-2 rounded-full transition-all duration-500 ease-in-out" 
+                    style={{ width: `${patent.progress}%` }}
+                ></div>
+            </div>
+            <span className="text-sm font-semibold text-teal-300">{patent.progress}%</span>
+        </div>
+        <div className="text-xs flex justify-between items-center text-slate-500">
+            <span>{t('status')}: <span className="font-medium text-slate-300">{patent.status}</span></span>
+            <span>{t('path')}: <span className="font-medium text-slate-300">{patent.path}</span></span>
+        </div>
       </div>
     </div>
   );

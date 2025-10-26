@@ -8,6 +8,7 @@ export const nav_site = "Site Analysis";
 export const nav_comparison = "Comparison";
 export const nav_access_control = "Access Control";
 export const nav_concept = "Concept Generator";
+export const nav_video_generator = "Video Generator";
 export const nav_correspondence = "Official Correspondence";
 export const nav_assistant = "Project Assistant";
 export const contact_us = "Contact Us";
@@ -74,6 +75,7 @@ export const error_failed_diagram = "Failed to generate diagram.";
 export const generate_diagram = "Generate Diagram";
 export const hide_details = "Hide Details";
 export const explain_more = "Explain More";
+export const demystify_spec = "Demystify";
 export const generating_diagram = "Generating diagram";
 export const generating_explanation = "Generating explanation";
 export const detailed_explanation = "Detailed Explanation";
@@ -84,6 +86,7 @@ export const image_generator_title = "Project Concept Generator";
 export const image_generator_description = "Use Gemini's image generation capabilities (Imagen 4) to visualize concepts for the GMEL project in {region}. Describe a scene and let the AI bring it to life.";
 export const image_generator_default_prompt = "A photorealistic, 8k image of a futuristic, clean geothermal power plant on the coast of {region}, Iran, at sunset. The design is grounded in plausible near-future engineering, featuring details like industrial pipelines, control panels, and safety features with a sleek, high-tech aesthetic. It is integrated with a modern desalination facility.";
 export const image_prompt = "Image Prompt";
+export const video_prompt = "Video Prompt";
 export const image_generator_placeholder = "e.g., A diagram of a closed-loop geothermal system...";
 export const aspect_ratio = "Aspect Ratio";
 export const aspect_ratio_landscape = "Landscape (16:9)";
@@ -93,9 +96,12 @@ export const aspect_ratio_standard = "Standard (4:3)";
 export const aspect_ratio_tall = "Tall (3:4)";
 export const generating = "Generating...";
 export const generate_image = "Generate Image";
+export const generate_video = "Generate Video";
 export const generating_image_message = "Generating image, this may take a moment...";
 export const error_failed_image = "Failed to generate image. Please try again.";
 export const generated_concept = "Generated Concept";
+export const video_generator_title = "Video Concept Generator";
+export const video_generator_description = "Use Veo to generate a short video clip visualizing the GMEL technology in action, showcasing clean energy production and environmental benefits.";
 export const chat_greeting = "Hello! I am the GMEL Project Assistant. How can I help you with the proposal for {region}?";
 export const error_process_request = "I could not process your request.";
 export const chat_title = "Project Assistant Chat";
@@ -210,3 +216,41 @@ export const access_granted_title = "Access Granted!";
 export const access_granted_message = "Your credentials have been activated. You can now access detailed project materials. Below is the tamper-evident proof of your signature.";
 export const signature_proof = "Signature Evidence Package (JSON)";
 export const enter_portal = "Enter Project Portal";
+export const impact_calculator_title = "GMEL Impact Calculator";
+export const impact_calculator_description = "Quantify the potential economic, environmental, and social benefits of implementing a GMEL project. Adjust the project scale below and use Gemini to generate a detailed impact analysis based on the project's core data.";
+export const project_scale_mw = "Project Scale (MW)";
+export const calculate_impact = "Calculate Impact";
+export const calculating = "Calculating...";
+export const calculating_impact = "Calculating impact, this may take a moment...";
+export const impact_results_for = "Impact Results for a {scale} MW Project";
+export const economic_impact = "Economic Impact";
+export const environmental_impact = "Environmental Impact";
+export const social_impact = "Social Impact";
+export const error_generating_impact_analysis = "Error generating impact analysis. The AI response might be in an unexpected format. Please try again.";
+export const impact_generation_prompt = `
+    As an expert energy project analyst, calculate the projected annual impact of a GMEL geothermal project with a scale of {scale} MW. The GMEL technology has these characteristics:
+    - 95% thermal efficiency.
+    - Integrated applications: Direct Lithium Extraction (DLE), low-energy desalination, green hydrogen production, and thermal agriculture.
+    - Job creation factor: Up to 150 jobs/MW during construction and 30 permanent jobs/MW for operations and integrated industries.
+    - CO2 offset: A typical geothermal plant offsets ~700,000 tons of CO2 per 100 MW annually compared to coal. Assume GMEL is 15% more effective due to its efficiency and integrated carbon-neutral processes.
+    - Water production: Desalination modules can produce 5000 cubic meters of fresh water per day per 5 MW module.
+
+    Provide the output as a single JSON object. The object must have three keys: "economic", "environmental", and "social".
+    Each key's value should be an object with two keys: "metrics" and "narrative".
+    "metrics" should be an array of objects, each with "metric", "value", and "unit" keys.
+    "narrative" should be a short paragraph summarizing the key impacts for that category.
+
+    Calculate the following metrics:
+    - Economic:
+      - 'Annual Revenue': based on a pilot of $7.8M for 5MW. Unit: 'M USD'.
+      - 'Direct Jobs Created': operational jobs. Unit: 'Jobs'.
+      - 'Induced Economic Activity': multiplier effect, assume 1.5x direct revenue. Unit: 'M USD'.
+    - Environmental:
+      - 'CO2 Emissions Offset': in tons. Unit: 'Tons/Year'.
+      - 'Fresh Water Produced': in cubic meters. Unit: 'm³/Year'.
+    - Social:
+      - 'Households Powered': assume 1 MW powers ~1000 homes. Unit: 'Households'.
+      - 'Local Skill Development': This is a qualitative metric, provide a string value like "High" or "Significant". Unit: ''.
+
+    Make the values for the metrics scale linearly from the provided base data. Ensure the 'value' key is a number where applicable.
+`;

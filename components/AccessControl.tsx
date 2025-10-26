@@ -54,9 +54,6 @@ export const AccessControl: React.FC = () => {
 
     // Step 3 State
     const [ndaAgreed, setNdaAgreed] = useState(false);
-    
-    // Step 4 State
-    const [signatureProof, setSignatureProof] = useState<string | null>(null);
 
     useEffect(() => {
         if (step === 2 && !isVerified) {
@@ -97,8 +94,19 @@ export const AccessControl: React.FC = () => {
             user_agent: navigator.userAgent,
             notarization_proof: `anchor_tx_0x${Math.random().toString(16).substring(2, 12)}`
         };
-        setSignatureProof(JSON.stringify(proof, null, 2));
-        setStep(4);
+        const proofString = JSON.stringify(proof, null, 2);
+        
+        // --- Email Notification via mailto ---
+        // In a production application, this would be an API call to a secure backend service.
+        // For this frontend-only implementation, we use a 'mailto:' link to open the user's default email client.
+        const recipients = 'info@kkm-intl.xyz,Gino.ayyoubian@yandex.com';
+        const subject = `NDA Signed: GMEL Project Access for ${fullName} (${userId})`;
+        const body = `A new user has successfully signed the NDA and gained access to the GMEL Geothermal Vision portal.\n\n---Signature Evidence Package---\n\n${proofString}`;
+        
+        const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(mailtoLink, '_blank');
+
+        grantAccess();
     };
 
     return (
@@ -186,22 +194,6 @@ export const AccessControl: React.FC = () => {
                             </label>
                         </div>
                         <button onClick={handleSign} disabled={!ndaAgreed} className="mt-4 w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 disabled:text-slate-400 disabled:cursor-not-allowed rounded-md font-semibold text-white transition-colors">{t('sign_and_activate')}</button>
-                    </div>
-                )}
-                 {step === 4 && (
-                    <div className="text-center w-full max-w-2xl">
-                        <div className="w-16 h-16 bg-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                        </div>
-                        <h2 className="text-2xl font-bold text-teal-400">{t('access_granted_title')}</h2>
-                        <p className="mt-2 text-slate-400">{t('access_granted_message')}</p>
-                        <div className="mt-6 text-left">
-                            <label className="block text-sm font-medium text-slate-300">{t('signature_proof')}</label>
-                            <pre className="mt-1 p-4 bg-slate-900 rounded-md h-64 overflow-y-auto border border-slate-600 text-slate-300 text-xs font-mono">
-                                {signatureProof}
-                            </pre>
-                        </div>
-                        <button onClick={grantAccess} className="mt-6 py-2.5 px-6 bg-teal-600 hover:bg-teal-500 rounded-md font-semibold text-white transition-colors">{t('enter_portal')}</button>
                     </div>
                 )}
             </div>

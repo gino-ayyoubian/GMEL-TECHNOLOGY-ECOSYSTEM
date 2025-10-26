@@ -16,16 +16,14 @@ export const Financials: React.FC = () => {
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
     
-    const baseInitialInvestment = (FINANCIAL_DATA.find(d => d.component === 'Qeshm Pilot Implementation Cost')?.value || 80) + 
-                              (FINANCIAL_DATA.find(d => d.component === 'Initial R&D and Registration Cost')?.value || 5);
-    const baseAnnualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Pilot Revenue')?.value || 45;
+    const baseInitialInvestment = FINANCIAL_DATA.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
+    const baseAnnualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
     
     // Custom projection states
     const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
     const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
 
-
-    const costData = FINANCIAL_DATA.filter(d => d.component.includes('Cost')).map(d => ({ name: d.component, value: d.value }));
+    const costData = FINANCIAL_DATA.filter(d => d.component.includes('Cost') || d.component.includes('CAPEX')).map(d => ({ name: d.component, value: d.value }));
     const revenueData = FINANCIAL_DATA.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
 
     const pieData = [...costData, ...revenueData].map(d => ({ name: d.name, value: d.value }));
@@ -40,6 +38,25 @@ export const Financials: React.FC = () => {
         return data;
     }, [customAnnualRevenue, customInitialInvestment]);
 
+    // Enhanced tooltip providing Net Revenue, Cumulative ROI, and Payback Period.
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            const year = label;
+            const netRevenue = payload[0].value;
+            const paybackPeriod = (customInitialInvestment / customAnnualRevenue).toFixed(1);
+            const roi = year > 0 ? ((netRevenue / customInitialInvestment) * 100).toFixed(1) : 0;
+
+            return (
+                <div className="p-2 bg-slate-900 border border-slate-700 rounded-md shadow-lg text-sm">
+                    <p className="label text-slate-300 font-bold">{`Year ${label}`}</p>
+                    <p className="intro text-sky-400">{`Net Revenue: ${netRevenue.toFixed(1)} B Toman`}</p>
+                    {year > 0 && <p className="desc text-slate-400">{`Cumulative ROI: ${roi}%`}</p>}
+                    <p className="desc text-slate-400">{`Est. Payback: ${paybackPeriod} Years`}</p>
+                </div>
+            );
+        }
+        return null;
+    };
 
     const handleAnalysis = async () => {
         setIsLoading(true);
@@ -174,7 +191,7 @@ export const Financials: React.FC = () => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                                 <XAxis dataKey="year" tick={{ fill: '#94a3b8' }} unit=" yr"/>
                                 <YAxis tick={{ fill: '#94a3b8' }} unit=" B"/>
-                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1, strokeDasharray: '3 3' }} />
                                 <Legend />
                                 <Line type="monotone" dataKey="net" name={t('net_revenue')} stroke="#3b82f6" strokeWidth={2} dot={{r: 4}} />
                             </LineChart>

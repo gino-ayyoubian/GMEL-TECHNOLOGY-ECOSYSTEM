@@ -9,14 +9,14 @@ const regionSpecificContexts = {
     'Qeshm Free Zone': `
 - Strategic location in the Persian Gulf, critical need for fresh water (desalination is a primary value proposition).
 - Logistical and energy hub with synergies with existing industries.
-- Pilot Project: 1.5MW capacity, 500 m³/day desalination, 80 billion Toman cost, ~3.5 year ROI.
-- Integrated Applications: Thermal desalination, thermal agriculture, lithium extraction from brine.
+- Pilot Project: 5MW capacity, 575 billion Toman CAPEX, ~2 year payback.
+- Integrated Applications: Thermal desalination, thermal agriculture, lithium extraction from brine, e-fuels.
 - Export Potential: Ideal port infrastructure for exporting portable GMEL-ORC units to Gulf countries.
 `,
     'Makoo Free Zone': `
 - Strategic location as a gateway to Turkey and Europe, potential for cross-border energy sales.
 - Cold climate makes geothermal heating for agriculture (greenhouses) and industry highly valuable.
-- Pilot Project: 1.5MW capacity, 80 billion Toman cost, ~3.5 year ROI, focused on electricity export and direct heat.
+- Pilot Project: 5MW capacity, 575 billion Toman CAPEX, ~2 year payback, focused on electricity export and direct heat.
 - Integrated Applications: Thermal agriculture, process heat for industrial parks.
 - Export Potential: Technology showcase for export to Turkey, Caucasus, and Central Asia.
 `
@@ -26,9 +26,29 @@ const regionSpecificContexts = {
 const buildDynamicContext = (query: string, region: Region): string => {
     const lowerQuery = query.toLowerCase();
     const specificContexts: string[] = [];
+    const allPatents = [CORE_PATENT, ...PATENT_PORTFOLIO];
+
+    const techKeywords: { [key: string]: string[] } = {
+        'GMEL-ThermoFluid': ['fluid', 'nanocomposite', 'thermal fluid', 'heat transfer'],
+        'GMEL-ORC Compact': ['orc', 'converter', 'power conversion', 'rankine'],
+        'GMEL-DrillX': ['drilling', 'drillx', 'robot'],
+        'GMEL-EHS': ['sensor', 'control', 'quantum', 'ehs'],
+        'GMEL-Desal': ['desalination', 'water', 'desal'],
+        'GMEL-H₂Cell': ['hydrogen', 'h2', 'electrolysis'],
+        'GMEL-LithiumLoop': ['lithium', 'dle', 'extraction'],
+    };
+
+    // --- Technical Context from Patents ---
+    for (const code in techKeywords) {
+        if (techKeywords[code].some(k => lowerQuery.includes(k))) {
+            const patent = allPatents.find(p => p.code === code);
+            if (patent) {
+                specificContexts.push(`---RELEVANT TECHNICAL DETAIL---\n${patent.title} (${patent.code}): ${patent.application}. Key Metric: ${patent.kpi}`);
+            }
+        }
+    }
 
     // --- Patent Context ---
-    const allPatents = [CORE_PATENT, ...PATENT_PORTFOLIO];
     const mentionedPatents = allPatents.filter(p => 
         lowerQuery.includes(p.code.toLowerCase()) || 
         lowerQuery.includes(p.title.toLowerCase())
@@ -47,9 +67,9 @@ const buildDynamicContext = (query: string, region: Region): string => {
     if (mentionedFinancials.length > 0) {
         specificContexts.push(`---RELEVANT FINANCIAL DETAILS---\n${mentionedFinancials.map(d => `- ${d.component}: ${d.value} ${d.unit} (${d.description})`).join('\n')}`);
     } else {
-        const financialKeywords = ['financial', 'cost', 'revenue', 'investment', 'roi', 'toman', 'price', 'money', 'economic'];
+        const financialKeywords = ['financial', 'cost', 'revenue', 'investment', 'roi', 'toman', 'price', 'money', 'economic', 'capex', 'npv'];
         if (financialKeywords.some(k => lowerQuery.includes(k))) {
-            specificContexts.push(`---FINANCIAL DATA (BASELINE)---\n${FINANCIAL_DATA.map(d => `- ${d.component}: ${d.value} ${d.unit}`).join('\n')}`);
+            specificContexts.push(`---FINANCIAL DATA (5MW Pilot)---\n${FINANCIAL_DATA.map(d => `- ${d.component}: ${d.value} ${d.unit}`).join('\n')}`);
         }
     }
     
@@ -77,13 +97,12 @@ const buildDynamicContext = (query: string, region: Region): string => {
     // --- Dynamic Context ---
     if (specificContexts.length === 0) {
         // --- General Query Enhancement ---
-        // If no specific context was added, provide more detail on the core technology
         context += `---CORE TECHNOLOGY UNIQUE SELLING PROPOSITIONS (GMEL-CLG)---\n`;
-        context += `- System Type: Closed-Loop Geothermal System for low-gradient thermal resources.\n`;
-        context += `- Key Innovation: Utilizes a natural thermosiphon effect for fluid circulation.\n`;
-        context += `- Major Advantage 1: Pump-free operation, which significantly reduces parasitic energy loss and operational costs.\n`;
-        context += `- Major Advantage 2: Does not require water injection (fracking), eliminating associated environmental risks and water sourcing issues.\n`;
-        context += `- Efficiency: Designed to be highly efficient in geological areas where traditional geothermal systems are not viable.\n\n`;
+        context += `- System Type: Advanced Closed-Loop Geothermal for low-gradient resources, integrated with superhot rock drilling.\n`;
+        context += `- Key Innovation: Utilizes a natural thermosiphon effect for fluid circulation, enhanced by predictive AI.\n`;
+        context += `- Major Advantage 1: Pump-free operation reduces parasitic energy loss and operational costs.\n`;
+        context += `- Major Advantage 2: No water injection (fracking), eliminating environmental risks.\n`;
+        context += `- Efficiency: 95% thermal efficiency.\n\n`;
     } else {
         context += specificContexts.join('\n\n') + '\n\n';
     }

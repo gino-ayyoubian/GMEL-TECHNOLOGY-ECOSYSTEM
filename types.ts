@@ -5,6 +5,8 @@ export interface Patent {
   application: string;
   status: string;
   path: string;
+  kpi?: string;
+  progress: number;
 }
 
 export interface FinancialData {

@@ -17,10 +17,20 @@ interface AppContextType {
 
 export const AppContext = createContext<AppContextType | null>(null);
 
+const checkAccessFromStorage = (): boolean => {
+    try {
+        const storedValue = sessionStorage.getItem('gmel_access_granted');
+        return storedValue === 'true';
+    } catch (error) {
+        console.warn("Could not read from sessionStorage", error);
+        return false;
+    }
+};
+
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isAccessGranted, setIsAccessGranted] = useState(false);
+    const [isAccessGranted, setIsAccessGranted] = useState(checkAccessFromStorage());
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
-    const [lang, setLang] = useState<Language>('en');
+    const [lang, setLang] = useState<Language>('fa');
     const [isSpeaking, setIsSpeaking] = useState(false);
 
     const supportedLangs = [
@@ -29,6 +39,11 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ];
     
     const grantAccess = () => {
+        try {
+            sessionStorage.setItem('gmel_access_granted', 'true');
+        } catch (error) {
+            console.warn("Could not write to sessionStorage", error);
+        }
         setIsAccessGranted(true);
     };
 
