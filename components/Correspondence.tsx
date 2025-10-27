@@ -1,6 +1,5 @@
 import React, { useState, useContext, useRef } from 'react';
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { generateText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
@@ -40,14 +39,8 @@ export const Correspondence: React.FC = () => {
         if (!letterRef.current) return;
         const doc = new jsPDF();
         
-        // For proper Persian text rendering, a font that supports Arabic script (like Amiri) is required.
-        // In a real-world scenario, you would load this font file into jsPDF.
-        // This code sets the direction and font, which will fallback gracefully if the font isn't loaded.
-        if (lang === 'fa') {
-            // Example: doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal'); // Font file would be needed
-            doc.setFont('Amiri', 'normal'); // Fallbacks to helvetica if font not present
-            doc.setR2L(true);
-        }
+        // The font settings and RTL direction are handled by the CSS and browser rendering.
+        // `doc.html` will capture the visual output.
 
         doc.html(letterRef.current, {
             callback: function (doc) {
@@ -83,7 +76,8 @@ export const Correspondence: React.FC = () => {
             width: 180,
             windowWidth: letterRef.current.scrollWidth,
             html2canvas: {
-                scale: 0.25,
+                scale: 0.5, // Increased for better quality
+                useCORS: true,
             }
         });
     };
@@ -146,7 +140,7 @@ export const Correspondence: React.FC = () => {
                         <div ref={letterRef} className="p-8 bg-white text-slate-800 rounded-md font-serif text-sm" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
                             <div className="flex justify-between items-start mb-8">
                                 <img src={KKM_LOGO_DATA_URL} alt="KKM Logo" className="h-16 w-auto" />
-                                <div className="text-right text-xs">
+                                <div className="text-xs" style={{textAlign: lang === 'fa' ? 'left' : 'right'}}>
                                     <p className="font-bold">Kimia Karan Maad (KKM) International</p>
                                     <p>On behalf of Seyed Gino Ayyoubian, Inventor</p>
                                     <p>info@kkm-intl.org</p>

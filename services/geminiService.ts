@@ -28,9 +28,6 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
-      config: {
-        thinkingConfig: { thinkingBudget: 32768 }
-      }
     });
     return response.text;
   } catch (error) {

@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { generateTextWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
@@ -109,77 +108,95 @@ export const ProposalGenerator: React.FC = () => {
 
     const handleExportPdf = () => {
         if (!proposalData) return;
-        const doc = new jsPDF();
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
         const data = proposalData.gmel_proposal;
-
-        // For proper Persian text rendering, a font that supports Arabic script (like Amiri) is required.
-        if (lang === 'fa') {
-            // Example: doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal'); // Font file would be needed
-            doc.setFont('Amiri', 'normal'); // Fallbacks to helvetica if font not present
-            doc.setR2L(true);
-        }
-
-        let yPos = 20;
-
-        // Header
-        if (KKM_LOGO_DATA_URL) {
-            doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', 15, 10, 30, 30);
-        }
-        doc.setFontSize(18);
-        doc.text("GeoMeta Energy Layer: Intelligent Project Proposal", 50, 25);
-        doc.setFontSize(12);
-        doc.text(`Region: ${data.region}`, 50, 35);
-        yPos = 50;
-
-        const addSection = (title: string, content: string) => {
-            const splitContent = doc.splitTextToSize(content, 180);
-            const contentHeight = splitContent.length * 5; // Approximate height
-            if (yPos + contentHeight + 20 > 280) { // Check if new page is needed
-                doc.addPage();
-                yPos = 20;
-            }
-            doc.setFontSize(14);
-            doc.setTextColor(52, 102, 171); // Blue
-            doc.text(title, 15, yPos);
-            yPos += 8;
-            doc.setFontSize(10);
-            doc.setTextColor(40);
-            const xPos = lang === 'fa' ? doc.internal.pageSize.getWidth() - 15 : 15;
-            doc.text(splitContent, xPos, yPos, { align: lang === 'fa' ? 'right' : 'left' });
-            yPos += contentHeight + 10;
+    
+        const reportElement = document.createElement('div');
+        reportElement.style.width = '210mm';
+        reportElement.style.boxSizing = 'border-box';
+        reportElement.style.padding = '15mm';
+        reportElement.style.color = '#333';
+        reportElement.style.backgroundColor = '#fff';
+        reportElement.style.fontFamily = lang === 'fa' ? "'Vazirmatn', sans-serif" : "'Inter', sans-serif";
+        reportElement.style.direction = lang === 'fa' ? 'rtl' : 'ltr';
+        reportElement.style.fontSize = '10pt';
+    
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15mm; padding-bottom: 5mm; border-bottom: 1px solid #eee;">
+                <img src="${KKM_LOGO_DATA_URL}" style="height: 25mm;" />
+                <div style="text-align: ${lang === 'fa' ? 'left' : 'right'};">
+                    <h1 style="font-size: 18pt; font-weight: bold; margin: 0; color: #0284c7;">GeoMeta Energy Layer</h1>
+                    <p style="font-size: 12pt; margin: 0;">Intelligent Project Proposal</p>
+                    <p style="font-size: 10pt; margin: 2mm 0 0;">Region: ${data.region}</p>
+                </div>
+            </div>
+        `;
+    
+        const createSection = (title: string, content: string | string[]) => {
+            const contentHtml = Array.isArray(content)
+                ? `<ul style="padding-${lang === 'fa' ? 'right' : 'left'}: 20px;">${content.map(item => `<li style="margin-bottom: 5px;">${item}</li>`).join('')}</ul>`
+                : `<p style="white-space: pre-wrap; line-height: 1.6; text-align: justify;">${content.replace(/\n/g, '<br/>')}</p>`;
+    
+            return `
+                <div style="margin-top: 10mm; page-break-inside: avoid;">
+                    <h2 style="font-size: 14pt; font-weight: bold; color: #0ea5e9; border-bottom: 1.5px solid #0ea5e9; padding-bottom: 2mm; margin-bottom: 4mm;">${title}</h2>
+                    <div style="font-size: 10pt;">${contentHtml}</div>
+                </div>
+            `;
         };
-
-        addSection(t('executive_summary'), data.executive_summary);
-        addSection(t('regional_analysis'), data.regional_analysis);
-        addSection(t('technical_modeling'), data.technical_modeling);
-        addSection(t('financial_analysis'), data.financial_analysis);
-        addSection(t('innovation_patent_layer'), data.innovation_and_patent_layer);
-        addSection(t('strategy_model'), data.strategy_model);
-        addSection(t('risk_roadmap'), data.risk_and_roadmap);
-        
-        // Final page content
-        addSection(t('gmel_patent_reference'), data.gmel_patent_reference.join(', '));
-        addSection(t('ownership_statement'), data.ownership_statement);
-
-        const totalPages = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            
-            // WATERMARK
-            doc.saveGraphicsState();
-            doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
-            doc.setFontSize(45);
-            doc.setTextColor(150);
-            doc.text("GeoMeta Energy Layer – KKM Int'l Group", doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() / 2, { align: 'center', angle: 45 });
-            doc.restoreGraphicsState();
-
-            // FOOTER
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.text(`Page ${i} of ${totalPages} | Confidential | Inventor: Seyed Gino Ayyoubian`, 15, 290);
-        }
-
-        doc.save(`GMEL_Proposal_${data.region.replace(/\s/g, '_')}.pdf`);
+    
+        html += createSection(t('executive_summary'), data.executive_summary);
+        html += createSection(t('regional_analysis'), data.regional_analysis);
+        html += createSection(t('technical_modeling'), data.technical_modeling);
+        html += createSection(t('financial_analysis'), data.financial_analysis);
+        html += createSection(t('innovation_patent_layer'), data.innovation_and_patent_layer);
+        html += createSection(t('strategy_model'), data.strategy_model);
+        html += createSection(t('risk_roadmap'), data.risk_and_roadmap);
+        html += createSection(t('gmel_patent_reference'), data.gmel_patent_reference);
+        html += createSection(t('ownership_statement'), data.ownership_statement);
+    
+        reportElement.innerHTML = html;
+    
+        // Hide it and add to body to be rendered by browser
+        reportElement.style.position = 'absolute';
+        reportElement.style.left = '-300mm'; // Far off screen
+        reportElement.style.top = '0';
+        document.body.appendChild(reportElement);
+    
+        doc.html(reportElement, {
+            callback: function(doc) {
+                const totalPages = (doc as any).internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+                    
+                    // WATERMARK
+                    doc.saveGraphicsState();
+                    doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+                    doc.setFontSize(45);
+                    doc.setTextColor(150);
+                    const watermarkText = "GeoMeta Energy Layer – KKM Int'l Group";
+                    doc.text(watermarkText, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() / 2, { align: 'center', angle: 45 });
+                    doc.restoreGraphicsState();
+    
+                    // FOOTER
+                    doc.setFontSize(8);
+                    doc.setTextColor(100);
+                    doc.text(`Page ${i} of ${totalPages} | Confidential | Inventor: Seyed Gino Ayyoubian`, 15, doc.internal.pageSize.getHeight() - 10);
+                }
+                doc.save(`GMEL_Proposal_${data.region.replace(/\s/g, '_')}.pdf`);
+                document.body.removeChild(reportElement);
+            },
+            margin: [15, 15, 15, 15],
+            autoPaging: 'text',
+            html2canvas: {
+                scale: 0.5,
+                useCORS: true,
+            }
+        });
     };
 
     return (
