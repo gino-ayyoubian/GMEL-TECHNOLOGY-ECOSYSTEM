@@ -10,6 +10,36 @@ import { Feedback } from './shared/Feedback';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
+// Helper to extract a JSON object from a string that might contain markdown or other text.
+const extractJson = (text: string): any | null => {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    let start = -1;
+
+    if (firstBrace === -1 && firstBracket === -1) return null;
+    if (firstBrace === -1) start = firstBracket;
+    else if (firstBracket === -1) start = firstBrace;
+    else start = Math.min(firstBrace, firstBracket);
+    
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    let end = -1;
+    
+    if (lastBrace === -1 && lastBracket === -1) return null;
+    if (lastBrace === -1) end = lastBracket;
+    else if (lastBracket === -1) end = lastBrace;
+    else end = Math.max(lastBrace, lastBracket);
+    
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString, error);
+        return null;
+    }
+};
 
 const DataCard: React.FC<{ title: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, value, description, icon }) => (
   <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:border-sky-500 cursor-pointer">
@@ -140,10 +170,8 @@ const ImpactCalculator: React.FC = () => {
         const result = await generateTextWithThinking(prompt);
         
         try {
-            // Clean the result from markdown code blocks
-            const cleanResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(cleanResult);
-            if (parsed.economic && parsed.environmental && parsed.social) {
+            const parsed = extractJson(result);
+            if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
                 throw new Error("Invalid format received from API");
@@ -227,23 +255,56 @@ const ImpactCalculator: React.FC = () => {
     );
 };
 
+const GMELStatementBanner = () => {
+    const { t } = useI18n();
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const hasSeenStatement = sessionStorage.getItem('gmel_statement_seen');
+        if (!hasSeenStatement) {
+            setIsVisible(true);
+        }
+    }, []);
+
+    const handleDismiss = () => {
+        sessionStorage.setItem('gmel_statement_seen', 'true');
+        setIsVisible(false);
+    };
+
+    if (!isVisible) return null;
+
+    return (
+        <div className="bg-slate-800 border border-sky-500/30 rounded-lg p-6 mb-8 relative animate-fade-in-down">
+            <button onClick={handleDismiss} className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors" aria-label="Dismiss">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-2xl font-bold text-sky-400 mb-4">{t('gmel_statement_title')}</h2>
+            <div className="max-h-64 overflow-y-auto pr-4 text-slate-300 text-sm space-y-4 whitespace-pre-wrap">
+                <p>{t('gmel_statement_body')}</p>
+            </div>
+        </div>
+    );
+};
+
 
 export const Dashboard: React.FC = () => {
     const { region } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
-    const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+    const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
+    const fetchSummary = async () => {
+        setIsSummaryLoading(true);
+        const prompt = getProjectSummaryPrompt(region);
+        const result = await generateGroundedText(prompt);
+        setSummary(result.text);
+        setIsSummaryLoading(false);
+    };
+    
     useEffect(() => {
-        const fetchSummary = async () => {
-            setIsSummaryLoading(true);
-            const prompt = getProjectSummaryPrompt(region);
-            const result = await generateGroundedText(prompt);
-            setSummary(result.text);
-            setIsSummaryLoading(false);
-        };
-        fetchSummary();
+        setSummary('');
+        setStrategicAnalysis('');
     }, [region]);
 
     const chartData = FINANCIAL_DATA.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
@@ -261,6 +322,7 @@ export const Dashboard: React.FC = () => {
   
     return (
     <div className="space-y-8">
+      <GMELStatementBanner />
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
@@ -288,15 +350,25 @@ export const Dashboard: React.FC = () => {
                         <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
                         <div className="h-4 bg-slate-700 rounded w-3/4 animate-pulse"></div>
                     </div>
-                ) : (
+                ) : summary ? (
                     <p className="text-slate-400 text-sm mb-6 whitespace-pre-wrap">{summary}</p>
+                ) : (
+                     <div className="text-center py-4">
+                        <p className="text-slate-500 mb-4">Click the button to generate a project summary for {region}.</p>
+                        <button onClick={fetchSummary} className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg transition-colors">{t('generate_summary')}</button>
+                    </div>
                 )}
 
-                <ThinkingButton 
-                    prompt={t('strategic_analysis_prompt', { region })}
-                    onResult={setStrategicAnalysis}
-                />
-                {summary && !isSummaryLoading && <Feedback sectionId={`summary-${region}`} />}
+                {summary && !isSummaryLoading && (
+                    <>
+                        <ThinkingButton 
+                            prompt={t('strategic_analysis_prompt', { region })}
+                            onResult={setStrategicAnalysis}
+                        />
+                        <Feedback sectionId={`summary-${region}`} />
+                    </>
+                )}
+
 
                 {strategicAnalysis && (
                     <div className="mt-6 p-4 bg-slate-900 rounded-lg border border-sky-500/30">

@@ -80,31 +80,40 @@ export const AccessControl: React.FC = () => {
                 hash = ((hash << 5) - hash) + char;
                 hash = hash & hash; // Convert to 32bit integer
             }
-            return `sha256-${hash.toString(16)}`;
+            return `0x${Math.abs(hash).toString(16)}`;
         }
         
         const proof = {
-            document_id: `NDA-GMEL-${new Date().getFullYear()}-001`,
-            document_hash: simpleHash(t('nda_body')),
-            signer_id: userId,
-            signer_name: fullName,
-            signer_email: email,
-            id_document: { type: "passport", number: "A1234567" },
-            kyc_method: "TrustedKYC (Simulated)",
-            liveness_result: true,
-            signature_method: "TrustedSign (Simulated)",
-            timestamp_utc: new Date().toISOString(),
-            ip_address: "79.1.2.3", // Simulated IP
-            user_agent: navigator.userAgent,
-            notarization_proof: `anchor_tx_0x${Math.random().toString(16).substring(2, 12)}`
+            "signer_id": userId,
+            "signer_name": fullName,
+            "signer_email": email,
+            "document_details": {
+                "document_id": `NDA-GMEL-${new Date().getFullYear()}-001`,
+                "document_hash": simpleHash(t('nda_body')),
+                "agreement_text": t('nda_body')
+            },
+            "verification_details": {
+                "id_document_hash": idFile ? simpleHash(idFile.name + idFile.size) : null,
+                "liveness_check_passed": livenessVideo,
+                "kyc_provider": "GMEL-SecureKYC (Simulated)",
+                "verification_timestamp_utc": new Date().toISOString()
+            },
+            "signature_details": {
+                "signature_method": "GMEL-SecureSign (Electronic Consent)",
+                "timestamp_utc": new Date().toISOString(),
+                "ip_address": "79.1.2.3", // Simulated IP
+                "user_agent": navigator.userAgent
+            },
+            "legal_traceability": {
+                "evidence_package_id": `sig-${simpleHash(userId + new Date().toISOString())}`,
+                "notarization_tx_id": `anchor_tx_${simpleHash(Math.random().toString())}`
+            }
         };
+        
         const proofString = JSON.stringify(proof, null, 2);
         
         setSignatureProof(proofString);
 
-        // Per GMEL directive, this process is automated without manual email steps.
-        // In a real system, an API call would be made here to a secure backend to log the signature and notify stakeholders.
-        // For this frontend simulation, we proceed directly to the access granted screen.
         setStep(4);
     };
 

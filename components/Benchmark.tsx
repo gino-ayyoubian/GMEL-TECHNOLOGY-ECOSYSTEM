@@ -5,6 +5,37 @@ import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 
+// Helper to extract a JSON object from a string that might contain markdown or other text.
+const extractJson = (text: string): any | null => {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    let start = -1;
+
+    if (firstBrace === -1 && firstBracket === -1) return null;
+    if (firstBrace === -1) start = firstBracket;
+    else if (firstBracket === -1) start = firstBrace;
+    else start = Math.min(firstBrace, firstBracket);
+    
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    let end = -1;
+    
+    if (lastBrace === -1 && lastBracket === -1) return null;
+    if (lastBrace === -1) end = lastBracket;
+    else if (lastBracket === -1) end = lastBrace;
+    else end = Math.max(lastBrace, lastBracket);
+    
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString, error);
+        return null;
+    }
+};
+
 const baseRegions = ["Iceland", "Turkey (Denizli/Aydin)", "USA (California's Salton Sea)", "Germany (Bavaria)"];
 const comparisonRegions = ["Qeshm Free Zone", "Makoo Free Zone", ...baseRegions];
 
@@ -36,7 +67,7 @@ export const Benchmark: React.FC = () => {
     const [region1, setRegion1] = useState<string>('Qeshm Free Zone');
     const [region2, setRegion2] = useState<string>('Iceland');
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleCompare = async (r1: string, r2: string) => {
@@ -52,11 +83,9 @@ export const Benchmark: React.FC = () => {
         const result = await generateTextWithThinking(prompt);
         
         try {
-            // Gemini sometimes wraps the JSON in markdown, so we need to clean it
-            const cleanResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(cleanResult);
+            const parsed = extractJson(result);
 
-            if (parsed.table && parsed.narrative) {
+            if (parsed && parsed.table && parsed.narrative) {
                 setComparisonResult(parsed);
             } else {
                 throw new Error("Invalid format received from API");
@@ -68,11 +97,6 @@ export const Benchmark: React.FC = () => {
             setIsLoading(false);
         }
     };
-
-    // Load initial comparison on component mount
-    useEffect(() => {
-        handleCompare(region1, region2);
-    }, [t]); // Depend on 't' to re-fetch if language changes, ensuring prompt is correct
 
     const renderGracefulCell = (content: any) => {
         const text = renderCellContent(content);
@@ -131,7 +155,7 @@ export const Benchmark: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            ) : comparisonResult && (
+            ) : comparisonResult ? (
                 <div className="space-y-8">
                     <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1, region2 })}</h2>
                     <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
@@ -162,6 +186,10 @@ export const Benchmark: React.FC = () => {
                          <p className="text-slate-300 whitespace-pre-wrap">{comparisonResult.narrative}</p>
                          <Feedback sectionId={`benchmark-comparison-${region1}-vs-${region2}`} />
                     </div>
+                </div>
+            ) : (
+                <div className="text-center py-10 text-slate-500">
+                    <p>Select two regions and click "Compare" to generate an analysis.</p>
                 </div>
             )}
         </div>

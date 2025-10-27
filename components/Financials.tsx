@@ -27,7 +27,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 
 export const Financials: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
@@ -93,6 +93,14 @@ export const Financials: React.FC = () => {
     const handleExport = async () => {
         const doc = new jsPDF();
         
+        // For proper Persian text rendering, a font that supports Arabic script (like Amiri) is required.
+        // In a real-world scenario, you would load this font file into jsPDF. This is a placeholder.
+        if (lang === 'fa') {
+            // doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal'); // Font file would be needed
+            doc.setFont('Amiri', 'normal'); // Fallbacks to helvetica if font not present
+            doc.setR2L(true);
+        }
+
         const tableData = FINANCIAL_DATA.map(row => [row.component, row.value, row.unit, row.description]);
         const tableHeaders = ["Component", "Value", "Unit", "Description"];
 
@@ -100,12 +108,20 @@ export const Financials: React.FC = () => {
             head: [tableHeaders],
             body: tableData,
             startY: 20,
+            styles: { font: lang === 'fa' ? 'Amiri' : 'helvetica' },
+            headStyles: { halign: 'center' },
             didDrawPage: (data) => {
                 // Header
                 doc.setFontSize(18);
                 doc.setTextColor(40);
                 doc.text("GMEL Geothermal Vision - Financial Data", data.settings.margin.left, 15);
             },
+            didParseCell: function (data) {
+                // For Persian, right-align the body cells
+                if (lang === 'fa' && data.section === 'body') {
+                    data.cell.styles.halign = 'right';
+                }
+            }
         });
 
         const totalPages = (doc as any).internal.getNumberOfPages();
@@ -118,7 +134,7 @@ export const Financials: React.FC = () => {
             doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
             doc.setFontSize(45);
             doc.setTextColor(150);
-            const text = "KKM Int'l | Gino Ayyoubian | info@kkm-intl.xyz";
+            const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.xyz";
             const textRotationAngle = 45;
             const centerX = doc.internal.pageSize.getWidth() / 2;
             const centerY = doc.internal.pageSize.getHeight() / 2;

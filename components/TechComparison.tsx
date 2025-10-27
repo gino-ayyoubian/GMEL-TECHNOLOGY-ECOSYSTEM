@@ -4,6 +4,37 @@ import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 
+// Helper to extract a JSON object from a string that might contain markdown or other text.
+const extractJson = (text: string): any | null => {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    let start = -1;
+
+    if (firstBrace === -1 && firstBracket === -1) return null;
+    if (firstBrace === -1) start = firstBracket;
+    else if (firstBracket === -1) start = firstBrace;
+    else start = Math.min(firstBrace, firstBracket);
+    
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    let end = -1;
+    
+    if (lastBrace === -1 && lastBracket === -1) return null;
+    if (lastBrace === -1) end = lastBracket;
+    else if (lastBracket === -1) end = lastBrace;
+    else end = Math.max(lastBrace, lastBracket);
+    
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString, error);
+        return null;
+    }
+};
+
 const gmelTechnologies = {
     "GMEL-CLG": "Advanced Closed-Loop Geothermal System",
     "GMEL-ThermoFluid": "Nanocomposite Thermal Fluid",
@@ -27,7 +58,7 @@ export const TechComparison: React.FC = () => {
     const [selectedTech, setSelectedTech] = useState<string>("GMEL-CLG");
     const [selectedRegion, setSelectedRegion] = useState<string>("Iceland");
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleCompare = async () => {
@@ -41,10 +72,9 @@ export const TechComparison: React.FC = () => {
         const result = await generateTextWithThinking(prompt);
         
         try {
-            const cleanResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(cleanResult);
+            const parsed = extractJson(result);
 
-            if (parsed.table && parsed.narrative) {
+            if (parsed && parsed.table && parsed.narrative) {
                 setComparisonResult(parsed);
             } else {
                 throw new Error("Invalid format received from API");
@@ -56,10 +86,6 @@ export const TechComparison: React.FC = () => {
             setIsLoading(false);
         }
     };
-    
-    useEffect(() => {
-        handleCompare();
-    }, [t]); // Re-fetch on language change
 
     return (
         <div className="space-y-8">
@@ -104,7 +130,7 @@ export const TechComparison: React.FC = () => {
                 </div>
             )}
 
-            {comparisonResult && (
+            {comparisonResult ? (
                 <div className="space-y-8">
                     <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1: gmelTechnologies[selectedTech as keyof typeof gmelTechnologies], region2: selectedRegion })}</h2>
                     <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
@@ -135,6 +161,10 @@ export const TechComparison: React.FC = () => {
                          <p className="text-slate-300 whitespace-pre-wrap">{comparisonResult.narrative}</p>
                          <Feedback sectionId={`tech-comparison-${selectedTech}-vs-${selectedRegion}`} />
                     </div>
+                </div>
+            ) : !isLoading && (
+                 <div className="text-center py-10 text-slate-500">
+                    <p>Select a technology and region, then click "Compare Technologies" to generate an analysis.</p>
                 </div>
             )}
         </div>

@@ -4,6 +4,37 @@ import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 
+// Helper to extract a JSON object from a string that might contain markdown or other text.
+const extractJson = (text: string): any | null => {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    let start = -1;
+
+    if (firstBrace === -1 && firstBracket === -1) return null;
+    if (firstBrace === -1) start = firstBracket;
+    else if (firstBracket === -1) start = firstBrace;
+    else start = Math.min(firstBrace, firstBracket);
+    
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    let end = -1;
+    
+    if (lastBrace === -1 && lastBracket === -1) return null;
+    if (lastBrace === -1) end = lastBracket;
+    else if (lastBracket === -1) end = lastBrace;
+    else end = Math.max(lastBrace, lastBracket);
+    
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString, error);
+        return null;
+    }
+};
+
 interface ComparisonData {
     metric: string;
     qeshm: string | { [key: string]: any };
@@ -25,31 +56,35 @@ export const Comparison: React.FC = () => {
     const { t } = useI18n();
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [strategicInsights, setStrategicInsights] = useState<string>('');
     const [isInsightsLoading, setIsInsightsLoading] = useState<boolean>(false);
 
 
-    useEffect(() => {
-        const fetchComparison = async () => {
-            setIsLoading(true);
-            const prompt = t('comparison_prompt');
-            const result = await generateTextWithThinking(prompt);
-            
-            try {
-                const parsedResult = JSON.parse(result);
-                setComparisonData(parsedResult.table || []);
-                setNarrative(parsedResult.narrative || '');
-            } catch (error) {
-                console.error("Failed to parse comparison JSON:", error);
-                setNarrative(t('error_comparison_generation'));
-                setComparisonData([]);
+    const fetchComparison = async () => {
+        setIsLoading(true);
+        setComparisonData([]);
+        setNarrative('');
+        setStrategicInsights('');
+        const prompt = t('comparison_prompt');
+        const result = await generateTextWithThinking(prompt);
+        
+        try {
+            const parsedResult = extractJson(result);
+            if (parsedResult && parsedResult.table && parsedResult.narrative) {
+                setComparisonData(parsedResult.table);
+                setNarrative(parsedResult.narrative);
+            } else {
+                 throw new Error("Invalid format received");
             }
+        } catch (error) {
+            console.error("Failed to parse comparison JSON:", error);
+            setNarrative(t('error_comparison_generation'));
+            setComparisonData([]);
+        }
 
-            setIsLoading(false);
-        };
-        fetchComparison();
-    }, [t]);
+        setIsLoading(false);
+    };
 
     const handleGenerateInsights = async () => {
         if (!narrative || comparisonData.length === 0) return;
@@ -72,6 +107,14 @@ export const Comparison: React.FC = () => {
             <p className="text-slate-400 max-w-3xl">
                 {t('comparison_description')}
             </p>
+            
+            {!comparisonData.length && !isLoading && (
+                 <div className="text-center py-6">
+                    <button onClick={fetchComparison} className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors">
+                        {t('generate_analysis')}
+                    </button>
+                </div>
+            )}
 
             {isLoading ? (
                 <div className="w-full bg-slate-800 rounded-lg p-6 border border-slate-700 animate-pulse">
@@ -86,7 +129,7 @@ export const Comparison: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            ) : (
+            ) : comparisonData.length > 0 && (
                 <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
                     <table className="min-w-full divide-y divide-slate-700">
                         <thead className="bg-slate-700/50">

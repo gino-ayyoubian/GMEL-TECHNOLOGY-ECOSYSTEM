@@ -1,5 +1,6 @@
 import React, { useState, useContext, useRef } from 'react';
 import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { generateText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
@@ -7,7 +8,7 @@ import { KKM_LOGO_DATA_URL } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 
 export const Correspondence: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [recipient, setRecipient] = useState('');
     const [subject, setSubject] = useState('');
@@ -38,6 +39,15 @@ export const Correspondence: React.FC = () => {
     const handlePrint = () => {
         if (!letterRef.current) return;
         const doc = new jsPDF();
+        
+        // For proper Persian text rendering, a font that supports Arabic script (like Amiri) is required.
+        // In a real-world scenario, you would load this font file into jsPDF.
+        // This code sets the direction and font, which will fallback gracefully if the font isn't loaded.
+        if (lang === 'fa') {
+            // Example: doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal'); // Font file would be needed
+            doc.setFont('Amiri', 'normal'); // Fallbacks to helvetica if font not present
+            doc.setR2L(true);
+        }
 
         doc.html(letterRef.current, {
             callback: function (doc) {
@@ -50,7 +60,7 @@ export const Correspondence: React.FC = () => {
                     doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
                     doc.setFontSize(45);
                     doc.setTextColor(150);
-                    const text = "KKM Int'l | Gino Ayyoubian | info@kkm-intl.org";
+                    const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.org";
                     const textRotationAngle = 45;
                     const centerX = doc.internal.pageSize.getWidth() / 2;
                     const centerY = doc.internal.pageSize.getHeight() / 2;
@@ -71,7 +81,10 @@ export const Correspondence: React.FC = () => {
             x: 15,
             y: 15,
             width: 180,
-            windowWidth: letterRef.current.scrollWidth
+            windowWidth: letterRef.current.scrollWidth,
+            html2canvas: {
+                scale: 0.25,
+            }
         });
     };
 
@@ -130,12 +143,12 @@ export const Correspondence: React.FC = () => {
                             <div className="h-4 bg-slate-700 rounded w-1/2"></div>
                         </div>
                     ) : (
-                        <div ref={letterRef} className="p-8 bg-white text-slate-800 rounded-md font-serif text-sm">
+                        <div ref={letterRef} className="p-8 bg-white text-slate-800 rounded-md font-serif text-sm" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
                             <div className="flex justify-between items-start mb-8">
                                 <img src={KKM_LOGO_DATA_URL} alt="KKM Logo" className="h-16 w-auto" />
                                 <div className="text-right text-xs">
                                     <p className="font-bold">Kimia Karan Maad (KKM) International</p>
-                                    <p>On behalf of Gino Ayyoubian, Inventor</p>
+                                    <p>On behalf of Seyed Gino Ayyoubian, Inventor</p>
                                     <p>info@kkm-intl.org</p>
                                 </div>
                             </div>
@@ -153,7 +166,7 @@ export const Correspondence: React.FC = () => {
                             {generatedLetter && (
                                 <div className="mt-12 text-xs">
                                     <p>Sincerely,</p>
-                                    <p className="mt-8 border-t border-slate-300 pt-1">Gino Ayyoubian, Inventor</p>
+                                    <p className="mt-8 border-t border-slate-300 pt-1">Seyed Gino Ayyoubian, Inventor</p>
                                     <p>KKM International Group</p>
                                 </div>
                             )}

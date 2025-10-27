@@ -16,6 +16,7 @@ import { VideoGenerator } from './components/VideoGenerator';
 import { TechComparison } from './components/TechComparison';
 import { Simulations } from './components/Simulations';
 import { StrategyModeler } from './components/StrategyModeler';
+import { ProposalGenerator } from './components/ProposalGenerator';
 import { Region, View } from './types';
 import { KKM_LOGO_DATA_URL } from './constants';
 import * as en from './i18n/en';
@@ -71,6 +72,7 @@ const App: React.FC = () => {
       case 'simulations': return <Simulations />;
       case 'strategy_modeler': return <StrategyModeler />;
       case 'correspondence': return <Correspondence />;
+      case 'proposal_generator': return <ProposalGenerator />;
       case 'image': return <ImageGenerator />;
       case 'video': return <VideoGenerator />;
       case 'chat': return <GeminiChat activeView={activeView} />;
@@ -118,6 +120,7 @@ const App: React.FC = () => {
                 <NavItem view="chat" labelKey="nav_assistant" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.837 8.837 0 01-4.43-1.232l-2.437.812a1 1 0 01-1.15-1.15l.812-2.437A8.837 8.837 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.706 14.706a.5.5 0 00.708 0l2.828-2.828a.5.5 0 000-.708l-2.828-2.828a.5.5 0 10-.708.708L6.293 11H4.5a.5.5 0 000 1h1.793l-1.587 1.586a.5.5 0 000 .708zM10.5 11.5a.5.5 0 000-1h-1.793l1.587-1.586a.5.5 0 000-.708l-2.828-2.828a.5.5 0 10-.708.708L8.207 9h-1.793a.5.5 0 000 1h1.793l-1.586 1.586a.5.5 0 00.707.707L10.5 11.5z" clipRule="evenodd" /></svg>} />
              </NavGroup>
              <NavGroup titleKey="nav_group_official">
+                <NavItem view="proposal_generator" labelKey="nav_proposal_generator" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>} />
                 <NavItem view="correspondence" labelKey="nav_correspondence" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} />
              </NavGroup>
         </nav>

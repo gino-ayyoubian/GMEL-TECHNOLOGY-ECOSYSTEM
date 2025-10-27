@@ -30,4 +30,4 @@ export interface Milestone {
 
 export type Region = 'Qeshm Free Zone' | 'Makoo Free Zone' | 'Kurdistan Region, Iraq';
 
-export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'video' | 'chat' | 'site' | 'comparison' | 'correspondence' | 'tech_comparison' | 'simulations' | 'strategy_modeler';
+export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'video' | 'chat' | 'site' | 'comparison' | 'correspondence' | 'tech_comparison' | 'simulations' | 'strategy_modeler' | 'proposal_generator';

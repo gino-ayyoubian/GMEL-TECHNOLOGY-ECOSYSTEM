@@ -5,6 +5,37 @@ import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 
+// Helper to extract a JSON object from a string that might contain markdown or other text.
+const extractJson = (text: string): any | null => {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    let start = -1;
+
+    if (firstBrace === -1 && firstBracket === -1) return null;
+    if (firstBrace === -1) start = firstBracket;
+    else if (firstBracket === -1) start = firstBrace;
+    else start = Math.min(firstBrace, firstBracket);
+    
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    let end = -1;
+    
+    if (lastBrace === -1 && lastBracket === -1) return null;
+    if (lastBrace === -1) end = lastBracket;
+    else if (lastBracket === -1) end = lastBrace;
+    else end = Math.max(lastBrace, lastBracket);
+    
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString, error);
+        return null;
+    }
+};
+
 interface StrategyResult {
     optimal_patent_package: string;
     local_value_proposition: string;
@@ -29,9 +60,8 @@ export const StrategyModeler: React.FC = () => {
         const result = await generateTextWithThinking(prompt);
 
         try {
-            const cleanResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(cleanResult);
-            if (parsed.optimal_patent_package) {
+            const parsed = extractJson(result);
+            if (parsed && parsed.optimal_patent_package) {
                 setStrategy(parsed);
             } else {
                 throw new Error("Invalid format received from API");
