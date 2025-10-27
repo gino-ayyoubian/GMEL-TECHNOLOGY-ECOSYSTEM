@@ -74,6 +74,22 @@ export const Benchmark: React.FC = () => {
         handleCompare(region1, region2);
     }, [t]); // Depend on 't' to re-fetch if language changes, ensuring prompt is correct
 
+    const renderGracefulCell = (content: any) => {
+        const text = renderCellContent(content);
+        const maxLength = 200;
+
+        if (text.length <= maxLength) {
+            return <p className="whitespace-pre-wrap">{text}</p>;
+        }
+
+        const truncatedText = text.substring(0, maxLength) + '...';
+        return (
+            <p className="whitespace-pre-wrap" title={text}>
+                {truncatedText}
+            </p>
+        );
+    };
+
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-white">{t('benchmark_title')}</h1>
@@ -119,20 +135,20 @@ export const Benchmark: React.FC = () => {
                 <div className="space-y-8">
                     <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1, region2 })}</h2>
                     <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                         <table className="min-w-full divide-y divide-slate-700">
+                         <table className="min-w-full divide-y divide-slate-700 table-fixed">
                             <thead className="bg-slate-700/50">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('metric')}</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{region1}</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{region2}</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-1/4">{t('metric')}</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-3/8">{region1}</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-3/8">{region2}</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-slate-800 divide-y divide-slate-700">
                                 {comparisonResult.table.map((row, index) => (
                                     <tr key={index} className="hover:bg-slate-700/50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{row.metric}</td>
-                                        <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.region1)}</td>
-                                        <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.region2)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white align-top">{row.metric}</td>
+                                        <td className="px-6 py-4 text-sm text-slate-400 align-top">{renderGracefulCell(row.region1)}</td>
+                                        <td className="px-6 py-4 text-sm text-slate-400 align-top">{renderGracefulCell(row.region2)}</td>
                                     </tr>
                                 ))}
                             </tbody>

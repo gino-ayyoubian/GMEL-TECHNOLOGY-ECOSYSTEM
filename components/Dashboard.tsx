@@ -11,9 +11,12 @@ import { Feedback } from './shared/Feedback';
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
 
-const DataCard: React.FC<{ title: string; value: string; description: string }> = ({ title, value, description }) => (
+const DataCard: React.FC<{ title: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, value, description, icon }) => (
   <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:border-sky-500 cursor-pointer">
-    <h3 className="text-sm font-medium text-sky-400 uppercase tracking-wider">{title}</h3>
+    <div className="flex justify-between items-start">
+        <h3 className="text-sm font-medium text-sky-400 uppercase tracking-wider">{title}</h3>
+        <span className="text-slate-600">{icon}</span>
+    </div>
     <p className="mt-2 text-4xl font-bold text-white tracking-tight">{value}</p>
     <p className="mt-2 text-xs text-slate-500">{description}</p>
   </div>
@@ -247,6 +250,14 @@ export const Dashboard: React.FC = () => {
         name: d.component.split(' ')[0],
         value: d.value,
     }));
+
+    const cardIcons: { [key: string]: React.ReactNode } = {
+        'Pilot CAPEX (5MW)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+        'Annual Revenue (5MW)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
+        'Payback Period': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+        'Return on Investment (ROI)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14v-4" /></svg>,
+        '10-Year NPV': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+    };
   
     return (
     <div className="space-y-8">
@@ -259,6 +270,7 @@ export const Dashboard: React.FC = () => {
             title={item.component}
             value={`${item.value}${item.unit === 'Billion Toman' ? ' B' : ''}${item.unit === 'Years' ? ' Yrs' : ''}`}
             description={item.description}
+            icon={cardIcons[item.component] || <div />}
           />
         ))}
       </div>

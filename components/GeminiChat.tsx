@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { ChatMessage, Region } from '../types';
+// FIX: The 'View' type is exported from '../types', not '../App'. Consolidated the import.
+import { ChatMessage, Region, View } from '../types';
 import { continueChat } from '../services/geminiService';
 import { PATENT_PORTFOLIO, FINANCIAL_DATA, CORE_PATENT, PROJECT_MILESTONES } from '../constants';
 import { AppContext } from '../contexts/AppContext';
@@ -19,11 +20,27 @@ const regionSpecificContexts = {
 - Pilot Project: 5MW capacity, 575 billion Toman CAPEX, ~2 year payback, focused on electricity export and direct heat.
 - Integrated Applications: Thermal agriculture, process heat for industrial parks.
 - Export Potential: Technology showcase for export to Turkey, Caucasus, and Central Asia.
+`,
+    'Kurdistan Region, Iraq': `
+- Strategic imperative for energy independence and grid stability for reconstruction and industrial growth.
+- Pilot Project: 5MW capacity, adaptable financial model, focused on stable baseload power for industry (cement, steel) and direct heat.
+- Integrated Applications: Thermal agriculture for food security, process heat for industrial zones, potential for green hydrogen projects.
+- Partnership Model: Positioned as an ideal joint venture for technology transfer and local capacity building.
 `
 };
 
+const viewContexts: Partial<Record<View, string>> = {
+    'ip': "The user is currently viewing the Intellectual Property Roadmap. Prioritize information about patents, innovation, status, and the strategic path for each technology.",
+    'financials': "The user is currently on the Financial Analysis page. Focus on CAPEX, revenue, ROI, NPV, and other economic metrics. Relate answers to the 5MW pilot project data.",
+    'technical': "The user is exploring the Technical Deep Dive section. Provide detailed answers about the core technology (GMEL-CLG), drilling, thermal fluid, power conversion, and control systems.",
+    'benchmark': "The user is on the Global Benchmarking page. Frame answers in a comparative context, referencing how GMEL technology stands against international standards or specific regions like Iceland or Turkey.",
+    'site': "The user is viewing the Site Analysis. Focus on geographical, logistical, and infrastructural aspects of the selected region.",
+    'comparison': "The user is comparing the Qeshm and Makoo proposals. Highlight the strategic differences between the two, focusing on their unique advantages and applications.",
+    'strategy_modeler': "The user is using the Strategy Modeler. Answers should be forward-looking, focusing on partnership models, technology packaging for export/JV, and market entry strategies."
+};
 
-const buildDynamicContext = (query: string, region: Region): string => {
+
+const buildDynamicContext = (query: string, region: Region, activeView: View): string => {
     const lowerQuery = query.toLowerCase();
     const specificContexts: string[] = [];
     const allPatents = [CORE_PATENT, ...PATENT_PORTFOLIO];
@@ -87,14 +104,19 @@ const buildDynamicContext = (query: string, region: Region): string => {
         }
     }
 
-    let context = `You are a helpful assistant for the GMEL Geothermal Vision project. The current focus is on a proposal for the ${region}. Answer questions based ONLY on the following context. Do not make up information. If the answer is not in the context, say that you don't have that information.\n\n`;
+    let context = `You are a helpful assistant for the GMEL Geothermal Vision project. Answer questions based ONLY on the following context. Do not make up information. If the answer is not in the context, say that you don't have that information.\n\n`;
     
+    // --- Dynamic View-Based Context ---
+    if (viewContexts[activeView]) {
+        context += `---CURRENT USER FOCUS---\n${viewContexts[activeView]}\n\n`;
+    }
+
     // --- Core Regional Context ---
     context += `---CORE PROJECT CONTEXT FOR ${region}---\n`;
     context += `Core Technology: GMEL-CLG, a closed-loop geothermal system for low-gradient resources.\n`;
     context += regionSpecificContexts[region] + '\n';
 
-    // --- Dynamic Context ---
+    // --- Dynamic Keyword-Based Context ---
     if (specificContexts.length === 0) {
         // --- General Query Enhancement ---
         context += `---CORE TECHNOLOGY UNIQUE SELLING PROPOSITIONS (GMEL-CLG)---\n`;
@@ -107,11 +129,12 @@ const buildDynamicContext = (query: string, region: Region): string => {
         context += specificContexts.join('\n\n') + '\n\n';
     }
     
+    context += `Now, please answer the following question:\n${query}`;
     return context;
 };
 
 
-export const GeminiChat: React.FC = () => {
+export const GeminiChat: React.FC<{ activeView: View }> = ({ activeView }) => {
   const { region } = useContext(AppContext)!;
   const { t } = useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -138,15 +161,15 @@ export const GeminiChat: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
-    const dynamicContext = buildDynamicContext(input, region);
+    const contextualizedInput = buildDynamicContext(input, region, activeView);
+    
+    const historyForApi = currentMessages.map(msg => ({
+        ...msg,
+        // Replace the last user message with the fully contextualized one for the API call
+        text: msg === userMessage ? contextualizedInput : msg.text
+    }));
 
-    const historyWithContext = [
-        { role: 'user' as const, text: dynamicContext },
-        { role: 'model' as const, text: "Understood. I will answer based on the provided context." },
-        ...currentMessages 
-    ]
-
-    const modelResponse = await continueChat(historyWithContext);
+    const modelResponse = await continueChat(historyForApi);
     setMessages(prev => [...prev, { role: 'model', text: modelResponse ? `${modelResponse}` : t('error_process_request') }]);
     setIsLoading(false);
   };

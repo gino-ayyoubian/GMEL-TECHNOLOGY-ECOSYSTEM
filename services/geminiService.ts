@@ -1,14 +1,16 @@
 import { GoogleGenAI, GenerateContentResponse, Type, Chat, Content } from "@google/genai";
 import { ChatMessage } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAiClient = () => {
+  if (!process.env.API_KEY) {
+    throw new Error("API_KEY environment variable not set");
+  }
+  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+};
 
 export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' = 'gemini-2.5-flash'): Promise<string> => {
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: modelName,
       contents: prompt,
@@ -22,6 +24,7 @@ export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash'
 
 export const generateTextWithThinking = async (prompt: string): Promise<string> => {
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
@@ -39,8 +42,9 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
 
 export const generateGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-pro',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -61,6 +65,7 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
 
 export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '16:9'): Promise<string | null> => {
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateImages({
       model: 'imagen-4.0-generate-001',
       prompt: prompt,
@@ -83,11 +88,8 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
 };
 
 export const generateVideo = async (prompt: string, config: any): Promise<any> => {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY environment variable not set");
-    }
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
+        const ai = getAiClient();
         const operation = await ai.models.generateVideos({
             model: 'veo-3.1-fast-generate-preview',
             prompt,
@@ -104,11 +106,8 @@ export const generateVideo = async (prompt: string, config: any): Promise<any> =
 };
 
 export const getVideoOperation = async (operation: any): Promise<any> => {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY environment variable not set");
-    }
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
+        const ai = getAiClient();
         const result = await ai.operations.getVideosOperation({ operation });
         return result;
     } catch (error) {
@@ -121,12 +120,12 @@ export const getVideoOperation = async (operation: any): Promise<any> => {
 };
 
 export const continueChat = async (history: ChatMessage[]): Promise<string> => {
-    // The last message is the new prompt, the rest is history
     const geminiHistory: Content[] = history.slice(0, -1).map(msg => ({
         role: msg.role,
         parts: [{ text: msg.text }],
     }));
 
+    const ai = getAiClient();
     const chat: Chat = ai.chats.create({
         model: 'gemini-2.5-flash',
         history: geminiHistory,

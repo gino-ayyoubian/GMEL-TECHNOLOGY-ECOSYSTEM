@@ -6,11 +6,18 @@ export const nav_financials = "تحلیل مالی";
 export const nav_benchmark = "ارزیابی جهانی";
 export const nav_site = "تحلیل سایت";
 export const nav_comparison = "مقایسه";
+export const nav_tech_comparison = "مقایسه فنی";
+export const nav_simulations = "شبیه‌سازی و مدل‌سازی";
+export const nav_strategy_modeler = "مدل‌ساز استراتژی";
 export const nav_access_control = "کنترل دسترسی";
 export const nav_concept = "تولید مفهوم";
 export const nav_video_generator = "تولید کننده ویدیو";
 export const nav_correspondence = "خروجی مکاتبات رسمی";
 export const nav_assistant = "دستیار پروژه";
+export const nav_group_analysis = "تحلیل و برنامه‌ریزی";
+export const nav_group_strategic = "ابزارهای استراتژیک";
+export const nav_group_generative = "مجموعه تولید محتوا";
+export const nav_group_official = "امور رسمی";
 export const contact_us = "تماس با ما";
 export const proposal_for = "طرح پیشنهادی برای:";
 export const language = "زبان";
@@ -45,7 +52,7 @@ export const no_timeline_data = "داده‌ای برای خط زمانی اخت
 export const financial_analysis_title = "تحلیل مالی";
 export const export_secure_pdf = "خروجی PDF امن";
 export const cost_revenue_breakdown = "تفکیک هزینه و درآمد";
-export const net_revenue_projection_title = "پیش‌بینی درآمد خالص 10 ساله (قابل تنظیم)";
+export const net_revenue_projection_title = "پیش‌بینی درآمد خالص 10 ساله و تحلیل حساسیت";
 export const custom_annual_revenue = "درآمد سالانه مفروض شما";
 export const custom_initial_investment = "سرمایه‌گذاری اولیه مفروض شما";
 export const net_revenue = "درآمد خالص";
@@ -254,3 +261,53 @@ export const impact_generation_prompt = `
 
     مقادیر معیارها را بر اساس داده‌های پایه به صورت خطی مقیاس‌بندی کنید. اطمینان حاصل کنید که کلید 'value' در موارد ممکن یک عدد باشد.
 `;
+export const tech_comparison_title = "مقایسه مشخصات فنی";
+export const tech_comparison_description = "یک فناوری اصلی GMEL را با یک سیستم مشابه مورد استفاده در یک منطقه معیار بین‌المللی مقایسه کنید. این یک نگاه مستقیم و داده-محور به مزایای رقابتی GMEL فراهم می‌کند.";
+export const select_gmel_tech = "انتخاب فناوری GMEL";
+export const select_benchmark_region = "انتخاب منطقه معیار";
+export const compare_technologies = "مقایسه فناوری‌ها";
+export const gmel_specifications = "مشخصات GMEL";
+export const benchmark_specifications = "مشخصات معیار";
+export const tech_comparison_prompt = `
+    یک مقایسه فنی دقیق بین '{gmel_tech_name}' پروژه GMEL و فناوری معمول مورد استفاده برای همان هدف در '{benchmark_region}' ایجاد کنید.
+    خروجی را به عنوان یک شیء JSON واحد با دو کلید "table" و "narrative" ارائه دهید.
+    "table" باید آرایه‌ای از اشیاء باشد، هر کدام با کلیدهای "metric", "gmel_spec", و "benchmark_spec".
+    "narrative" باید یک رشته باشد که مزایای رقابتی کلیدی و تفاوت‌ها را در 2-3 پاراگراف خلاصه می‌کند.
+    این معیارها را پوشش دهید:
+    - اصل عملیاتی
+    - نوآوری / تمایز کلیدی
+    - راندمان / KPI عملکرد معمول
+    - CAPEX تخمینی/مگاوات (یا واحد مربوطه)
+    - پیچیدگی عملیاتی
+    - سطح آمادگی فناوری (TRL)
+    - تأثیر زیست‌محیطی
+`;
+export const simulations_title = "شبیه‌سازی‌ها و مدل‌سازی";
+export const simulations_description = "این بخش به مدل‌های محاسباتی و شبیه‌سازی‌هایی اختصاص دارد که عملکرد پروژه GMEL را تأیید می‌کنند. (توجه: این یک جایگزین برای توسعه آینده است).";
+export const simulation_gradient_title = "شبیه‌سازی ساده خروجی توان";
+export const geothermal_gradient = "گرادیان زمین‌گرمایی (درجه سانتی‌گراد/کیلومتر)";
+export const calculate_potential = "محاسبه پتانسیل";
+export const potential_output = "خروجی پتانسیل تخمینی";
+export const simulation_narrative_prompt = "به طور خلاصه توضیح دهید که چگونه یک گرادیان زمین‌گرمایی {gradient}°C/km، همراه با عمق حفاری 4 کیلومتر و راندمان چرخه رانکین آلی 20٪، می‌تواند برای تخمین خروجی توان بالقوه استفاده شود. مراحل اصلی تبدیل انرژی را در یک پاراگراف توصیف کنید.";
+export const strategy_modeler_title = "مدل‌ساز استراتژی سرمایه‌گذاری مشترک";
+export const strategy_modeler_description = "یک منطقه هدف را برای ایجاد یک استراتژی جامع و مبتنی بر هوش مصنوعی برای تشکیل یک سرمایه‌گذاری مشترک انتخاب کنید. این مدل‌ساز یک بسته فناوری بهینه را پیشنهاد می‌دهد، گزاره‌های ارزش کلیدی را مشخص می‌کند و ملاحظات استراتژیک برای یک مشارکت موفق را شناسایی می‌کند.";
+export const select_target_region = "انتخاب منطقه هدف برای JV";
+export const generate_jv_strategy = "ایجاد استراتژی JV";
+export const jv_strategy_for = "استراتژی سرمایه‌گذاری مشترک برای {region}";
+export const strategy_modeler_prompt = `
+    به عنوان یک استراتژیست ارشد تجارت بین‌الملل برای گروه KKM، یک استراتژی جامع سرمایه‌گذاری مشترک (JV) و انتقال فناوری برای اجرای پروژه GMEL در {region} ایجاد کنید.
+    خروجی باید یک شیء JSON واحد با کلیدهایی برای هر بخش باشد: "optimal_patent_package", "local_value_proposition", "tech_transfer_plan", "risk_analysis" و "budget_justification". مقدار هر کلید باید یک رشته دقیق باشد.
+
+    ۱. **بسته ثبت اختراع بهینه**: مناسب‌ترین ترکیب ثبت اختراعات از سبد GMEL را برای نیازهای خاص این منطقه (انرژی، آب، کشاورزی و غیره) شناسایی کنید. توضیح دهید که چرا این بسته سودآورترین و امکان‌پذیرترین است.
+    ۲. **گزاره ارزش محلی**: مزایای کلیدی برای یک شریک محلی عراقی را بیان کنید. بر استقلال انرژی، توسعه اقتصادی، ایجاد شغل و کسب فناوری پیشرفته تمرکز کنید.
+    ۳. **طرح انتقال فناوری**: یک رویکرد مرحله‌ای برای انتقال دانش و فناوری به شریک محلی، با تضمین عملیات محلی پایدار و ظرفیت‌سازی، مشخص کنید.
+    ۴. **تحلیل ریسک**: ۳-۴ ریسک برتر سیاسی، اقتصادی و عملیاتی ورود به این بازار را شناسایی کرده و استراتژی‌های کاهش برای هر کدام را پیشنهاد دهید.
+    ۵. **توجیه بودجه**: یک استدلال قانع‌کننده برای تخصیص بودجه اولیه برای مطالعات امکان‌سنجی و مذاکرات مشارکت، با تأکید بر بازگشت سرمایه بلندمدت و اهمیت استراتژیک پروژه، بنویسید.
+`;
+export const optimal_patent_package = "بسته ثبت اختراع بهینه";
+export const local_value_proposition = "گزاره ارزش محلی";
+export const tech_transfer_plan = "طرح انتقال فناوری";
+export const risk_analysis = "تحلیل ریسک";
+export const budget_justification = "توجیه بودجه";
+export const error_generating_strategy = "خطا در ایجاد استراتژی. لطفاً دوباره تلاش کنید.";
+export const generating_strategy = "در حال ایجاد استراتژی...";

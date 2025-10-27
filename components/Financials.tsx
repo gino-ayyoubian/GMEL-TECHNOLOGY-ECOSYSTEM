@@ -10,6 +10,22 @@ import { Feedback } from './shared/Feedback';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    if (percent < 0.05) return null; // Don't render label for very small slices
+
+    return (
+        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12" fontWeight="bold">
+            {`${(percent * 100).toFixed(0)}%`}
+        </text>
+    );
+};
+
+
 export const Financials: React.FC = () => {
     const { region } = useContext(AppContext)!;
     const { t } = useI18n();
@@ -30,10 +46,18 @@ export const Financials: React.FC = () => {
     
     const projectionData = useMemo(() => {
         const data = [];
+        const optimisticRevenue = customAnnualRevenue * 1.2;
+        const pessimisticRevenue = customAnnualRevenue * 0.8;
+        const optimisticInvestment = customInitialInvestment * 0.9;
+        const pessimisticInvestment = customInitialInvestment * 1.1;
+
         for (let i = 0; i < 11; i++) { // From year 0 to 10
-            const year = i;
-            const netRevenue = (customAnnualRevenue * year) - customInitialInvestment;
-            data.push({ year, net: netRevenue });
+            data.push({ 
+                year: i,
+                baseline: (customAnnualRevenue * i) - customInitialInvestment,
+                optimistic: (optimisticRevenue * i) - optimisticInvestment,
+                pessimistic: (pessimisticRevenue * i) - pessimisticInvestment,
+            });
         }
         return data;
     }, [customAnnualRevenue, customInitialInvestment]);
@@ -41,17 +65,14 @@ export const Financials: React.FC = () => {
     // Enhanced tooltip providing Net Revenue, Cumulative ROI, and Payback Period.
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
-            const year = label;
-            const netRevenue = payload[0].value;
-            const paybackPeriod = (customInitialInvestment / customAnnualRevenue).toFixed(1);
-            const roi = year > 0 ? ((netRevenue / customInitialInvestment) * 100).toFixed(1) : 0;
-
             return (
                 <div className="p-2 bg-slate-900 border border-slate-700 rounded-md shadow-lg text-sm">
                     <p className="label text-slate-300 font-bold">{`Year ${label}`}</p>
-                    <p className="intro text-sky-400">{`Net Revenue: ${netRevenue.toFixed(1)} B Toman`}</p>
-                    {year > 0 && <p className="desc text-slate-400">{`Cumulative ROI: ${roi}%`}</p>}
-                    <p className="desc text-slate-400">{`Est. Payback: ${paybackPeriod} Years`}</p>
+                    {payload.map((p: any) => (
+                         <p key={p.name} style={{ color: p.color }}>
+                            {p.name}: {p.value.toFixed(1)} B Toman
+                        </p>
+                    ))}
                 </div>
             );
         }
@@ -140,13 +161,22 @@ export const Financials: React.FC = () => {
                     <div style={{ width: '100%', height: 350 }}>
                         <ResponsiveContainer>
                             <PieChart>
-                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
+                                <Pie 
+                                    data={pieData} 
+                                    dataKey="value" 
+                                    nameKey="name" 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius="80%" 
+                                    labelLine={false}
+                                    label={renderCustomizedLabel}
+                                >
                                     {pieData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                                <Legend />
+                                <Legend wrapperStyle={{fontSize: '12px'}}/>
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -193,7 +223,9 @@ export const Financials: React.FC = () => {
                                 <YAxis tick={{ fill: '#94a3b8' }} unit=" B"/>
                                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1, strokeDasharray: '3 3' }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="net" name={t('net_revenue')} stroke="#3b82f6" strokeWidth={2} dot={{r: 4}} />
+                                <Line type="monotone" dataKey="pessimistic" name={t('pessimistic_scenario')} stroke="#f43f5e" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                                <Line type="monotone" dataKey="baseline" name={t('baseline_scenario')} stroke="#3b82f6" strokeWidth={2} dot={{r: 4}} />
+                                <Line type="monotone" dataKey="optimistic" name={t('optimistic_scenario')} stroke="#22c55e" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>

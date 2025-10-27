@@ -6,11 +6,18 @@ export const nav_financials = "Financial Analysis";
 export const nav_benchmark = "Global Benchmarking";
 export const nav_site = "Site Analysis";
 export const nav_comparison = "Comparison";
+export const nav_tech_comparison = "Technical Comparison";
+export const nav_simulations = "Simulations & Modeling";
+export const nav_strategy_modeler = "Strategy Modeler";
 export const nav_access_control = "Access Control";
 export const nav_concept = "Concept Generator";
 export const nav_video_generator = "Video Generator";
 export const nav_correspondence = "Official Correspondence";
 export const nav_assistant = "Project Assistant";
+export const nav_group_analysis = "Analysis & Planning";
+export const nav_group_strategic = "Strategic Tools";
+export const nav_group_generative = "Generative Suite";
+export const nav_group_official = "Official Business";
 export const contact_us = "Contact Us";
 export const proposal_for = "Proposal for:";
 export const language = "Language";
@@ -45,7 +52,7 @@ export const no_timeline_data = "No timeline data available for patents.";
 export const financial_analysis_title = "Financial Analysis";
 export const export_secure_pdf = "Export Secure PDF";
 export const cost_revenue_breakdown = "Cost vs. Revenue Breakdown";
-export const net_revenue_projection_title = "10-Year Net Revenue Projection (Customizable)";
+export const net_revenue_projection_title = "10-Year Net Revenue Projection & Sensitivity Analysis";
 export const custom_annual_revenue = "Your Assumed Annual Revenue";
 export const custom_initial_investment = "Your Assumed Initial Investment";
 export const net_revenue = "Net Revenue";
@@ -254,3 +261,53 @@ export const impact_generation_prompt = `
 
     Make the values for the metrics scale linearly from the provided base data. Ensure the 'value' key is a number where applicable.
 `;
+export const tech_comparison_title = "Technical Specification Comparison";
+export const tech_comparison_description = "Compare a core GMEL technology against a comparable system used in an international benchmark region. This provides a direct, data-driven look at GMEL's competitive advantages.";
+export const select_gmel_tech = "Select GMEL Technology";
+export const select_benchmark_region = "Select Benchmark Region";
+export const compare_technologies = "Compare Technologies";
+export const gmel_specifications = "GMEL Specifications";
+export const benchmark_specifications = "Benchmark Specifications";
+export const tech_comparison_prompt = `
+    Generate a detailed technical comparison between the GMEL project's '{gmel_tech_name}' and the typical technology used for the same purpose in '{benchmark_region}'.
+    Provide the output as a single JSON object with two keys: "table" and "narrative".
+    The "table" must be an array of objects, each with "metric", "gmel_spec", and "benchmark_spec" keys.
+    The "narrative" must be a string summarizing the key competitive advantages and differences in 2-3 paragraphs.
+    Cover these metrics:
+    - Operating Principle
+    - Key Innovation / Differentiator
+    - Typical Efficiency / Performance KPI
+    - Estimated CAPEX/MW (or relevant unit)
+    - Operational Complexity
+    - Technology Readiness Level (TRL)
+    - Environmental Impact
+`;
+export const simulations_title = "Simulations & Modeling";
+export const simulations_description = "This section is dedicated to the computational models and simulations that validate the GMEL project's performance. (Note: This is a placeholder for future development).";
+export const simulation_gradient_title = "Simple Power Output Simulation";
+export const geothermal_gradient = "Geothermal Gradient (°C/km)";
+export const calculate_potential = "Calculate Potential";
+export const potential_output = "Estimated Potential Output";
+export const simulation_narrative_prompt = "Explain briefly how a geothermal gradient of {gradient}°C/km, combined with a drilling depth of 4 km and an Organic Rankine Cycle efficiency of 20%, can be used to estimate potential power output. Describe the basic energy conversion steps in one paragraph.";
+export const strategy_modeler_title = "Joint Venture Strategy Modeler";
+export const strategy_modeler_description = "Select a target region to generate a comprehensive, AI-powered strategy for forming a joint venture. This modeler will propose an optimal technology package, outline key value propositions, and identify strategic considerations for a successful partnership.";
+export const select_target_region = "Select Target Region for JV";
+export const generate_jv_strategy = "Generate JV Strategy";
+export const jv_strategy_for = "Joint Venture Strategy for {region}";
+export const strategy_modeler_prompt = `
+    As a senior international business strategist for KKM International, create a comprehensive joint venture (JV) and technology transfer strategy for implementing the GMEL project in {region}.
+    The output should be a single JSON object with keys for each section: "optimal_patent_package", "local_value_proposition", "tech_transfer_plan", "risk_analysis", and "budget_justification". Each key's value should be a detailed string.
+
+    1.  **Optimal Patent Package**: Identify the most suitable combination of patents from the GMEL portfolio for this region's specific needs (energy, water, agriculture, etc.). Explain why this package is the most profitable and feasible.
+    2.  **Local Value Proposition**: Articulate the key benefits for a local Iraqi partner. Focus on energy independence, economic development, job creation, and acquiring cutting-edge technology.
+    3.  **Technology Transfer Plan**: Outline a phased approach for transferring knowledge and technology to the local partner, ensuring sustainable local operation and capacity building.
+    4.  **Risk Analysis**: Identify the top 3-4 political, economic, and operational risks of entering this market and propose mitigation strategies for each.
+    5.  **Budget Justification**: Write a compelling argument for allocating a preliminary budget for feasibility studies and partnership negotiations, emphasizing the long-term ROI and strategic importance of the project.
+`;
+export const optimal_patent_package = "Optimal Patent Package";
+export const local_value_proposition = "Local Value Proposition";
+export const tech_transfer_plan = "Technology Transfer Plan";
+export const risk_analysis = "Risk Analysis";
+export const budget_justification = "Budget Justification";
+export const error_generating_strategy = "Error generating the strategy. Please try again.";
+export const generating_strategy = "Generating Strategy...";

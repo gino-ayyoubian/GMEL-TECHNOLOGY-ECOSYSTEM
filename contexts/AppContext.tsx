@@ -1,5 +1,5 @@
 import React, { useState, createContext, useEffect } from 'react';
-import { Region } from '../types';
+import { Region, View } from '../types';
 import { Language, locales } from '../hooks/useI18n';
 
 interface AppContextType {
@@ -13,6 +13,10 @@ interface AppContextType {
   narrateText: (text: string) => void;
   cancelNarration: () => void;
   isSpeaking: boolean;
+  activeView: View;
+  setActiveView: (view: View) => void;
+  technicalTopic: string | null;
+  setTechnicalTopic: (topic: string | null) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -32,6 +36,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
     const [lang, setLang] = useState<Language>('fa');
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [activeView, setActiveView] = useState<View>('dashboard');
+    const [technicalTopic, setTechnicalTopic] = useState<string | null>(null);
+
 
     const supportedLangs = [
         { code: 'en' as Language, name: 'English' },
@@ -134,6 +141,10 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         narrateText,
         cancelNarration,
         isSpeaking,
+        activeView,
+        setActiveView,
+        technicalTopic,
+        setTechnicalTopic,
     };
 
     return (

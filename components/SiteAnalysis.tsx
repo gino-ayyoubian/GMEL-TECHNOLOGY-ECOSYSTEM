@@ -3,6 +3,7 @@ import { generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
+import { Feedback } from './shared/Feedback';
 import { Region } from '../types';
 
 // Declare Leaflet's global 'L' to TypeScript
@@ -10,8 +11,28 @@ declare var L: any;
 
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
-    'Makoo Free Zone': [39.3330, 44.5160]
+    'Makoo Free Zone': [39.3330, 44.5160],
+    'Kurdistan Region, Iraq': [36.1911, 44.0094] // Coordinates for Erbil
 };
+
+const infrastructurePoints: Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]> = {
+    'Qeshm Free Zone': [
+        { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },
+        { lat: 27.1492, lng: 56.3228, name: 'Shahid Bahonar Port', description: 'Major commercial port near Bandar Abbas, key for logistics and equipment import/export.', type: 'port' },
+        { lat: 26.9536, lng: 56.2642, name: 'Qeshm Gas Power Plant', description: 'Existing power infrastructure, potential grid connection point.', type: 'grid' },
+    ],
+    'Makoo Free Zone': [
+        { lat: 39.3994, lng: 44.4289, name: 'Makoo Airport', description: 'Supports regional travel and light cargo.', type: 'airport' },
+        { lat: 39.4101, lng: 44.3853, name: 'Bazargan Border Crossing', description: 'Crucial trade gateway to Turkey and Europe.', type: 'transport' },
+        { lat: 39.3000, lng: 44.5000, name: 'Makoo Industrial Town', description: 'Potential consumer of direct geothermal heat and power.', type: 'industrial' },
+    ],
+    'Kurdistan Region, Iraq': [
+        { lat: 36.2375, lng: 43.9631, name: 'Erbil International Airport', description: 'Primary international gateway for the region.', type: 'airport' },
+        { lat: 36.1400, lng: 43.9500, name: 'Erbil Gas Power Plant', description: 'Major node in the regional power grid.', type: 'grid' },
+        { lat: 36.1911, lng: 44.0094, name: 'Erbil City Center', description: 'Central hub for transport routes 2 and 3.', type: 'transport' },
+    ]
+};
+
 
 export const SiteAnalysis: React.FC = () => {
     const { region } = useContext(AppContext)!;
@@ -20,6 +41,7 @@ export const SiteAnalysis: React.FC = () => {
     const mapRef = useRef<any>(null); // To hold the map instance
     const markerRef = useRef<any>(null); // To hold the region marker instance
     const userMarkerRef = useRef<any>(null); // To hold user location marker
+    const infrastructureLayerRef = useRef<any>(null); // To hold infrastructure markers
 
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -67,6 +89,23 @@ export const SiteAnalysis: React.FC = () => {
             markerRef.current = L.marker(regionCoordinates[region]).addTo(mapRef.current)
                 .bindPopup(`<b>${region}</b>`)
                 .openPopup();
+            
+            // Add infrastructure markers
+            if (infrastructureLayerRef.current) {
+                infrastructureLayerRef.current.clearLayers();
+            } else {
+                infrastructureLayerRef.current = L.layerGroup().addTo(mapRef.current);
+            }
+
+            const points = infrastructurePoints[region];
+            if (points) {
+                points.forEach(point => {
+                    const popupContent = `<b>${point.name}</b><br>${point.description}`;
+                    L.marker([point.lat, point.lng])
+                        .addTo(infrastructureLayerRef.current)
+                        .bindPopup(popupContent);
+                });
+            }
         }
     }, [region]);
 
@@ -161,6 +200,7 @@ export const SiteAnalysis: React.FC = () => {
                                         </ul>
                                     </div>
                                  )}
+                                 <Feedback sectionId={`site-analysis-${region}`} />
                             </div>
                         )}
                     </div>

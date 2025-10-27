@@ -54,6 +54,10 @@ export const AccessControl: React.FC = () => {
 
     // Step 3 State
     const [ndaAgreed, setNdaAgreed] = useState(false);
+    
+    // Step 4 State
+    const [signatureProof, setSignatureProof] = useState('');
+
 
     useEffect(() => {
         if (step === 2 && !isVerified) {
@@ -96,17 +100,12 @@ export const AccessControl: React.FC = () => {
         };
         const proofString = JSON.stringify(proof, null, 2);
         
-        // --- Email Notification via mailto ---
-        // In a production application, this would be an API call to a secure backend service.
-        // For this frontend-only implementation, we use a 'mailto:' link to open the user's default email client.
-        const recipients = 'info@kkm-intl.xyz,Gino.ayyoubian@yandex.com';
-        const subject = `NDA Signed: GMEL Project Access for ${fullName} (${userId})`;
-        const body = `A new user has successfully signed the NDA and gained access to the GMEL Geothermal Vision portal.\n\n---Signature Evidence Package---\n\n${proofString}`;
-        
-        const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.open(mailtoLink, '_blank');
+        setSignatureProof(proofString);
 
-        grantAccess();
+        // Per GMEL directive, this process is automated without manual email steps.
+        // In a real system, an API call would be made here to a secure backend to log the signature and notify stakeholders.
+        // For this frontend simulation, we proceed directly to the access granted screen.
+        setStep(4);
     };
 
     return (
@@ -194,6 +193,22 @@ export const AccessControl: React.FC = () => {
                             </label>
                         </div>
                         <button onClick={handleSign} disabled={!ndaAgreed} className="mt-4 w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 disabled:text-slate-400 disabled:cursor-not-allowed rounded-md font-semibold text-white transition-colors">{t('sign_and_activate')}</button>
+                    </div>
+                )}
+                 {step === 4 && (
+                     <div className="w-full max-w-2xl text-center">
+                        <h2 className="text-xl font-semibold text-white">{t('access_granted_title')}</h2>
+                        <p className="mt-2 text-slate-400">{t('access_granted_message')}</p>
+                        <div className="mt-6 text-left">
+                            <label className="block text-sm font-medium text-slate-300">{t('signature_proof')}</label>
+                            <textarea
+                                readOnly
+                                value={signatureProof}
+                                rows={10}
+                                className="mt-1 block w-full bg-slate-900 border-slate-600 rounded-md text-slate-400 text-xs font-mono"
+                            />
+                        </div>
+                        <button onClick={grantAccess} className="mt-6 w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-700 rounded-md font-semibold text-white transition-colors">{t('enter_portal')}</button>
                     </div>
                 )}
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { generateText, generateImage } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
@@ -44,6 +44,7 @@ const CLGSystemDiagram = () => (
 );
 
 export const Technical: React.FC = () => {
+    const { technicalTopic, setTechnicalTopic } = useContext(AppContext)!;
     const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
     const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
     const [diagrams, setDiagrams] = useState<Record<string, {isLoading: boolean, url: string | null, error: string | null}>>({});
@@ -57,6 +58,19 @@ export const Technical: React.FC = () => {
         "Power Conversion (GMEL-ORC Compact)": t('tech_detail_power'),
         "Control System (GMEL-EHS)": t('tech_detail_control')
     };
+
+    useEffect(() => {
+        if (technicalTopic) {
+            const topicKey = Object.keys(techDetails).find(key => key.includes(`(${technicalTopic})`));
+            if (topicKey) {
+                setActiveTopic(topicKey);
+                setTimeout(() => {
+                     document.getElementById(`topic-${topicKey}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100)
+            }
+            setTechnicalTopic(null); // Reset after use
+        }
+    }, [technicalTopic, setTechnicalTopic, techDetails]);
     
     const handleToggleTopic = (topic: string) => {
         setActiveTopic(activeTopic === topic ? null : topic);
@@ -100,7 +114,7 @@ export const Technical: React.FC = () => {
 
             <div className="space-y-4">
                 {Object.entries(techDetails).map(([topic, detail]) => (
-                    <div key={topic} className="bg-slate-800 p-5 rounded-lg border border-slate-700">
+                    <div key={topic} id={`topic-${topic}`} className="bg-slate-800 p-5 rounded-lg border border-slate-700 scroll-mt-8">
                         <div className="flex justify-between items-start cursor-pointer" onClick={() => handleToggleTopic(topic)}>
                             <div>
                                 <h3 className="text-lg font-semibold text-white flex items-center">
