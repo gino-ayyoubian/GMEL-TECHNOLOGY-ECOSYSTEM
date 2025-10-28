@@ -28,6 +28,9 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 32768 }
+      }
     });
     return response.text;
   } catch (error) {
@@ -41,7 +44,7 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
   try {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -57,6 +60,85 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
     console.error("Error generating grounded text:", error);
     return { text: "An error occurred while fetching up-to-date information.", sources: [] };
   }
+};
+
+export const generateMapsGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
+  try {
+    const ai = getAiClient();
+
+    const getPosition = (): Promise<GeolocationPosition> => {
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: false,
+                timeout: 5000,
+                maximumAge: 0
+            });
+        });
+    };
+
+    let toolConfig: any = {};
+    try {
+        const position = await getPosition();
+        toolConfig = {
+            retrievalConfig: {
+                latLng: {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                }
+            }
+        };
+    } catch (geoError) {
+        console.warn("Could not get user location for grounding, proceeding without it.", geoError);
+    }
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        tools: [{ googleMaps: {} }],
+      },
+      toolConfig: toolConfig,
+    });
+    
+    const text = response.text;
+    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+    return { text, sources };
+
+  } catch (error) {
+    console.error("Error generating maps grounded text:", error);
+    return { text: "An error occurred while fetching up-to-date geographical information.", sources: [] };
+  }
+};
+
+export const generateJsonData = async (prompt: string): Promise<[number, number, number][] | null> => {
+    try {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.NUMBER,
+                        },
+                        minItems: 3,
+                        maxItems: 3,
+                    },
+                },
+            },
+        });
+
+        const jsonStr = response.text.trim();
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error("Error generating JSON data for heatmap:", error);
+        return null;
+    }
 };
 
 

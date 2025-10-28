@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { generateText, generateImage } from '../services/geminiService';
+import { generateText, generateImage, generateTextWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
@@ -81,7 +81,7 @@ export const Technical: React.FC = () => {
 
         setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
         const prompt = t('technical_explanation_prompt', { topic, detail });
-        const result = await generateText(prompt, 'gemini-2.5-flash-lite');
+        const result = await generateTextWithThinking(prompt);
         setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result ? result : t('error_no_explanation')} }));
     };
 

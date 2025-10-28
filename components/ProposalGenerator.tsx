@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { jsPDF } from 'jspdf';
-import { generateTextWithThinking } from '../services/geminiService';
+import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
@@ -88,19 +88,38 @@ export const ProposalGenerator: React.FC = () => {
         setError(null);
         setProposalData(null);
         
-        const prompt = t('proposal_generation_prompt', { region: targetRegion, focus_areas: focusAreas, language: lang });
-        const result = await generateTextWithThinking(prompt);
-
         try {
+            // Step 1: Generate the grounded regional analysis.
+            const regionalAnalysisPrompt = t('regional_analysis_prompt', { region: targetRegion });
+            const groundedResult = await generateGroundedText(regionalAnalysisPrompt);
+            
+            if (!groundedResult.text) {
+                throw new Error("Failed to generate the grounded regional analysis text.");
+            }
+            const regionalAnalysisContent = groundedResult.text;
+
+            // Step 2: Generate the full proposal, injecting the analysis.
+            const proposalPrompt = t('proposal_generation_prompt', { 
+                region: targetRegion, 
+                focus_areas: focusAreas, 
+                language: lang,
+                regional_analysis_content: regionalAnalysisContent
+            });
+            const result = await generateTextWithThinking(proposalPrompt);
+
+            // Step 3: Parse and set the final data.
             const parsed = extractJson(result);
             if (parsed && parsed.gmel_proposal) {
+                // To ensure full fidelity of the grounded data, we re-inject it here,
+                // overriding any potential modifications by the second AI call.
+                parsed.gmel_proposal.regional_analysis = regionalAnalysisContent;
                 setProposalData(parsed);
             } else {
-                throw new Error("Invalid format received from API");
+                throw new Error("Invalid format received from API for the final proposal.");
             }
-        } catch(e) {
-            setError(t('error_generating_proposal'));
-            console.error("Failed to parse proposal JSON:", e, "Raw result:", result);
+        } catch(e: any) {
+            setError(t('error_generating_proposal') + (e.message ? `: ${e.message}` : ''));
+            console.error("Failed to generate proposal:", e);
         } finally {
             setIsLoading(false);
         }
@@ -153,9 +172,10 @@ export const ProposalGenerator: React.FC = () => {
         html += createSection(t('regional_analysis'), data.regional_analysis);
         html += createSection(t('technical_modeling'), data.technical_modeling);
         html += createSection(t('financial_analysis'), data.financial_analysis);
-        html += createSection(t('innovation_patent_layer'), data.innovation_and_patent_layer);
+        html += createSection(t('innovation_and_patent_layer'), data.innovation_and_patent_layer);
         html += createSection(t('strategy_model'), data.strategy_model);
-        html += createSection(t('risk_roadmap'), data.risk_and_roadmap);
+        // FIX: Renamed translation key to match data structure and fix inconsistency.
+        html += createSection(t('risk_and_roadmap'), data.risk_and_roadmap);
         html += createSection(t('gmel_patent_reference'), data.gmel_patent_reference);
         html += createSection(t('ownership_statement'), data.ownership_statement);
     
@@ -249,7 +269,8 @@ export const ProposalGenerator: React.FC = () => {
                     <ProposalSection title={t('financial_analysis')} content={proposalData.gmel_proposal.financial_analysis} />
                     <ProposalSection title={t('innovation_patent_layer')} content={proposalData.gmel_proposal.innovation_and_patent_layer} />
                     <ProposalSection title={t('strategy_model')} content={proposalData.gmel_proposal.strategy_model} />
-                    <ProposalSection title={t('risk_roadmap')} content={proposalData.gmel_proposal.risk_and_roadmap} />
+                    {/* FIX: Renamed translation key to match data structure and fix inconsistency. */}
+                    <ProposalSection title={t('risk_and_roadmap')} content={proposalData.gmel_proposal.risk_and_roadmap} />
                     <ProposalSection title={t('gmel_patent_reference')} content={proposalData.gmel_proposal.gmel_patent_reference} />
                     <ProposalSection title={t('ownership_statement')} content={proposalData.gmel_proposal.ownership_statement} />
                 </div>

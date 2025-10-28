@@ -53,7 +53,7 @@ export const patent_timeline_title = "Patent Registration Timeline";
 export const no_timeline_data = "No timeline data available for patents.";
 export const financial_analysis_title = "Financial Analysis";
 export const export_secure_pdf = "Export Secure PDF";
-export const cost_revenue_breakdown = "Cost vs. Revenue Breakdown";
+export const capex_vs_revenue_title = "CAPEX vs. Annual Revenue (5MW Pilot)";
 export const net_revenue_projection_title = "10-Year Net Revenue Projection & Sensitivity Analysis";
 export const custom_annual_revenue = "Your Assumed Annual Revenue";
 export const custom_initial_investment = "Your Assumed Initial Investment";
@@ -64,9 +64,13 @@ export const investment_variation = "Investment Variation";
 export const optimistic_scenario = "Optimistic";
 export const baseline_scenario = "Baseline";
 export const pessimistic_scenario = "Pessimistic";
-export const market_analysis_for = "Market Analysis for {region}";
-export const market_analysis_description = "Click the button to get an up-to-date market analysis using Gemini with Google Search grounding.";
-export const market_analysis_prompt = "Provide a current (2024-2025) market analysis for geothermal energy projects tailored for the {region}. Focus on investment trends, government incentives in Iranian free trade zones, and the economic viability of integrated systems (power, desalination, hydrogen). The baseline pilot has a 5 MW capacity and integrates DLE and e-fuels. Reference the competitive advantages of the GMEL patent portfolio.";
+export const financial_summary_title = "AI-Generated Financial Summary";
+export const financial_summary_description = "Click the button to generate a narrative summary and analysis of the project's financial data using Gemini. This provides an executive-level overview of the project's financial viability.";
+export const financial_summary_prompt = "Based on the following financial data for a 5MW pilot plant, provide a concise narrative summary (2-3 paragraphs) suitable for an executive briefing. Analyze the data, focusing on the key metrics like CAPEX, annual revenue, payback period, and ROI. Conclude with an assessment of the project's financial viability.\n\nData:\n- Pilot CAPEX (5MW): 575 Billion Toman\n- Annual Revenue (5MW): 390 Billion Toman\n- Payback Period: 2 Years\n- Return on Investment (ROI): 42 Percent\n- 10-Year NPV: 2750 Billion Toman";
+export const cost_revenue_breakdown = "Cost vs. Revenue Breakdown (5MW Pilot)";
+export const market_analysis_for = "Grounded Market Analysis for {region}";
+export const market_analysis_description = "Click to generate an up-to-date market analysis for the selected region using Google Search grounding. This provides insights into market conditions, regulatory environments, and potential energy partners.";
+export const market_analysis_prompt = "Provide a detailed market analysis for a geothermal energy project in {region}, Iran. Focus on the current (2024-2025) energy market, electricity prices, government incentives for renewable energy, key industrial players who could be energy off-takers, and the overall investment climate. Use Google Search to ground your analysis in real-world, up-to-date data.";
 export const analyzing = "Analyzing...";
 export const generate_analysis = "Generate Analysis";
 export const sources = "Sources";
@@ -117,15 +121,18 @@ export const chat_title = "Project Assistant Chat";
 export const chat_placeholder = "Ask about the {region} proposal...";
 export const send = "Send";
 export const site_analysis_title = "Site Analysis";
-export const site_analysis_description = "Generate a visual and textual analysis of the geographical and logistical advantages for the proposed project in the {region}. This tool uses AI to create a map-style visualization and a grounded summary of key site characteristics.";
-export const site_analysis_map_prompt = "A clean, high-resolution satellite-style topographical map of the {region} in Iran. Highlight key geographical features like coastlines, mountains, and major transport routes. Use minimal text labels.";
-export const error_failed_map = "Failed to generate map image.";
-export const site_analysis_prompt = "Provide a detailed geographical and logistical analysis for a geothermal energy project in the {region}, Iran. Discuss topography, proximity to infrastructure (ports, power grids, transport), water sources, and potential challenges or advantages based on its location. Use Google Search to ground your analysis in real-world data.";
+export const site_analysis_description = "Generate a visual and textual analysis of the geographical and logistical advantages for the proposed project in the {region}. This tool uses an interactive map, geothermal data layers, and an AI-powered summary of key site characteristics.";
+export const site_analysis_prompt = "Provide a detailed geographical and logistical analysis for a geothermal energy project in the {region}. Use Google Maps to find and describe key infrastructure like airports, ports, power stations, and major roads. Also identify potential industrial energy consumers. Structure your response with the following markdown headers: ### Topography and Geology, ### Infrastructure and Logistics, ### Opportunities, and ### Challenges. Ground your analysis in real-world data from Google Maps.";
+export const site_summary_prompt = "Generate a very concise, 2-sentence summary of the key site analysis findings for a geothermal project in {region}, Iran. This summary will be used in a map marker popup.";
+export const site_heatmap_prompt = "For the region of {region}, generate an array of at least 50 data points for a heatmap representing geothermal gradient intensity. Each point must be an array of `[latitude, longitude, intensity]`. The intensity must be a value between 0.0 (low) and 1.0 (high). Ensure the points are geographically plausible and clustered around areas of higher expected geothermal potential within the region's typical boundaries (e.g., near fault lines or volcanic history). The output must be a valid JSON array conforming to the specified schema and nothing else.";
+export const site_geothermal_gradient_layer = "Geothermal Gradient";
+export const tectonic_plates = "Tectonic Plates";
+export const thermal_zones = "Thermal Zones";
 export const error_failed_analysis = "Failed to generate site analysis.";
 export const generating_analysis = "Generating Analysis...";
 export const generate_site_analysis = "Generate Site Analysis";
 export const generating_site_analysis_message = "Generating map and analysis, this may take a few moments...";
-export const generated_map_title = "Generated Map for {region}";
+export const generated_map_title = "Interactive Map for {region}";
 export const generated_map_alt = "Generated map of {region}";
 export const geographical_analysis = "Geographical Analysis";
 export const comparison_title = "Regional Proposal Comparison";
@@ -164,7 +171,15 @@ export const benchmark_comparison_prompt = `
     The "table" value must be an array of objects, where each object has three keys: "metric", "region1", and "region2".
     The value for "region1" must correspond to {region1}, and "region2" to {region2}.
     The "narrative" value must be a string summarizing the key strategic differences in 2-3 paragraphs.
-    Cover these metrics: Geological Potential, Technology Approach, Typical Project Scale/Capacity, Key Applications (e.g., power, heat, desalination), Government/Private Investment Climate, and Major Operational Challenges.
+    Cover these metrics:
+    - Geological Potential & Typical Gradient (°C/km)
+    - Dominant Technology Approach
+    - Average Plant Capacity Factor (%)
+    - Levelized Cost of Energy (LCOE) ($/MWh)
+    - Key Applications (e.g., power, heat, desalination)
+    - Government Subsidies/Incentives
+    - Grid Integration Maturity
+    - Major Operational Challenges
 `;
 export const error_generating_comparison = "Error generating comparison. The AI response might be in an unexpected format. Please try again.";
 export const error_select_different_regions = "Please select two different regions to compare.";
@@ -271,26 +286,36 @@ export const compare_technologies = "Compare Technologies";
 export const gmel_specifications = "GMEL Specifications";
 export const benchmark_specifications = "Benchmark Specifications";
 export const tech_comparison_prompt = `
-    Generate a detailed technical comparison between the GMEL project's '{gmel_tech_name}' and the typical technology used for the same purpose in '{benchmark_region}'.
+    Generate a detailed technical and economic comparison between the GMEL project's '{gmel_tech_name}' and the typical technology used for the same purpose in '{benchmark_region}'.
     Provide the output as a single JSON object with two keys: "table" and "narrative".
     The "table" must be an array of objects, each with "metric", "gmel_spec", and "benchmark_spec" keys.
-    The "narrative" must be a string summarizing the key competitive advantages and differences in 2-3 paragraphs.
+    The "narrative" must be a string summarizing the key competitive advantages, differences, and strategic implications in 2-3 paragraphs.
     Cover these metrics:
     - Operating Principle
     - Key Innovation / Differentiator
     - Typical Efficiency / Performance KPI
+    - Levelized Cost of Energy (LCOE) ($/MWh)
+    - Operational & Maintenance (O&M) Costs ($/MWh)
     - Estimated CAPEX/MW (or relevant unit)
-    - Operational Complexity
+    - Parasitic Load (%)
+    - Average Construction Time (Months)
+    - Physical Footprint (m²/MW)
     - Technology Readiness Level (TRL)
     - Environmental Impact
 `;
 export const simulations_title = "Simulations & Modeling";
 export const simulations_description = "This section is dedicated to the computational models and simulations that validate the GMEL project's performance. (Note: This is a placeholder for future development).";
 export const simulation_gradient_title = "Simple Power Output Simulation";
-export const geothermal_gradient = "Geothermal Gradient (°C/km)";
+// FIX: Changed value to remove redundant unit, which is already present in the component's JSX. This also resolves the missing key error.
+export const simulation_geothermal_gradient_label = "Geothermal Gradient";
 export const calculate_potential = "Calculate Potential";
 export const potential_output = "Estimated Potential Output";
-export const simulation_narrative_prompt = "Explain briefly how a geothermal gradient of {gradient}°C/km, combined with a drilling depth of 4 km and an Organic Rankine Cycle efficiency of 20%, can be used to estimate potential power output. Describe the basic energy conversion steps in one paragraph.";
+export const simulation_narrative_prompt_detailed = "Explain how a geothermal project with a geothermal gradient of {gradient}°C/km and a drilling depth of {depth} km can produce an estimated {power} MW of power. In one paragraph, describe the basic energy conversion steps and mention the related environmental benefits like CO2 offset.";
+export const drilling_depth_km = "Drilling Depth (km)";
+export const simulation_results_title = "Simulation Results";
+export const potential_output_mw = "Potential Output";
+export const co2_offset_per_year = "CO2 Offset / Year";
+export const households_powered = "Households Powered";
 export const strategy_modeler_title = "Joint Venture Strategy Modeler";
 export const strategy_modeler_description = "Select a target region to generate a comprehensive, AI-powered strategy for forming a joint venture. This modeler will propose an optimal technology package, outline key value propositions, and identify strategic considerations for a successful partnership.";
 export const select_target_region = "Select Target Region for JV";
@@ -316,104 +341,57 @@ export const generating_strategy = "Generating Strategy...";
 export const proposal_generator_title = "Intelligent Proposal Generator";
 export const proposal_generator_description = "This module generates a comprehensive, region-based proposal using the GMEL-Proposal Engine. Select a target region and specify focus areas to generate a branded, downloadable PDF proposal aligned with GMEL's patented intellectual property architecture.";
 export const select_proposal_region = "Select Proposal Region";
-export const focus_areas = "Focus Areas (comma-separated)";
-export const focus_areas_placeholder = "e.g., solar, wind, hydrogen, DLE";
+export const focus_areas = "Specify Focus Areas";
+export const focus_areas_placeholder = "e.g., desalination, DLE, green hydrogen";
 export const generate_proposal = "Generate Proposal";
 export const generating_proposal = "Generating Proposal...";
 export const generated_proposal_title = "Generated Proposal for {region}";
+export const error_generating_proposal = "Error generating proposal";
+export const regional_analysis_prompt = "Provide a current (2024-2025) and detailed analysis of the {region}. Focus on its geopolitical situation, economic needs (specifically regarding energy, water, and strategic minerals), existing infrastructure, and potential for foreign investment. Use Google Search to ensure the information is up-to-date and grounded.";
+export const proposal_generation_prompt = `
+    You are the GMEL-Proposal Engine, an AI for KKM International. Your task is to generate a comprehensive project proposal for the GeoMeta Energy Layer (GMEL) project.
+    
+    The proposal should be structured as a single JSON object. The root key must be "gmel_proposal".
+    The value of "gmel_proposal" must be an object with the following keys, each containing a detailed string in the specified language:
+    "region": "{region}",
+    "language": "{language}",
+    "sector": "Geothermal Energy and Integrated Systems",
+    "executive_summary": "A powerful, concise summary of the proposal, highlighting the key value proposition for the specified region and focus areas.",
+    "regional_analysis": "Placeholder text: [REGIONAL_ANALYSIS_CONTENT_WILL_BE_INJECTED_HERE]",
+    "technical_modeling": "An overview of the GMEL-CLG core technology and the specific applied patents relevant to the focus areas ({focus_areas}).",
+    "financial_analysis": "A high-level financial projection based on the 5MW pilot data, adapted for the region. Mention CAPEX, revenue streams, ROI, and payback period.",
+    "innovation_and_patent_layer": "Describe the strategic value of the GMEL patent portfolio as a whole, emphasizing its role in creating a defensible, long-term competitive advantage.",
+    "strategy_model": "Propose a partnership model (e.g., Joint Venture, Technology Licensing) suitable for {region} and outline the mutual benefits.",
+    "risk_and_roadmap": "Identify 3 key risks for the project in this region and present a high-level project roadmap with major milestones for the next 5 years.",
+    "gmel_patent_reference": ["GMEL-CLG", "GMEL-EHS", "GMEL-DrillX", "GMEL-Desal", "GMEL-LithiumLoop"],
+    "ownership_statement": "All intellectual property rights for the GeoMeta Energy Layer (GMEL) and its associated technologies are retained by inventor Seyed Gino Ayyoubian and the KKM International Group. This proposal is confidential."
+
+    CRITICAL: The entire output MUST be a single, valid JSON object. Do not include any text or markdown outside of the JSON structure.
+    Inject the following content for the "regional_analysis" section:
+    ---
+    {regional_analysis_content}
+    ---
+`;
 export const executive_summary = "Executive Summary";
 export const regional_analysis = "Regional Analysis";
 export const technical_modeling = "Technical Modeling";
+// FIX: Add missing translation key to resolve TypeScript error.
 export const financial_analysis = "Financial Analysis";
-export const innovation_patent_layer = "Innovation and Patent Layer";
+// FIX: Renamed 'innovation_patent_layer' to 'innovation_and_patent_layer' to match usage and fix TypeScript error.
+export const innovation_and_patent_layer = "Innovation & Patent Layer";
 export const strategy_model = "Strategy Model";
-export const risk_roadmap = "Risk & Roadmap";
+// FIX: Rename translation key to match data structure and fix inconsistency.
+export const risk_and_roadmap = "Risk & Roadmap";
 export const gmel_patent_reference = "GMEL Patent Reference";
 export const ownership_statement = "Ownership Statement";
-export const error_generating_proposal = "Error generating the proposal. The AI response may be in an unexpected format.";
-export const proposal_generation_prompt = `
-As the GMEL-Proposal Engine, generate a comprehensive proposal for implementing the GeoMeta Energy Layer ecosystem in {region}, with a special focus on {focus_areas}.
-The proposal generation must be based on the following GMEL ecosystem patents: GMEL-CLG (Closed-loop Geothermal), GMEL-EHS (Smart Energy Sensors), GMEL-DrillX (Advanced Drilling), GMEL-ThermoFluid (Heat Transfer Fluid), GMEL-Desal (Thermal Desalination), GMEL-H₂Cell (Hydrogen Production), GMEL-AgriCell (Thermal Agriculture), GMEL-LithiumLoop (Lithium Extraction), GMEL-EcoCluster (Energy-Centric Villages), GMEL-SmartFund (Marine-Village Fund), and GMEL-GeoCredit (Carbon Credit Platform).
-All analyses must be based on the most recent credible global data (from sources like IEA, World Bank, etc.), and all outputs must be consistent with the GMEL patent portfolio and KKM International's proprietary methodologies.
-The output must be a single, valid JSON object following the specified schema.
-
-The JSON output must have the following structure:
-{
-  "gmel_proposal": {
-    "region": "{region}",
-    "language": "{language}",
-    "sector": "renewable_energy_and_integrated_systems",
-    "executive_summary": "A concise, compelling summary (2-3 paragraphs) of the project's value proposition for {region}, highlighting key outcomes like energy independence, economic growth, and technological leadership.",
-    "regional_analysis": "An analysis of {region}'s current energy landscape, resource potential, and strategic needs, citing up-to-date data. Explain how the GMEL ecosystem addresses these specific needs.",
-    "technical_modeling": "A high-level technical plan, outlining the proposed GMEL technologies (e.g., GMEL-CLG, GMEL-Desal, GMEL-H₂Cell) and their integration. Justify the selection based on the region's geography and economic drivers.",
-    "financial_analysis": "A preliminary financial model based on a scalable 5MW pilot project. Include estimated CAPEX, revenue streams (power, water, minerals), ROI, and payback period, contextualized for {region}'s economy.",
-    "innovation_and_patent_layer": "Describe how the proprietary GMEL patent portfolio provides a unique competitive advantage, reduces risk, and ensures long-term technological superiority for this project.",
-    "strategy_model": "Propose a strategic implementation model (e.g., Joint Venture, BOOT) based on GMEL-SMP, outlining key partnership criteria and a phased development plan.",
-    "risk_and_roadmap": "Identify key geopolitical, market, and technical risks specific to {region} and propose mitigation strategies. Provide a high-level project implementation roadmap with major milestones.",
-    "gmel_patent_reference": ["GMEL-CLG", "GMEL-Desal", "GMEL-EcoCluster", "GMEL-SmartFund"],
-    "ownership_statement": "All intellectual property, models, and generated content are proprietary to KKM International Group and the GeoMeta Energy Layer Ecosystem, created by Seyed Zino Ayoubian.",
-    "export_pdf": {
-      "protected": true,
-      "watermark": "GeoMeta Energy Layer – KKM International Group",
-      "metadata_signature": "auto-generated hash"
-    }
-  },
-  "dev_checklist": ["JSON schema validated", "Data grounded in recent sources", "Patent references included", "Ownership statement correct"]
-}
-
-Ensure each section contains 2-5 well-structured paragraphs.
-`;
-export const gmel_statement_title = "GMEL Statement";
-export const gmel_statement_body = `GeoMeta Energy Layer – Beyond Energy, Towards Intelligence
-
-Origins
-GMEL was born from a fundamental question:
-Can energy not only be extracted but also understood?
-
-An ecosystem is envisioned where the earth, data, and human cognition coexist in a dynamic network.
-In this vision, energy is not merely a fuel — it is the planet's language, one that must be translated into data, insight, and purposeful action.
-
-GMEL is that translation.
-
-Definition and Core Essence
-GMEL (GeoMeta Energy Layer) is a multidimensional and multi-energy ecosystem that integrates geothermal, thermal, chemical, and biological systems with digital, cognitive, and economic layers.
-
-Every molecule of energy, every bit of data, and every human decision interacts within a self-aware intelligent ecosystem designed for optimization, sustainability, and resilience.
-
-GMEL is not merely a project — it is a cognitive infrastructure where earth sciences, artificial intelligence, and sustainable economics converge within a strategic platform.
-
-Fundamental Principles
-• Geo-Digital Synergy: Every natural resource coexists with its digital twin to ensure real-time optimization.
-• Interactive Intelligence: Decision-making based on live data, AI modeling, and predictive learning.
-• Cognitive Sustainability: True sustainability lies in the evolving intelligence of the system, not only in ecology.
-• Self-Developing Capability: Each GMEL node learns, adapts, and replicates its optimal configuration.
-• Data as Second Energy: Data is regarded as an extractable, storable, and convertible resource, equivalent to heat or electricity.
-
-Conceptual Architecture
-GMEL operates through three interconnected layers:
-• Geo Layer: Physical geothermal and energy systems (such as CLG, ORC, DSL)
-• Meta Layer: Digital and analytical systems for AI-based simulation, monitoring, and management
-• Cognitive Layer: Strategic intelligence and decision-making supported by advanced data models
-
-All layers communicate via the MetaFlow system and neural energy network, controlled and displayed by the HoloControl engine — a platform compatible with Google AI Studio for interactive simulations and live presentations.
-
-Distinctiveness and Strategic Advantages
-• System efficiency of up to 92%
-• 70% reduction in carbon footprint
-• Over 100 local jobs per megawatt capacity
-• Multi-output energy production (electricity, hydrogen, water, agricultural-thermal systems)
-• Integrated patent framework: Connected Patent System (IPS) ensuring cross-domain protection and innovation synergy
-
-Mission
-The mission of GMEL is to demonstrate that artificial intelligence and the earth can evolve together — shaping a smart and unified layer of sustainable development.
-
-Our vision redefines energy production as a process of extracting meaning — transforming geothermal energy into geo-intelligence.
-
-Signature and Ownership
-GMEL — GeoMeta Energy Layer
-Developed and owned by
-Kimia Karan Mad (KKM International Group)
-And the Knowledge Cell of Seyed Gino Ayyoubian
-
-All rights reserved.
-Inventions are registered within the intellectual and technological framework of GMEL.`;
+export const gmel_statement_title = "Statement from the Inventor, Seyed Gino Ayyoubian";
+export const gmel_statement_body = `The GeoMeta Energy Layer (GMEL) is not merely an invention; it is the culmination of years of research, a vision for a sustainable future, and a testament to the power of integrating diverse scientific disciplines. Born from a deep understanding of thermodynamics, geology, and advanced materials, GMEL represents a paradigm shift in how we perceive and harness geothermal energy. Our core philosophy is to create a closed-loop, self-sustaining ecosystem that is not only environmentally benign but also economically transformative. By eliminating the need for environmentally disruptive practices like fracking and moving beyond the limitations of traditional geothermal systems, GMEL opens up vast, untapped energy resources in low-gradient thermal zones previously considered unviable. This technology is designed to be a catalyst for regional development, offering a sovereign solution for energy, water, and strategic resources. The patent portfolio surrounding GMEL is a strategic fortress, designed to protect this vision and ensure its responsible deployment. We are not just building power plants; we are engineering the foundation for resilient, self-sufficient communities and a cleaner planet for generations to come. This project is a commitment to innovation, sovereignty, and the relentless pursuit of a better future.`;
+export const infrastructure_sidebar_title = "Infrastructure Navigator";
+export const filter_by_type = "Filter by Type";
+export const filter_by_proximity = "Filter by Proximity (km)";
+export const all_types = "All Types";
+export const heatmap_legend_title = "Geothermal Gradient";
+export const legend_low = "Low";
+export const legend_high = "High";
+export const no_infrastructure_found = "No infrastructure matches filters.";
+export const toggle_sidebar = "Toggle Infrastructure Sidebar";

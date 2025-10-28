@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { generateGroundedText } from '../services/geminiService';
+import { generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
@@ -116,7 +116,7 @@ export const SiteAnalysis: React.FC = () => {
 
         try {
             const analysisPrompt = t('site_analysis_prompt', { region });
-            const analysisResult = await generateGroundedText(analysisPrompt);
+            const analysisResult = await generateMapsGroundedText(analysisPrompt);
             if (analysisResult.text) {
                 setAnalysis(analysisResult);
             } else {
@@ -186,20 +186,36 @@ export const SiteAnalysis: React.FC = () => {
                                     <SpeakerIcon text={analysis.text} />
                                 </h2>
                                  <p className="text-slate-300 whitespace-pre-wrap">{analysis.text}</p>
-                                 {analysis.sources.length > 0 && (
+                                {analysis.sources.length > 0 && (
                                     <div className="mt-4">
                                         <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
                                         <ul className="list-disc list-inside mt-2 text-xs text-slate-500 space-y-1">
-                                        {analysis.sources.map((source, i) => (
-                                            <li key={i}>
-                                                <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
-                                                    {source.web?.title || source.web?.uri}
-                                                </a>
-                                            </li>
-                                        ))}
+                                            {analysis.sources.map((chunk: any, i: number) => {
+                                                if (chunk.maps?.uri) {
+                                                    return (
+                                                        <li key={`map-source-${i}`}>
+                                                            <a href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                                                {chunk.maps.title || 'Google Maps Source'}
+                                                            </a>
+                                                        </li>
+                                                    );
+                                                }
+                                                if (chunk.maps?.placeAnswerSources) {
+                                                    return chunk.maps.placeAnswerSources.map((source: any, j: number) => 
+                                                        source.reviewSnippets?.map((snippet: any, k: number) => (
+                                                             <li key={`review-${i}-${j}-${k}`}>
+                                                                <a href={snippet.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                                                    {snippet.title || 'Review Snippet'}
+                                                                </a>: "{snippet.content}"
+                                                            </li>
+                                                        ))
+                                                    );
+                                                }
+                                                return null;
+                                            })}
                                         </ul>
                                     </div>
-                                 )}
+                                )}
                                  <Feedback sectionId={`site-analysis-${region}`} />
                             </div>
                         )}
