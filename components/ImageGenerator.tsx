@@ -23,13 +23,14 @@ export const ImageGenerator: React.FC = () => {
         setIsLoading(true);
         setError(null);
         setImageUrl(null);
-        const result = await generateImage(prompt, aspectRatio);
-        if (result) {
+        try {
+            const result = await generateImage(prompt, aspectRatio);
             setImageUrl(result);
-        } else {
-            setError(t('error_failed_image'));
+        } catch (e: any) {
+            setError(e.message || t('error_failed_image'));
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     return (

@@ -18,7 +18,7 @@ export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash'
     return response.text;
   } catch (error) {
     console.error("Error generating text:", error);
-    return "An error occurred while generating the text.";
+    throw new Error("An error occurred while generating the text. The service may be temporarily unavailable.");
   }
 };
 
@@ -35,7 +35,7 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
     return response.text;
   } catch (error) {
     console.error("Error generating text with thinking:", error);
-    return "An error occurred during complex analysis.";
+    throw new Error("An error occurred during complex analysis. The service may be temporarily unavailable.");
   }
 };
 
@@ -58,7 +58,7 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
 
   } catch (error) {
     console.error("Error generating grounded text:", error);
-    return { text: "An error occurred while fetching up-to-date information.", sources: [] };
+    throw new Error("An error occurred while fetching up-to-date information. The service may be temporarily unavailable.");
   }
 };
 
@@ -94,10 +94,11 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
+      // FIX: The 'toolConfig' property should be nested inside the 'config' object.
       config: {
         tools: [{ googleMaps: {} }],
+        toolConfig: toolConfig,
       },
-      toolConfig: toolConfig,
     });
     
     const text = response.text;
@@ -107,11 +108,11 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
 
   } catch (error) {
     console.error("Error generating maps grounded text:", error);
-    return { text: "An error occurred while fetching up-to-date geographical information.", sources: [] };
+    throw new Error("An error occurred while fetching up-to-date geographical information. The service may be temporarily unavailable.");
   }
 };
 
-export const generateJsonData = async (prompt: string): Promise<[number, number, number][] | null> => {
+export const generateJsonData = async (prompt: string): Promise<[number, number, number][]> => {
     try {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
@@ -137,12 +138,12 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
         return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Error generating JSON data for heatmap:", error);
-        return null;
+        throw new Error("Failed to generate structured data. The model's response may have been invalid.");
     }
 };
 
 
-export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '16:9'): Promise<string | null> => {
+export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '16:9'): Promise<string> => {
   try {
     const ai = getAiClient();
     const response = await ai.models.generateImages({
@@ -159,10 +160,10 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
       const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
       return `data:image/jpeg;base64,${base64ImageBytes}`;
     }
-    return null;
+    throw new Error("Model did not return an image.");
   } catch (error) {
     console.error("Error generating image:", error);
-    return null;
+    throw new Error("Failed to generate the image. The prompt may be unsafe or the service is unavailable.");
   }
 };
 
@@ -220,6 +221,6 @@ export const continueChat = async (history: ChatMessage[]): Promise<string> => {
         return response.text;
     } catch (error) {
         console.error("Error in chat:", error);
-        return "Sorry, I encountered an error. Please try again.";
+        throw new Error("Sorry, I encountered an error. Please try again.");
     }
 };

@@ -161,17 +161,22 @@ export const GeminiChat: React.FC<{ activeView: View }> = ({ activeView }) => {
     setInput('');
     setIsLoading(true);
 
-    const contextualizedInput = buildDynamicContext(input, region, activeView);
-    
-    const historyForApi = currentMessages.map(msg => ({
-        ...msg,
-        // Replace the last user message with the fully contextualized one for the API call
-        text: msg === userMessage ? contextualizedInput : msg.text
-    }));
+    try {
+        const contextualizedInput = buildDynamicContext(input, region, activeView);
+        
+        const historyForApi = currentMessages.map(msg => ({
+            ...msg,
+            // Replace the last user message with the fully contextualized one for the API call
+            text: msg === userMessage ? contextualizedInput : msg.text
+        }));
 
-    const modelResponse = await continueChat(historyForApi);
-    setMessages(prev => [...prev, { role: 'model', text: modelResponse ? `${modelResponse}` : t('error_process_request') }]);
-    setIsLoading(false);
+        const modelResponse = await continueChat(historyForApi);
+        setMessages(prev => [...prev, { role: 'model', text: modelResponse }]);
+    } catch (e: any) {
+        setMessages(prev => [...prev, { role: 'model', text: e.message || t('error_process_request') }]);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (

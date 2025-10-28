@@ -45,8 +45,8 @@ const CLGSystemDiagram = () => (
 
 export const Technical: React.FC = () => {
     const { technicalTopic, setTechnicalTopic } = useContext(AppContext)!;
-    const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
-    const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
+    const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
+    const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
     const [diagrams, setDiagrams] = useState<Record<string, {isLoading: boolean, url: string | null, error: string | null}>>({});
     const [activeTopic, setActiveTopic] = useState<string | null>(null);
     const { t } = useI18n();
@@ -79,28 +79,36 @@ export const Technical: React.FC = () => {
     const getExplanation = async (topic: string, detail: string) => {
         if (explanations[topic]?.text) return;
 
-        setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
+        setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
         const prompt = t('technical_explanation_prompt', { topic, detail });
-        const result = await generateTextWithThinking(prompt);
-        setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result ? result : t('error_no_explanation')} }));
+        try {
+            const result = await generateTextWithThinking(prompt);
+            setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));
+        } catch (e: any) {
+            setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: null, error: e.message || t('error_no_explanation')}}));
+        }
     };
 
     const getDemystification = async (topic: string, detail: string) => {
         if (demystified[topic]?.text) return;
-        setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
+        setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
         const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}`;
-        const result = await generateText(prompt, 'gemini-2.5-flash-lite');
-        setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result ? result : t('error_no_explanation')} }));
+        try {
+            const result = await generateText(prompt, 'gemini-2.5-flash-lite');
+            setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));
+        } catch (e: any) {
+             setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: null, error: e.message || t('error_no_explanation')}}));
+        }
     };
 
     const getDiagram = async (topic: string) => {
         setDiagrams(prev => ({ ...prev, [topic]: { isLoading: true, url: null, error: null }}));
         const prompt = t('technical_diagram_prompt', { topic });
-        const result = await generateImage(prompt, '1:1');
-        if (result) {
+        try {
+            const result = await generateImage(prompt, '1:1');
             setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: result, error: null }}));
-        } else {
-            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: null, error: t('error_failed_diagram') }}));
+        } catch (e: any) {
+             setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: null, error: e.message || t('error_failed_diagram') }}));
         }
     };
 
@@ -159,6 +167,8 @@ export const Technical: React.FC = () => {
                                      <div className="p-4 bg-amber-900/20 rounded-lg border border-amber-500/30">
                                         {demystified[topic].isLoading ? (
                                             <p className="text-slate-500">{t('generating_explanation')}...</p>
+                                        ) : demystified[topic].error ? (
+                                            <p className="text-red-400 text-sm">{demystified[topic].error}</p>
                                         ) : (
                                             <div className="text-amber-300 text-sm whitespace-pre-wrap">
                                                 <div className="flex items-center">
@@ -175,6 +185,8 @@ export const Technical: React.FC = () => {
                                     <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-600/50">
                                         {explanations[topic].isLoading ? (
                                             <p className="text-slate-500">{t('generating_explanation')}...</p>
+                                        ) : explanations[topic].error ? (
+                                            <p className="text-red-400 text-sm">{explanations[topic].error}</p>
                                         ) : (
                                             <div className="text-slate-300 text-sm whitespace-pre-wrap">
                                                 <div className="flex items-center">

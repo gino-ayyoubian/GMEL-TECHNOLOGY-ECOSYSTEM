@@ -10,9 +10,11 @@ export const Simulations: React.FC = () => {
     const [results, setResults] = useState<{ potential: string; co2Offset: string; households: string; } | null>(null);
     const [explanation, setExplanation] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleCalculate = async () => {
         setIsLoading(true);
+        setError(null);
         setExplanation('');
 
         // Simplified formula for demonstration
@@ -32,10 +34,15 @@ export const Simulations: React.FC = () => {
         });
 
         // Generate explanation
-        const prompt = t('simulation_narrative_prompt_detailed', { gradient, depth, power: powerOutput.toFixed(1) });
-        const result = await generateText(prompt);
-        setExplanation(result);
-        setIsLoading(false);
+        try {
+            const prompt = t('simulation_narrative_prompt_detailed', { gradient, depth, power: powerOutput.toFixed(1) });
+            const result = await generateText(prompt);
+            setExplanation(result);
+        } catch (e: any) {
+            setError(e.message || 'Failed to generate explanation.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -108,6 +115,8 @@ export const Simulations: React.FC = () => {
 
                         {isLoading && <p className="text-sm text-slate-400 mt-6 text-center">{t('generating_explanation')}...</p>}
                         
+                        {error && <p className="mt-4 text-sm text-red-400 text-center">{error}</p>}
+
                         {explanation && (
                              <div className="mt-6 pt-4 border-t border-slate-700/50">
                                 <p className="text-sm text-slate-300 whitespace-pre-wrap flex items-start">

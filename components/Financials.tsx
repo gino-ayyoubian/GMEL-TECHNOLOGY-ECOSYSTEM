@@ -15,6 +15,7 @@ export const Financials: React.FC = () => {
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     
     const baseInitialInvestment = FINANCIAL_DATA.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
     const baseAnnualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
@@ -63,11 +64,17 @@ export const Financials: React.FC = () => {
 
     const handleAnalysis = async () => {
         setIsLoading(true);
-        setAnalysis(''); // Clear previous analysis
-        const prompt = t('financial_summary_prompt');
-        const result = await generateTextWithThinking(prompt);
-        setAnalysis(result ? `${result}` : t('error_no_analysis'));
-        setIsLoading(false);
+        setError(null);
+        setAnalysis('');
+        try {
+            const prompt = t('financial_summary_prompt');
+            const result = await generateTextWithThinking(prompt);
+            setAnalysis(result);
+        } catch (e: any) {
+            setError(e.message || t('error_no_analysis'));
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     const handleExport = async () => {
@@ -217,6 +224,7 @@ export const Financials: React.FC = () => {
                  <button onClick={handleAnalysis} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
                     {isLoading ? t('analyzing') : t('generate_analysis')}
                  </button>
+                 {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
                  {analysis && (
                      <div className="mt-6 p-4 bg-slate-900 rounded-lg">
                          <p className="text-slate-300 whitespace-pre-wrap">{analysis}</p>

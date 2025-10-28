@@ -15,24 +15,26 @@ export const Correspondence: React.FC = () => {
     const [attachments, setAttachments] = useState('');
     const [generatedLetter, setGeneratedLetter] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [letterNumber, setLetterNumber] = useState(`KKM-GMEL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);
     const letterRef = useRef<HTMLDivElement>(null);
 
     const handleGenerate = async () => {
         if (!recipient || !subject || !prompt) return;
         setIsLoading(true);
+        setError(null);
         setGeneratedLetter('');
         
-        const generationPrompt = t('letter_generation_prompt', { region, recipient, subject, prompt });
-        const result = await generateText(generationPrompt);
-
-        if (result) {
+        try {
+            const generationPrompt = t('letter_generation_prompt', { region, recipient, subject, prompt });
+            const result = await generateText(generationPrompt);
             setGeneratedLetter(result);
             setLetterNumber(`KKM-GMEL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);
-        } else {
-            setGeneratedLetter(t('letter_generation_error'));
+        } catch (e: any) {
+            setError(e.message || t('letter_generation_error'));
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     const handlePrint = () => {
@@ -111,6 +113,7 @@ export const Correspondence: React.FC = () => {
                     <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
                         {isLoading ? t('generating') : t('generate_letter')}
                     </button>
+                    {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
                 </div>
 
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">

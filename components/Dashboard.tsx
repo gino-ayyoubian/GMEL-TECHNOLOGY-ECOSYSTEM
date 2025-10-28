@@ -52,15 +52,21 @@ const DataCard: React.FC<{ title: string; value: string; description: string; ic
   </div>
 );
 
-const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => void }> = ({ prompt, onResult }) => {
+const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => void, onError: (error: string) => void }> = ({ prompt, onResult, onError }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useI18n();
 
     const handleClick = async () => {
         setIsLoading(true);
-        const result = await generateTextWithThinking(prompt);
-        onResult(result ? `${result}` : t('error_no_analysis'));
-        setIsLoading(false);
+        onError('');
+        try {
+            const result = await generateTextWithThinking(prompt);
+            onResult(result);
+        } catch (e: any) {
+            onError(e.message || t('error_no_analysis'));
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -167,18 +173,18 @@ const ImpactCalculator: React.FC = () => {
         setResults(null);
 
         const prompt = t('impact_generation_prompt', { scale });
-        const result = await generateTextWithThinking(prompt);
         
         try {
+            const result = await generateTextWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
                 throw new Error("Invalid format received from API");
             }
-        } catch (e) {
-            setError(t('error_generating_impact_analysis'));
-            console.error("Failed to parse impact JSON:", e, "Raw result:", result);
+        } catch (e: any) {
+            setError(e.message || t('error_generating_impact_analysis'));
+            console.error("Failed to parse impact JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -293,18 +299,26 @@ export const Dashboard: React.FC = () => {
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        const prompt = getProjectSummaryPrompt(region);
-        const result = await generateGroundedText(prompt);
-        setSummary(result.text);
-        setIsSummaryLoading(false);
+        setError(null);
+        try {
+            const prompt = getProjectSummaryPrompt(region);
+            const result = await generateGroundedText(prompt);
+            setSummary(result.text);
+        } catch (e: any) {
+            setError(e.message || 'Failed to fetch summary.');
+        } finally {
+            setIsSummaryLoading(false);
+        }
     };
     
     useEffect(() => {
         setSummary('');
         setStrategicAnalysis('');
+        setError(null);
     }, [region]);
 
     const chartData = FINANCIAL_DATA.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
@@ -364,11 +378,13 @@ export const Dashboard: React.FC = () => {
                         <ThinkingButton 
                             prompt={t('strategic_analysis_prompt', { region })}
                             onResult={setStrategicAnalysis}
+                            onError={setError}
                         />
                         <Feedback sectionId={`summary-${region}`} />
                     </>
                 )}
 
+                {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
                 {strategicAnalysis && (
                     <div className="mt-6 p-4 bg-slate-900 rounded-lg border border-sky-500/30">

@@ -57,19 +57,21 @@ export const Comparison: React.FC = () => {
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
     const [strategicInsights, setStrategicInsights] = useState<string>('');
     const [isInsightsLoading, setIsInsightsLoading] = useState<boolean>(false);
 
 
     const fetchComparison = async () => {
         setIsLoading(true);
+        setError(null);
         setComparisonData([]);
         setNarrative('');
         setStrategicInsights('');
-        const prompt = t('comparison_prompt');
-        const result = await generateTextWithThinking(prompt);
         
         try {
+            const prompt = t('comparison_prompt');
+            const result = await generateTextWithThinking(prompt);
             const parsedResult = extractJson(result);
             if (parsedResult && parsedResult.table && parsedResult.narrative) {
                 setComparisonData(parsedResult.table);
@@ -77,28 +79,33 @@ export const Comparison: React.FC = () => {
             } else {
                  throw new Error("Invalid format received");
             }
-        } catch (error) {
-            console.error("Failed to parse comparison JSON:", error);
-            setNarrative(t('error_comparison_generation'));
-            setComparisonData([]);
+        } catch (e: any) {
+            console.error("Failed to parse comparison JSON:", e);
+            setError(e.message || t('error_comparison_generation'));
+        } finally {
+            setIsLoading(false);
         }
-
-        setIsLoading(false);
     };
 
     const handleGenerateInsights = async () => {
         if (!narrative || comparisonData.length === 0) return;
         setIsInsightsLoading(true);
-        const context = `
-            Based on the following comparison data:
-            Table: ${JSON.stringify(comparisonData)}
-            Narrative: ${narrative}
+        setError(null);
+        try {
+            const context = `
+                Based on the following comparison data:
+                Table: ${JSON.stringify(comparisonData)}
+                Narrative: ${narrative}
 
-            Generate a deeper strategic analysis. For each region (Qeshm and Makoo), elaborate on the primary risks, hidden opportunities, and long-term strategic implications for KKM International. Go beyond the information already provided and infer potential outcomes. Structure your response in well-defined paragraphs.
-        `;
-        const result = await generateTextWithThinking(context);
-        setStrategicInsights(result);
-        setIsInsightsLoading(false);
+                Generate a deeper strategic analysis. For each region (Qeshm and Makoo), elaborate on the primary risks, hidden opportunities, and long-term strategic implications for KKM International. Go beyond the information already provided and infer potential outcomes. Structure your response in well-defined paragraphs.
+            `;
+            const result = await generateTextWithThinking(context);
+            setStrategicInsights(result);
+        } catch (e: any) {
+             setError(e.message || 'Failed to generate insights.');
+        } finally {
+            setIsInsightsLoading(false);
+        }
     };
 
     return (
@@ -115,6 +122,8 @@ export const Comparison: React.FC = () => {
                     </button>
                 </div>
             )}
+
+            {error && <p className="text-red-400 text-center">{error}</p>}
 
             {isLoading ? (
                 <div className="w-full bg-slate-800 rounded-lg p-6 border border-slate-700 animate-pulse">
