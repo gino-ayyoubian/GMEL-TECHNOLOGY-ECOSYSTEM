@@ -267,7 +267,8 @@ export const ProposalGenerator: React.FC = () => {
                     <ProposalSection title={t('regional_analysis')} content={proposalData.gmel_proposal.regional_analysis} />
                     <ProposalSection title={t('technical_modeling')} content={proposalData.gmel_proposal.technical_modeling} />
                     <ProposalSection title={t('financial_analysis')} content={proposalData.gmel_proposal.financial_analysis} />
-                    <ProposalSection title={t('innovation_patent_layer')} content={proposalData.gmel_proposal.innovation_and_patent_layer} />
+                    {/* FIX: Use the correct translation key 'innovation_and_patent_layer' */}
+                    <ProposalSection title={t('innovation_and_patent_layer')} content={proposalData.gmel_proposal.innovation_and_patent_layer} />
                     <ProposalSection title={t('strategy_model')} content={proposalData.gmel_proposal.strategy_model} />
                     {/* FIX: Renamed translation key to match data structure and fix inconsistency. */}
                     <ProposalSection title={t('risk_and_roadmap')} content={proposalData.gmel_proposal.risk_and_roadmap} />
