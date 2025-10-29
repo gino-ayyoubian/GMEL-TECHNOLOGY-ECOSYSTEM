@@ -174,7 +174,6 @@ export const ProposalGenerator: React.FC = () => {
         html += createSection(t('financial_analysis'), data.financial_analysis);
         html += createSection(t('innovation_and_patent_layer'), data.innovation_and_patent_layer);
         html += createSection(t('strategy_model'), data.strategy_model);
-        // FIX: Renamed translation key to match data structure and fix inconsistency.
         html += createSection(t('risk_and_roadmap'), data.risk_and_roadmap);
         html += createSection(t('gmel_patent_reference'), data.gmel_patent_reference);
         html += createSection(t('ownership_statement'), data.ownership_statement);
@@ -267,10 +266,8 @@ export const ProposalGenerator: React.FC = () => {
                     <ProposalSection title={t('regional_analysis')} content={proposalData.gmel_proposal.regional_analysis} />
                     <ProposalSection title={t('technical_modeling')} content={proposalData.gmel_proposal.technical_modeling} />
                     <ProposalSection title={t('financial_analysis')} content={proposalData.gmel_proposal.financial_analysis} />
-                    {/* FIX: Use the correct translation key 'innovation_and_patent_layer' */}
                     <ProposalSection title={t('innovation_and_patent_layer')} content={proposalData.gmel_proposal.innovation_and_patent_layer} />
                     <ProposalSection title={t('strategy_model')} content={proposalData.gmel_proposal.strategy_model} />
-                    {/* FIX: Renamed translation key to match data structure and fix inconsistency. */}
                     <ProposalSection title={t('risk_and_roadmap')} content={proposalData.gmel_proposal.risk_and_roadmap} />
                     <ProposalSection title={t('gmel_patent_reference')} content={proposalData.gmel_proposal.gmel_patent_reference} />
                     <ProposalSection title={t('ownership_statement')} content={proposalData.gmel_proposal.ownership_statement} />

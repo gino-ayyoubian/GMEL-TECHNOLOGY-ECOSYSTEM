@@ -1,6 +1,6 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { FINANCIAL_DATA, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
+import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
 import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
 import { Milestone } from '../types';
 import { AppContext } from '../contexts/AppContext';
@@ -96,21 +96,44 @@ const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => v
 };
 
 const MilestoneCard: React.FC<{ milestone: Milestone; isLast: boolean }> = ({ milestone, isLast }) => {
-  const statusColor = {
-    Completed: 'bg-teal-500',
-    'In Progress': 'bg-sky-500',
-    Planned: 'bg-amber-500',
-  }[milestone.status];
+    const getStatusIcon = (status: Milestone['status']) => {
+        switch (status) {
+            case 'Completed':
+                return (
+                    <div className="bg-teal-500 rounded-full p-1 milestone-completed">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                );
+            case 'In Progress':
+                return (
+                    <div className="bg-sky-500 rounded-full p-1">
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                );
+            case 'Planned':
+                return (
+                     <div className="bg-amber-500 rounded-full p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                );
+        }
+    };
 
-  return (
-    <div className="relative ps-8">
-      <div className={`absolute top-1 start-0 w-3 h-3 rounded-full ${statusColor}`} title={milestone.status}></div>
-      {!isLast && <div className="absolute top-4 start-[5px] w-px h-full bg-slate-600"></div>}
-      <p className="font-semibold text-white">{milestone.title} - <span className="text-slate-400 font-normal">{milestone.date}</span></p>
-      <p className="text-sm text-slate-500 mt-1">{milestone.description}</p>
-    </div>
-  );
+    return (
+        <div className="relative ps-10">
+            <div className="absolute top-0 start-0 w-6 h-6 flex items-center justify-center" title={milestone.status}>
+                {getStatusIcon(milestone.status)}
+            </div>
+            {!isLast && <div className="absolute top-6 start-[11px] w-px h-full bg-slate-600"></div>}
+            <p className="font-semibold text-white">{milestone.title} - <span className="text-slate-400 font-normal">{milestone.date}</span></p>
+            <p className="text-sm text-slate-500 mt-1">{milestone.description}</p>
+        </div>
+    );
 };
+
 
 // --- Impact Calculator Components ---
 
@@ -301,6 +324,8 @@ export const Dashboard: React.FC = () => {
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const financialData = useMemo(() => getFinancialData(region), [region]);
+
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
         setError(null);
@@ -321,7 +346,7 @@ export const Dashboard: React.FC = () => {
         setError(null);
     }, [region]);
 
-    const chartData = FINANCIAL_DATA.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
+    const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
         name: d.component.split(' ')[0],
         value: d.value,
     }));
@@ -340,7 +365,7 @@ export const Dashboard: React.FC = () => {
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {FINANCIAL_DATA.map((item, index) => (
+        {financialData.map((item, index) => (
           <DataCard 
             key={index}
             title={item.component}

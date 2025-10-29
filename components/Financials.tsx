@@ -1,32 +1,56 @@
-import React, { useState, useMemo, useContext } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { FINANCIAL_DATA, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
-import { generateTextWithThinking } from '../services/geminiService';
+import { getFinancialData, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
+import { generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    if (percent < 0.05) return null; // Don't render label for very small slices
+
+    return (
+        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12" fontWeight="bold">
+            {`${(percent * 100).toFixed(0)}%`}
+        </text>
+    );
+};
+
+
 export const Financials: React.FC = () => {
-    const { lang } = useContext(AppContext)!;
+    const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
-    const [analysis, setAnalysis] = useState<string>('');
+    const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     
-    const baseInitialInvestment = FINANCIAL_DATA.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
-    const baseAnnualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
+    const financialData = useMemo(() => getFinancialData(region), [region]);
+
+    const baseInitialInvestment = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
+    const baseAnnualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
     
     // Custom projection states
     const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
     const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
 
-    const barData = FINANCIAL_DATA.filter(d => d.component.includes('CAPEX') || d.component.includes('Revenue'))
-        .map(d => ({ name: d.component, value: d.value }));
+    useEffect(() => {
+        setCustomAnnualRevenue(baseAnnualRevenue);
+        setCustomInitialInvestment(baseInitialInvestment);
+    }, [region, baseAnnualRevenue, baseInitialInvestment]);
 
+    const costData = financialData.filter(d => d.component.includes('Cost') || d.component.includes('CAPEX')).map(d => ({ name: d.component, value: d.value }));
+    const revenueData = financialData.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
+
+    const pieData = [...costData, ...revenueData].map(d => ({ name: d.name, value: d.value }));
+    
     const projectionData = useMemo(() => {
         const data = [];
         const optimisticRevenue = customAnnualRevenue * 1.2;
@@ -64,28 +88,27 @@ export const Financials: React.FC = () => {
 
     const handleAnalysis = async () => {
         setIsLoading(true);
-        setError(null);
-        setAnalysis('');
-        try {
-            const prompt = t('financial_summary_prompt');
-            const result = await generateTextWithThinking(prompt);
-            setAnalysis(result);
-        } catch (e: any) {
-            setError(e.message || t('error_no_analysis'));
-        } finally {
-            setIsLoading(false);
-        }
+        const prompt = t('market_analysis_prompt', { region });
+        const result = await generateGroundedText(prompt);
+        setAnalysis({
+            text: result.text ? `${result.text}` : t('error_no_analysis'),
+            sources: result.sources
+        });
+        setIsLoading(false);
     }
 
     const handleExport = async () => {
         const doc = new jsPDF();
         
+        // For proper Persian text rendering, a font that supports Arabic script (like Amiri) is required.
+        // In a real-world scenario, you would load this font file into jsPDF. This is a placeholder.
         if (lang === 'fa') {
-            doc.setFont('Amiri', 'normal');
+            // doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal'); // Font file would be needed
+            doc.setFont('Amiri', 'normal'); // Fallbacks to helvetica if font not present
             doc.setR2L(true);
         }
 
-        const tableData = FINANCIAL_DATA.map(row => [row.component, row.value, row.unit, row.description]);
+        const tableData = financialData.map(row => [row.component, row.value, row.unit, row.description]);
         const tableHeaders = ["Component", "Value", "Unit", "Description"];
 
         autoTable(doc, {
@@ -95,11 +118,13 @@ export const Financials: React.FC = () => {
             styles: { font: lang === 'fa' ? 'Amiri' : 'helvetica' },
             headStyles: { halign: 'center' },
             didDrawPage: (data) => {
+                // Header
                 doc.setFontSize(18);
                 doc.setTextColor(40);
                 doc.text("GMEL Geothermal Vision - Financial Data", data.settings.margin.left, 15);
             },
             didParseCell: function (data) {
+                // For Persian, right-align the body cells
                 if (lang === 'fa' && data.section === 'body') {
                     data.cell.styles.halign = 'right';
                 }
@@ -111,17 +136,22 @@ export const Financials: React.FC = () => {
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             
+            // WATERMARK
             doc.saveGraphicsState();
             doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
             doc.setFontSize(45);
             doc.setTextColor(150);
             const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.xyz";
-            doc.text(text, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() / 2, { align: 'center', angle: 45 });
+            const textRotationAngle = 45;
+            const centerX = doc.internal.pageSize.getWidth() / 2;
+            const centerY = doc.internal.pageSize.getHeight() / 2;
+            doc.text(text, centerX, centerY, { align: 'center', angle: textRotationAngle });
             if (KKM_LOGO_DATA_URL) {
-                doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', doc.internal.pageSize.getWidth() / 2 - 50, doc.internal.pageSize.getHeight() / 2 - 90, 100, 100, undefined, 'FAST');
+                doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
             }
             doc.restoreGraphicsState();
 
+            // FOOTER (Timestamp and Page Number)
             doc.setFontSize(8);
             doc.setTextColor(100);
             const footerText = `Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`;
@@ -150,20 +180,27 @@ export const Financials: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                    <h2 className="text-xl font-semibold mb-4 text-white">{t('capex_vs_revenue_title')}</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-white">{t('cost_revenue_breakdown')}</h2>
                     <div style={{ width: '100%', height: 350 }}>
                         <ResponsiveContainer>
-                            <BarChart data={barData} layout="vertical" margin={{ top: 20, right: 30, left: 100, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                                <XAxis type="number" tick={{ fill: '#94a3b8' }} unit=" B Toman" />
-                                <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8' }} width={150} interval={0} />
-                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} cursor={{ fill: 'rgba(71, 85, 105, 0.5)' }} />
-                                <Bar dataKey="value" name="Value" barSize={40}>
-                                    {barData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={index === 0 ? COLORS[2] : COLORS[0]} />
+                            <PieChart>
+                                <Pie 
+                                    data={pieData} 
+                                    dataKey="value" 
+                                    nameKey="name" 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius="80%" 
+                                    labelLine={false}
+                                    label={renderCustomizedLabel}
+                                >
+                                    {pieData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
-                                </Bar>
-                            </BarChart>
+                                </Pie>
+                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
+                                <Legend wrapperStyle={{fontSize: '12px'}}/>
+                            </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -219,16 +256,29 @@ export const Financials: React.FC = () => {
             </div>
 
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                 <h2 className="text-xl font-semibold mb-4 text-white">{t('financial_summary_title')}</h2>
-                 <p className="text-sm text-slate-400 mb-4">{t('financial_summary_description')}</p>
+                 <h2 className="text-xl font-semibold mb-4 text-white">{t('market_analysis_for', { region })}</h2>
+                 <p className="text-sm text-slate-400 mb-4">{t('market_analysis_description')}</p>
                  <button onClick={handleAnalysis} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
                     {isLoading ? t('analyzing') : t('generate_analysis')}
                  </button>
-                 {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
-                 {analysis && (
+                 {analysis.text && (
                      <div className="mt-6 p-4 bg-slate-900 rounded-lg">
-                         <p className="text-slate-300 whitespace-pre-wrap">{analysis}</p>
-                         <Feedback sectionId={`financial-summary`} />
+                         <p className="text-slate-300 whitespace-pre-wrap">{analysis.text}</p>
+                         {analysis.sources.length > 0 && (
+                            <div className="mt-4">
+                                <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
+                                <ul className="list-disc list-inside mt-2 text-xs text-slate-500 space-y-1">
+                                {analysis.sources.map((source, i) => (
+                                    <li key={i}>
+                                        <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                            {source.web?.title || source.web?.uri}
+                                        </a>
+                                    </li>
+                                ))}
+                                </ul>
+                            </div>
+                         )}
+                         <Feedback sectionId={`market-analysis-${region}`} />
                      </div>
                  )}
             </div>

@@ -10,7 +10,6 @@ export const locales: Record<Language, string> = {
     fa: 'fa-IR',
 }
 
-// Fix: Changed the type to Record<keyof typeof en, string> to allow different string values for each language.
 const translations: Record<Language, Record<keyof typeof en, string>> = { en, fa };
 
 export const useI18n = () => {

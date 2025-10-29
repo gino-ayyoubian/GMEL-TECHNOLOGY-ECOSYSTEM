@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { generateGroundedText } from '../services/geminiService';
+import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
@@ -9,13 +9,17 @@ import { Region } from '../types';
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
+// FIX: Added missing regions 'Oman' and 'Saudi Arabia' to satisfy the Record<Region, ...> type.
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
-    'Kurdistan Region, Iraq': [36.1911, 44.0094] // Coordinates for Erbil
+    'Kurdistan Region, Iraq': [36.1911, 44.0094], // Coordinates for Erbil
+    'Oman': [23.5859, 58.3816], // Coordinates for Muscat
+    'Saudi Arabia': [24.7136, 46.6753] // Coordinates for Riyadh
 };
 
-const infrastructurePoints: Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]> = {
+// FIX: Changed type to Partial<Record<...>> to allow for regions without specific infrastructure points and added missing data for 'Oman' and 'Saudi Arabia'.
+const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {
     'Qeshm Free Zone': [
         { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },
         { lat: 27.1492, lng: 56.3228, name: 'Shahid Bahonar Port', description: 'Major commercial port near Bandar Abbas, key for logistics and equipment import/export.', type: 'port' },
@@ -30,6 +34,16 @@ const infrastructurePoints: Record<Region, { lat: number; lng: number; name: str
         { lat: 36.2375, lng: 43.9631, name: 'Erbil International Airport', description: 'Primary international gateway for the region.', type: 'airport' },
         { lat: 36.1400, lng: 43.9500, name: 'Erbil Gas Power Plant', description: 'Major node in the regional power grid.', type: 'grid' },
         { lat: 36.1911, lng: 44.0094, name: 'Erbil City Center', description: 'Central hub for transport routes 2 and 3.', type: 'transport' },
+    ],
+    'Oman': [
+        { lat: 23.5880, lng: 58.3842, name: 'Muscat International Airport', description: 'Main air hub for Oman.', type: 'airport' },
+        { lat: 17.017, lng: 54.092, name: 'Port of Salalah', description: 'Major transshipment hub on the Arabian Sea.', type: 'port' },
+        { lat: 21.431, lng: 59.431, name: 'Duqm Industrial Zone', description: 'Key area for industrial growth and potential energy demand.', type: 'industrial'},
+    ],
+    'Saudi Arabia': [
+        { lat: 26.370, lng: 49.988, name: 'King Fahd International Airport', description: 'Major airport serving the Eastern Province.', type: 'airport'},
+        { lat: 26.476, lng: 50.151, name: 'King Abdulaziz Port (Dammam)', description: 'Main port on the Persian Gulf.', type: 'port'},
+        { lat: 28.305, lng: 34.832, name: 'NEOM Project Area', description: 'Giga-project with massive demand for sustainable energy.', type: 'industrial'},
     ]
 };
 
@@ -116,7 +130,7 @@ export const SiteAnalysis: React.FC = () => {
 
         try {
             const analysisPrompt = t('site_analysis_prompt', { region });
-            const analysisResult = await generateGroundedText(analysisPrompt);
+            const analysisResult = await generateMapsGroundedText(analysisPrompt);
             if (analysisResult.text) {
                 setAnalysis(analysisResult);
             } else {
@@ -186,20 +200,36 @@ export const SiteAnalysis: React.FC = () => {
                                     <SpeakerIcon text={analysis.text} />
                                 </h2>
                                  <p className="text-slate-300 whitespace-pre-wrap">{analysis.text}</p>
-                                 {analysis.sources.length > 0 && (
+                                {analysis.sources.length > 0 && (
                                     <div className="mt-4">
                                         <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
                                         <ul className="list-disc list-inside mt-2 text-xs text-slate-500 space-y-1">
-                                        {analysis.sources.map((source, i) => (
-                                            <li key={i}>
-                                                <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
-                                                    {source.web?.title || source.web?.uri}
-                                                </a>
-                                            </li>
-                                        ))}
+                                            {analysis.sources.map((chunk: any, i: number) => {
+                                                if (chunk.maps?.uri) {
+                                                    return (
+                                                        <li key={`map-source-${i}`}>
+                                                            <a href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                                                {chunk.maps.title || 'Google Maps Source'}
+                                                            </a>
+                                                        </li>
+                                                    );
+                                                }
+                                                if (chunk.maps?.placeAnswerSources) {
+                                                    return chunk.maps.placeAnswerSources.map((source: any, j: number) => 
+                                                        source.reviewSnippets?.map((snippet: any, k: number) => (
+                                                             <li key={`review-${i}-${j}-${k}`}>
+                                                                <a href={snippet.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                                                    {snippet.title || 'Review Snippet'}
+                                                                </a>: "{snippet.content}"
+                                                            </li>
+                                                        ))
+                                                    );
+                                                }
+                                                return null;
+                                            })}
                                         </ul>
                                     </div>
-                                 )}
+                                )}
                                  <Feedback sectionId={`site-analysis-${region}`} />
                             </div>
                         )}

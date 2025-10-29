@@ -109,6 +109,18 @@ export const generate_video = "Generate Video";
 export const generating_image_message = "Generating image, this may take a moment...";
 export const error_failed_image = "Failed to generate image. Please try again.";
 export const generated_concept = "Generated Concept";
+export const image_generator_guide_title = "How to Write Effective Prompts";
+export const image_generator_guide_intro = "To get the best results from the image generator, a well-crafted prompt is key. Here are some tips:";
+export const image_generator_guide_tip1_title = "Be Specific and Detailed";
+export const image_generator_guide_tip1_body = "Instead of 'geothermal plant', try 'A photorealistic, 8k image of a futuristic, clean geothermal power plant with industrial pipelines and a sleek, high-tech aesthetic.'";
+export const image_generator_guide_tip2_title = "Mention Style and Medium";
+export const image_generator_guide_tip2_body = "Use keywords like 'photorealistic', '8k', 'oil painting', 'schematic diagram', 'watercolor', or 'architectural rendering'.";
+export const image_generator_guide_tip3_title = "Set the Scene";
+export const image_generator_guide_tip3_body = "Describe the environment, lighting, and mood. For example: 'at sunset', 'on the arid coast of...', 'with a dramatic, cloudy sky'.";
+export const image_generator_guide_tip4_title = "Combine Concepts";
+export const image_generator_guide_tip4_body = "Don't be afraid to mix ideas. For example: '...integrated with a modern desalination facility and vertical farms.'";
+export const image_generator_guide_tip5_title = "Iterate and Refine";
+export const image_generator_guide_tip5_body = "If the first result isn't perfect, adjust your prompt. Add or remove details to guide the AI toward your vision.";
 export const video_generator_title = "Video Concept Generator";
 export const video_generator_description = "Use Veo to generate a short video clip visualizing the GMEL technology in action, showcasing clean energy production and environmental benefits.";
 export const chat_greeting = "Hello! I am the GMEL Project Assistant. How can I help you with the proposal for {region}?";
@@ -180,6 +192,7 @@ export const benchmark_comparison_prompt = `
 export const error_generating_comparison = "Error generating comparison. The AI response might be in an unexpected format. Please try again.";
 export const error_select_different_regions = "Please select two different regions to compare.";
 export const comparison_between = "Comparison: {region1} vs. {region2}";
+export const geographical_context_map = "Geographical Context Map";
 export const correspondence_title = "Letter Generator Output";
 export const correspondence_description = "Generate official letters to related organizations. Fill in the details below and the AI will compose a formal letter based on the project's context. The output can be printed to a secure, watermarked PDF.";
 export const recipient_org = "Recipient Organization";
@@ -276,10 +289,14 @@ export const impact_generation_prompt = `
 `;
 export const tech_comparison_title = "Technical Specification Comparison";
 export const tech_comparison_description = "Compare a core GMEL technology against a comparable system used in an international benchmark region. This provides a direct, data-driven look at GMEL's competitive advantages.";
+export const tech_comparison_drillx_title = "Drilling Technology Comparison: GMEL-DrillX vs. Conventional";
+export const tech_comparison_drillx_desc = "This is a direct, data-driven look at GMEL's competitive advantages in drilling, comparing its autonomous capabilities, speed, and cost-effectiveness against leading conventional drilling technologies.";
 export const select_gmel_tech = "Select GMEL Technology";
 export const select_benchmark_region = "Select Benchmark Region";
 export const compare_technologies = "Compare Technologies";
 export const gmel_specifications = "GMEL Specifications";
+export const gmel_drillx_specs = "GMEL-DrillX Specifications";
+export const conventional_rss_specs = "Conventional RSS Specifications";
 export const benchmark_specifications = "Benchmark Specifications";
 export const tech_comparison_prompt = `
     Generate a detailed technical and economic comparison between the GMEL project's '{gmel_tech_name}' and the typical technology used for the same purpose in '{benchmark_region}'.
@@ -302,8 +319,7 @@ export const tech_comparison_prompt = `
 export const simulations_title = "Simulations & Modeling";
 export const simulations_description = "This section is dedicated to the computational models and simulations that validate the GMEL project's performance. (Note: This is a placeholder for future development).";
 export const simulation_gradient_title = "Simple Power Output Simulation";
-// FIX: Changed value to remove redundant unit, which is already present in the component's JSX. This also resolves the missing key error.
-export const simulation_geothermal_gradient_label = "Geothermal Gradient";
+export const simulation_geothermal_gradient_label = "Geothermal Gradient (°C/km)";
 export const calculate_potential = "Calculate Potential";
 export const potential_output = "Estimated Potential Output";
 export const simulation_narrative_prompt_detailed = "Explain how a geothermal project with a geothermal gradient of {gradient}°C/km and a drilling depth of {depth} km can produce an estimated {power} MW of power. In one paragraph, describe the basic energy conversion steps and mention the related environmental benefits like CO2 offset.";
@@ -371,12 +387,9 @@ export const proposal_generation_prompt = `
 export const executive_summary = "Executive Summary";
 export const regional_analysis = "Regional Analysis";
 export const technical_modeling = "Technical Modeling";
-// FIX: Add missing translation key to resolve TypeScript error.
 export const financial_analysis = "Financial Analysis";
-// FIX: Renamed 'innovation_patent_layer' to 'innovation_and_patent_layer' to match usage and fix TypeScript error.
 export const innovation_and_patent_layer = "Innovation & Patent Layer";
 export const strategy_model = "Strategy Model";
-// FIX: Rename translation key to match data structure and fix inconsistency.
 export const risk_and_roadmap = "Risk & Roadmap";
 export const gmel_patent_reference = "GMEL Patent Reference";
 export const ownership_statement = "Ownership Statement";
@@ -391,7 +404,6 @@ export const legend_low = "Low";
 export const legend_high = "High";
 export const no_infrastructure_found = "No infrastructure matches filters.";
 export const toggle_sidebar = "Toggle Infrastructure Sidebar";
-// FIX: Add missing keys for Financials component
 export const market_analysis_prompt = "Generate an up-to-date market analysis for the {region}. Focus on current energy demand, electricity prices, primary competitors (renewable and traditional), and the current regulatory environment for foreign investment in the energy sector. Use Google Search to ground the response in recent data.";
 export const cost_revenue_breakdown = "Cost & Revenue Breakdown (5MW Pilot)";
 export const market_analysis_for = "Grounded Market Analysis for {region}";

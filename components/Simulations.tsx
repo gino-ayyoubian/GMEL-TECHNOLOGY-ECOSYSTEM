@@ -57,7 +57,6 @@ export const Simulations: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label htmlFor="gradient-slider" className="block text-sm font-medium text-slate-300 mb-2">
-                            {/* FIX: Using the new unique translation key for the simulation geothermal gradient label. */}
                             {t('simulation_geothermal_gradient_label')}: <span className="font-bold text-white text-lg">{gradient} °C/km</span>
                         </label>
                         <input

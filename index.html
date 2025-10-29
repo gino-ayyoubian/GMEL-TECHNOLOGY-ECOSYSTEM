@@ -22,6 +22,14 @@
       [dir="rtl"] {
         font-family: 'Vazirmatn', sans-serif;
       }
+      @keyframes pop-in {
+        0% { transform: scale(0.5); opacity: 0; }
+        70% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(1); }
+      }
+      .milestone-completed {
+        animation: pop-in 0.6s ease-out forwards;
+      }
     </style>
   <script type="importmap">
 {

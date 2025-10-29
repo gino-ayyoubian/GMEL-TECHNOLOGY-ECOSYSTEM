@@ -1,6 +1,7 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { FINANCIAL_DATA, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
+// FIX: Changed import from static FINANCIAL_DATA to dynamic getFinancialData function.
+import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
 import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
 import { Milestone } from '../types';
 import { AppContext } from '../contexts/AppContext';
@@ -71,7 +72,7 @@ const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => v
         >
             {isLoading ? (
                 <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -294,6 +295,9 @@ export const Dashboard: React.FC = () => {
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
+    // FIX: Financial data is now dynamically retrieved based on the current region.
+    const financialData = useMemo(() => getFinancialData(region), [region]);
+
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
         const prompt = getProjectSummaryPrompt(region);
@@ -307,7 +311,7 @@ export const Dashboard: React.FC = () => {
         setStrategicAnalysis('');
     }, [region]);
 
-    const chartData = FINANCIAL_DATA.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
+    const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
         name: d.component.split(' ')[0],
         value: d.value,
     }));
@@ -326,7 +330,8 @@ export const Dashboard: React.FC = () => {
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {FINANCIAL_DATA.map((item, index) => (
+        {/* FIX: Use the dynamic financialData variable instead of the static import. */}
+        {financialData.map((item, index) => (
           <DataCard 
             key={index}
             title={item.component}

@@ -3,6 +3,35 @@ import { generateImage } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 
+const PromptGuide = () => {
+    const { t } = useI18n();
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="bg-slate-800/50 rounded-lg border border-slate-700">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex justify-between items-center p-4 text-left"
+            >
+                <h3 className="font-semibold text-sky-400">{t('image_generator_guide_title')}</h3>
+                <svg className={`w-5 h-5 text-slate-400 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {isOpen && (
+                <div className="p-4 border-t border-slate-700 space-y-3 text-sm text-slate-300">
+                    <p>{t('image_generator_guide_intro')}</p>
+                    <ul className="list-disc list-inside space-y-2 pl-2">
+                        <li><strong>{t('image_generator_guide_tip1_title')}:</strong> {t('image_generator_guide_tip1_body')}</li>
+                        <li><strong>{t('image_generator_guide_tip2_title')}:</strong> {t('image_generator_guide_tip2_body')}</li>
+                        <li><strong>{t('image_generator_guide_tip3_title')}:</strong> {t('image_generator_guide_tip3_body')}</li>
+                        <li><strong>{t('image_generator_guide_tip4_title')}:</strong> {t('image_generator_guide_tip4_body')}</li>
+                        <li><strong>{t('image_generator_guide_tip5_title')}:</strong> {t('image_generator_guide_tip5_body')}</li>
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export const ImageGenerator: React.FC = () => {
     const { region } = useContext(AppContext)!;
     const { t } = useI18n();
@@ -39,6 +68,8 @@ export const ImageGenerator: React.FC = () => {
             <p className="text-slate-400 max-w-3xl">
                 {t('image_generator_description', { region })}
             </p>
+
+            <PromptGuide />
             
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

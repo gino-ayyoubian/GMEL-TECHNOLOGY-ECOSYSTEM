@@ -3,6 +3,7 @@ import { generateText, generateImage, generateTextWithThinking } from '../servic
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
+import { getTechDetails } from '../utils/techDetails';
 
 
 const CLGSystemDiagram = () => (
@@ -51,13 +52,7 @@ export const Technical: React.FC = () => {
     const [activeTopic, setActiveTopic] = useState<string | null>(null);
     const { t } = useI18n();
 
-    const techDetails = {
-        "Core System (GMEL-CLG)": t('tech_detail_core'),
-        "Drilling (GMEL-DrillX)": t('tech_detail_drilling'),
-        "Fluid (GMEL-ThermoFluid)": t('tech_detail_fluid'),
-        "Power Conversion (GMEL-ORC Compact)": t('tech_detail_power'),
-        "Control System (GMEL-EHS)": t('tech_detail_control')
-    };
+    const techDetails = getTechDetails(t);
 
     useEffect(() => {
         if (technicalTopic) {

@@ -20,6 +20,7 @@ import { ProposalGenerator } from './components/ProposalGenerator';
 import { Region, View } from './types';
 import { KKM_LOGO_DATA_URL } from './constants';
 import * as en from './i18n/en';
+import { GlobalSearch } from './components/shared/GlobalSearch';
 
 // --- KKM LOGO COMPONENT ---
 const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
@@ -141,11 +142,17 @@ const App: React.FC = () => {
       <main className="flex-1 p-8 overflow-y-auto flex flex-col">
          <header className="flex-shrink-0 mb-8">
             <div className="flex justify-between items-center gap-6">
-                 <div className="p-1 bg-white rounded-lg">
-                    <KkmLogo className="h-12 w-auto" />
+                <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="p-1 bg-white rounded-lg">
+                        <KkmLogo className="h-12 w-auto" />
+                    </div>
+                    <h1 className="text-xl font-bold text-white whitespace-nowrap hidden lg:block">GeoMeta Energy Layer Vision</h1>
                 </div>
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center">
+                <div className="flex-grow min-w-0 px-4">
+                    <GlobalSearch />
+                </div>
+                <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="items-center hidden md:flex">
                         <label htmlFor="region-select" className="text-sm font-medium text-slate-400 mx-3">{t('proposal_for')}</label>
                         <select
                             id="region-select"
@@ -156,10 +163,12 @@ const App: React.FC = () => {
                             <option value="Qeshm Free Zone">Qeshm Free Zone</option>
                             <option value="Makoo Free Zone">Makoo Free Zone</option>
                             <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
+                            <option value="Oman">Oman</option>
+                            <option value="Saudi Arabia">Saudi Arabia</option>
                         </select>
                     </div>
                     <div className="flex items-center">
-                        <label htmlFor="lang-select" className="text-sm font-medium text-slate-400 mx-3">{t('language')}</label>
+                        <label htmlFor="lang-select" className="sr-only">{t('language')}</label>
                         <select
                             id="lang-select"
                             value={lang}

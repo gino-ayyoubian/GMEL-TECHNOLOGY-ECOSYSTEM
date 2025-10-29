@@ -2,8 +2,10 @@ import React, { useState, useMemo, useContext } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { FINANCIAL_DATA, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
+// FIX: Changed import from static FINANCIAL_DATA to dynamic getFinancialData function.
+import { getFinancialData, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
 import { generateGroundedText } from '../services/geminiService';
+// FIX: Added import for AppContext to get the current region.
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
@@ -32,15 +34,20 @@ export const Financials: React.FC = () => {
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
     
-    const baseInitialInvestment = FINANCIAL_DATA.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
-    const baseAnnualRevenue = FINANCIAL_DATA.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
+    // FIX: Financial data is now dynamically retrieved based on the current region.
+    const financialData = useMemo(() => getFinancialData(region), [region]);
+
+    // FIX: Use the dynamic financialData variable instead of the static import.
+    const baseInitialInvestment = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
+    const baseAnnualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
     
     // Custom projection states
     const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
     const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
 
-    const costData = FINANCIAL_DATA.filter(d => d.component.includes('Cost') || d.component.includes('CAPEX')).map(d => ({ name: d.component, value: d.value }));
-    const revenueData = FINANCIAL_DATA.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
+    // FIX: Use the dynamic financialData variable instead of the static import.
+    const costData = financialData.filter(d => d.component.includes('Cost') || d.component.includes('CAPEX')).map(d => ({ name: d.component, value: d.value }));
+    const revenueData = financialData.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
 
     const pieData = [...costData, ...revenueData].map(d => ({ name: d.name, value: d.value }));
     
@@ -101,7 +108,8 @@ export const Financials: React.FC = () => {
             doc.setR2L(true);
         }
 
-        const tableData = FINANCIAL_DATA.map(row => [row.component, row.value, row.unit, row.description]);
+        // FIX: Use the dynamic financialData variable instead of the static import.
+        const tableData = financialData.map(row => [row.component, row.value, row.unit, row.description]);
         const tableHeaders = ["Component", "Value", "Unit", "Description"];
 
         autoTable(doc, {

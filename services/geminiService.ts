@@ -94,7 +94,6 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
-      // FIX: The 'toolConfig' property should be nested inside the 'config' object.
       config: {
         tools: [{ googleMaps: {} }],
         toolConfig: toolConfig,

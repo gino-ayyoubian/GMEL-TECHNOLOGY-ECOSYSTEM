@@ -109,6 +109,18 @@ export const generate_video = "تولید ویدیو";
 export const generating_image_message = "در حال تولید تصویر، این ممکن است لحظاتی طول بکشد...";
 export const error_failed_image = "تولید تصویر ناموفق بود. لطفاً دوباره تلاش کنید.";
 export const generated_concept = "مفهوم تولید شده";
+export const image_generator_guide_title = "چگونه درخواست‌های مؤثر بنویسیم";
+export const image_generator_guide_intro = "برای گرفتن بهترین نتایج از مولد تصویر، یک درخواست خوب کلیدی است. در اینجا چند نکته آورده شده است:";
+export const image_generator_guide_tip1_title = "دقیق و با جزئیات باشید";
+export const image_generator_guide_tip1_body = "به جای 'نیروگاه زمین‌گرمایی'، امتحان کنید: 'یک تصویر 8k و فوتورئالیستی از یک نیروگاه زمین‌گرمایی مدرن و تمیز با خطوط لوله صنعتی و زیبایی‌شناسی شیک و پیشرفته.'";
+export const image_generator_guide_tip2_title = "به سبک و رسانه اشاره کنید";
+export const image_generator_guide_tip2_body = "از کلمات کلیدی مانند 'فوتورئالیستی'، '8k'، 'نقاشی رنگ روغن'، 'دیاگرام شماتیک'، 'آبرنگ' یا 'رندر معماری' استفاده کنید.";
+export const image_generator_guide_tip3_title = "صحنه را تنظیم کنید";
+export const image_generator_guide_tip3_body = "محیط، نورپردازی و حالت را توصیف کنید. به عنوان مثال: 'هنگام غروب'، 'در ساحل خشک...'، 'با آسمانی دراماتیک و ابری'.";
+export const image_generator_guide_tip4_title = "مفاهیم را ترکیب کنید";
+export const image_generator_guide_tip4_body = "از ترکیب ایده‌ها نترسید. به عنوان مثال: '...یکپارچه با یک تأسیسات مدرن شیرین‌سازی آب و مزارع عمودی.'";
+export const image_generator_guide_tip5_title = "تکرار و اصلاح کنید";
+export const image_generator_guide_tip5_body = "اگر نتیجه اول عالی نبود، درخواست خود را تنظیم کنید. جزئیات را اضافه یا حذف کنید تا هوش مصنوعی را به سمت دیدگاه خود هدایت کنید.";
 export const video_generator_title = "تولید کننده مفهوم ویدیویی";
 export const video_generator_description = "از Veo برای تولید یک کلیپ ویدیویی کوتاه برای تجسم فناوری GMEL در عمل و نمایش تولید انرژی پاک و مزایای زیست‌محیطی آن استفاده کنید.";
 export const chat_greeting = "سلام! من دستیار پروژه GMEL هستم. چگونه می‌توانم در مورد طرح پیشنهادی برای {region} به شما کمک کنم؟";
@@ -180,6 +192,7 @@ export const benchmark_comparison_prompt = `
 export const error_generating_comparison = "خطا در ایجاد مقایسه. پاسخ هوش مصنوعی ممکن است در قالبی غیرمنتظره باشد. لطفاً دوباره تلاش کنید.";
 export const error_select_different_regions = "لطفاً دو منطقه مختلف برای مقایسه انتخاب کنید.";
 export const comparison_between = "مقایسه: {region1} در مقابل {region2}";
+export const geographical_context_map = "نقشه زمینه جغرافیایی";
 export const correspondence_title = "خروجی مولد نامه";
 export const correspondence_description = "نامه‌های رسمی به سازمان‌های مرتبط ایجاد کنید. جزئیات زیر را پر کنید و هوش مصنوعی نامه‌ای رسمی بر اساس زمینه پروژه تنظیم خواهد کرد. خروجی را می‌توان در یک PDF امن و با واترمارک چاپ کرد.";
 export const recipient_org = "سازمان گیرنده";
@@ -276,10 +289,14 @@ export const impact_generation_prompt = `
 `;
 export const tech_comparison_title = "مقایسه مشخصات فنی";
 export const tech_comparison_description = "یک فناوری اصلی GMEL را با یک سیستم قابل مقایسه که در یک منطقه محک بین‌المللی استفاده می‌شود، مقایسه کنید. این یک نگاه مستقیم و مبتنی بر داده به مزایای رقابتی GMEL فراهم می‌کند.";
+export const tech_comparison_drillx_title = "مقایسه فناوری حفاری: GMEL-DrillX در مقابل روش‌های متداول";
+export const tech_comparison_drillx_desc = "این یک نگاه مستقیم و مبتنی بر داده به مزایای رقابتی GMEL در حفاری است، که قابلیت‌های خودکار، سرعت و مقرون‌به‌صرفه بودن آن را با فناوری‌های حفاری متداول پیشرو مقایسه می‌کند.";
 export const select_gmel_tech = "انتخاب فناوری GMEL";
 export const select_benchmark_region = "انتخاب منطقه محک";
 export const compare_technologies = "مقایسه فناوری‌ها";
 export const gmel_specifications = "مشخصات GMEL";
+export const gmel_drillx_specs = "مشخصات GMEL-DrillX";
+export const conventional_rss_specs = "مشخصات RSS متداول";
 export const benchmark_specifications = "مشخصات محک";
 export const tech_comparison_prompt = `
     یک مقایسه فنی و اقتصادی دقیق بین '{gmel_tech_name}' پروژه GMEL و فناوری معمول مورد استفاده برای همان منظور در '{benchmark_region}' ایجاد کنید.
@@ -302,8 +319,7 @@ export const tech_comparison_prompt = `
 export const simulations_title = "شبیه‌سازی و مدل‌سازی";
 export const simulations_description = "این بخش به مدل‌های محاسباتی و شبیه‌سازی‌هایی اختصاص دارد که عملکرد پروژه GMEL را تأیید می‌کنند. (توجه: این یک جایگاه برای توسعه آینده است).";
 export const simulation_gradient_title = "شبیه‌سازی ساده خروجی توان";
-// FIX: Changed value to remove redundant unit, which is already present in the component's JSX. This also resolves the missing key error.
-export const simulation_geothermal_gradient_label = "گرادیان زمین‌گرمایی";
+export const simulation_geothermal_gradient_label = "گرادیان زمین‌گرمایی (سانتی‌گراد/کیلومتر)";
 export const calculate_potential = "محاسبه پتانسیل";
 export const potential_output = "خروجی پتانسیل تخمینی";
 export const simulation_narrative_prompt_detailed = "توضیح دهید که چگونه یک پروژه زمین‌گرمایی با گرادیان زمین‌گرمایی {gradient}°C/km و عمق حفاری {depth} کیلومتر می‌تواند حدود {power} مگاوات توان تولید کند. در یک پاراگراف، مراحل اصلی تبدیل انرژی را توصیف کرده و به مزایای زیست‌محیطی مرتبط مانند جبران CO2 اشاره کنید.";
@@ -371,12 +387,9 @@ export const proposal_generation_prompt = `
 export const executive_summary = "خلاصه اجرایی";
 export const regional_analysis = "تحلیل منطقه‌ای";
 export const technical_modeling = "مدل‌سازی فنی";
-// FIX: Add missing translation key to resolve TypeScript error.
 export const financial_analysis = "تحلیل مالی";
-// FIX: Renamed 'innovation_patent_layer' to 'innovation_and_patent_layer' to match usage and fix TypeScript error.
 export const innovation_and_patent_layer = "لایه نوآوری و ثبت اختراع";
 export const strategy_model = "مدل استراتژی";
-// FIX: Rename translation key to match data structure and fix inconsistency.
 export const risk_and_roadmap = "ریسک و نقشه راه";
 export const gmel_patent_reference = "مرجع ثبت اختراع GMEL";
 export const ownership_statement = "بیانیه مالکیت";
@@ -391,7 +404,6 @@ export const legend_low = "کم";
 export const legend_high = "زیاد";
 export const no_infrastructure_found = "هیچ زیرساختی با فیلترها مطابقت ندارد.";
 export const toggle_sidebar = "تغییر وضعیت نوار کناری زیرساخت‌ها";
-// FIX: Add missing keys for Financials component
 export const market_analysis_prompt = "یک تحلیل بازار به‌روز برای {region} ایجاد کنید. بر تقاضای فعلی انرژی، قیمت برق، رقبای اصلی (تجدیدپذیر و سنتی) و محیط نظارتی فعلی برای سرمایه‌گذاری خارجی در بخش انرژی تمرکز کنید. از جستجوی گوگل برای مستندسازی پاسخ با داده‌های اخیر استفاده کنید.";
 export const cost_revenue_breakdown = "تفکیک هزینه و درآمد (پایلوت ۵ مگاوات)";
 export const market_analysis_for = "تحلیل بازار مستند برای {region}";
