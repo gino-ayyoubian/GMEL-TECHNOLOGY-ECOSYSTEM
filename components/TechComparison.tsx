@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateTextWithThinking } from '../services/geminiService';
+import { generateJsonWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
@@ -76,7 +76,7 @@ export const TechComparison: React.FC = () => {
 
         let result: string | undefined;
         try {
-            result = await generateTextWithThinking(prompt);
+            result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
 
             if (parsed && parsed.table && parsed.narrative) {

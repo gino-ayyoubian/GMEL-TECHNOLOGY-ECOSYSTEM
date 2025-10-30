@@ -39,12 +39,30 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
   }
 };
 
+export const generateJsonWithThinking = async (prompt: string): Promise<string> => {
+  try {
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 32768 }
+      }
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating structured data with thinking:", error);
+    throw new Error("An error occurred during complex JSON analysis. The service may be temporarily unavailable.");
+  }
+};
+
 
 export const generateGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-pro',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],

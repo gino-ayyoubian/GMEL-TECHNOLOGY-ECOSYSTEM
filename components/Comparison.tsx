@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateTextWithThinking } from '../services/geminiService';
+import { generateTextWithThinking, generateJsonWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
@@ -71,7 +71,7 @@ export const Comparison: React.FC = () => {
         
         try {
             const prompt = t('comparison_prompt');
-            const result = await generateTextWithThinking(prompt);
+            const result = await generateJsonWithThinking(prompt);
             const parsedResult = extractJson(result);
             if (parsedResult && parsedResult.table && parsedResult.narrative) {
                 setComparisonData(parsedResult.table);

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { jsPDF } from 'jspdf';
-import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
+import { generateJsonWithThinking, generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
@@ -105,7 +105,7 @@ export const ProposalGenerator: React.FC = () => {
                 language: lang,
                 regional_analysis_content: regionalAnalysisContent
             });
-            const result = await generateTextWithThinking(proposalPrompt);
+            const result = await generateJsonWithThinking(proposalPrompt);
 
             // Step 3: Parse and set the final data.
             const parsed = extractJson(result);
@@ -125,8 +125,12 @@ export const ProposalGenerator: React.FC = () => {
         }
     };
 
-    const handleExportPdf = () => {
+    const handleExportPdf = async () => {
         if (!proposalData) return;
+
+        // Ensure all document fonts are loaded before capturing.
+        await document.fonts.ready;
+
         const doc = new jsPDF({
             orientation: 'p',
             unit: 'mm',
@@ -185,6 +189,9 @@ export const ProposalGenerator: React.FC = () => {
         reportElement.style.left = '-300mm'; // Far off screen
         reportElement.style.top = '0';
         document.body.appendChild(reportElement);
+
+        // Allow the browser a moment to render the new element and its fonts
+        await new Promise(resolve => setTimeout(resolve, 100));
     
         doc.html(reportElement, {
             callback: function(doc) {
@@ -212,7 +219,7 @@ export const ProposalGenerator: React.FC = () => {
             margin: [15, 15, 15, 15],
             autoPaging: 'text',
             html2canvas: {
-                scale: 0.5,
+                scale: 1, // Increased scale for better quality
                 useCORS: true,
             }
         });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { generateTextWithThinking } from '../services/geminiService';
+import { generateJsonWithThinking } from '../services/geminiService';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
@@ -57,7 +57,7 @@ export const StrategyModeler: React.FC = () => {
         setStrategy(null);
 
         const prompt = t('strategy_modeler_prompt', { region: targetRegion });
-        const result = await generateTextWithThinking(prompt);
+        const result = await generateJsonWithThinking(prompt);
 
         try {
             const parsed = extractJson(result);

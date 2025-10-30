@@ -3,10 +3,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getFinancialData, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
-import { generateGroundedText } from '../services/geminiService';
+import { generateGroundedText, generateJsonWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
+import { SpeakerIcon } from './shared/SpeakerIcon';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
@@ -25,6 +26,116 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
     );
 };
 
+// Helper to extract a JSON object from a string that might contain markdown or other text.
+const extractJson = (text: string): any | null => {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    let start = -1;
+
+    if (firstBrace === -1 && firstBracket === -1) return null;
+    if (firstBrace === -1) start = firstBracket;
+    else if (firstBracket === -1) start = firstBrace;
+    else start = Math.min(firstBrace, firstBracket);
+    
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    let end = -1;
+    
+    if (lastBrace === -1 && lastBracket === -1) return null;
+    if (lastBrace === -1) end = lastBracket;
+    else if (lastBracket === -1) end = lastBrace;
+    else end = Math.max(lastBrace, lastBracket);
+    
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString, error);
+        return null;
+    }
+};
+
+interface IPOData {
+    projected_date: string;
+    pre_ipo_valuation: string;
+    expected_market_cap: string;
+    narrative: string;
+}
+
+const IPOAnalysis: React.FC = () => {
+    const { region } = useContext(AppContext)!;
+    const { t } = useI18n();
+    const financialData = useMemo(() => getFinancialData(region), [region]);
+    const [ipoData, setIpoData] = useState<IPOData | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        setIpoData(null);
+        try {
+            const prompt = t('ipo_analysis_prompt', {
+                region: region,
+                npv: financialData.find(d => d.component === '10-Year NPV')?.value || 0,
+                revenue: financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 0,
+                roi: financialData.find(d => d.component === 'Return on Investment (ROI)')?.value || 0,
+                payback: financialData.find(d => d.component === 'Payback Period')?.value || 0,
+            });
+            const result = await generateJsonWithThinking(prompt);
+            const parsed = extractJson(result);
+            if(parsed && parsed.projected_date) {
+                setIpoData(parsed);
+            } else {
+                throw new Error("Invalid format received from AI.");
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to generate IPO analysis.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-xl font-semibold mb-2 text-white">{t('ipo_analysis_title')}</h2>
+            <p className="text-sm text-slate-400 mb-4">{t('ipo_analysis_desc')}</p>
+            {!ipoData && (
+                <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
+                    {isLoading ? t('analyzing') : t('generate_ipo_analysis')}
+                </button>
+            )}
+            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            {error && <p className="mt-4 text-red-400">{error}</p>}
+            {ipoData && (
+                 <div className="mt-6 space-y-6 animate-fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-slate-900 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-sky-400">{t('projected_ipo_date')}</h4>
+                            <p className="text-2xl font-bold text-white mt-1">{ipoData.projected_date}</p>
+                        </div>
+                         <div className="bg-slate-900 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-sky-400">{t('pre_ipo_valuation')}</h4>
+                            <p className="text-2xl font-bold text-white mt-1">{ipoData.pre_ipo_valuation}</p>
+                        </div>
+                         <div className="bg-slate-900 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-sky-400">{t('expected_market_cap')}</h4>
+                            <p className="text-2xl font-bold text-white mt-1">{ipoData.expected_market_cap}</p>
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className="text-lg font-semibold text-white mb-2 flex items-center">{t('analyst_narrative')} <SpeakerIcon text={ipoData.narrative} /></h4>
+                        <p className="text-slate-300 text-sm whitespace-pre-wrap">{ipoData.narrative}</p>
+                    </div>
+                    <Feedback sectionId={`ipo-analysis-${region}`} />
+                 </div>
+            )}
+        </div>
+    );
+};
+
 
 export const Financials: React.FC = () => {
     const { region, lang } = useContext(AppContext)!;
@@ -37,14 +148,20 @@ export const Financials: React.FC = () => {
     const baseInitialInvestment = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
     const baseAnnualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
     
-    // Custom projection states
-    const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
-    const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
+    const [energyPriceModifier, setEnergyPriceModifier] = useState(0); // in percent
+    const [opExModifier, setOpExModifier] = useState(0); // in percent
 
     useEffect(() => {
-        setCustomAnnualRevenue(baseAnnualRevenue);
-        setCustomInitialInvestment(baseInitialInvestment);
-    }, [region, baseAnnualRevenue, baseInitialInvestment]);
+        setEnergyPriceModifier(0);
+        setOpExModifier(0);
+    }, [region]);
+
+    const modifiedCapex = useMemo(() => baseInitialInvestment * (1 + opExModifier / 100), [baseInitialInvestment, opExModifier]);
+    const modifiedRevenue = useMemo(() => baseAnnualRevenue * (1 + energyPriceModifier / 100), [baseAnnualRevenue, energyPriceModifier]);
+    
+    const calculatedPayback = useMemo(() => (modifiedRevenue > 0 ? (modifiedCapex / modifiedRevenue) : Infinity), [modifiedCapex, modifiedRevenue]);
+    const calculatedROI = useMemo(() => (modifiedCapex > 0 ? (modifiedRevenue / modifiedCapex) * 100 : Infinity), [modifiedCapex, modifiedRevenue]);
+    
 
     const costData = financialData.filter(d => d.component.includes('Cost') || d.component.includes('CAPEX')).map(d => ({ name: d.component, value: d.value }));
     const revenueData = financialData.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
@@ -53,23 +170,22 @@ export const Financials: React.FC = () => {
     
     const projectionData = useMemo(() => {
         const data = [];
-        const optimisticRevenue = customAnnualRevenue * 1.2;
-        const pessimisticRevenue = customAnnualRevenue * 0.8;
-        const optimisticInvestment = customInitialInvestment * 0.9;
-        const pessimisticInvestment = customInitialInvestment * 1.1;
+        const optimisticRevenue = modifiedRevenue * 1.2;
+        const pessimisticRevenue = modifiedRevenue * 0.8;
+        const optimisticInvestment = modifiedCapex * 0.9;
+        const pessimisticInvestment = modifiedCapex * 1.1;
 
         for (let i = 0; i < 11; i++) { // From year 0 to 10
             data.push({ 
                 year: i,
-                baseline: (customAnnualRevenue * i) - customInitialInvestment,
+                baseline: (modifiedRevenue * i) - modifiedCapex,
                 optimistic: (optimisticRevenue * i) - optimisticInvestment,
                 pessimistic: (pessimisticRevenue * i) - pessimisticInvestment,
             });
         }
         return data;
-    }, [customAnnualRevenue, customInitialInvestment]);
+    }, [modifiedRevenue, modifiedCapex]);
 
-    // Enhanced tooltip providing Net Revenue, Cumulative ROI, and Payback Period.
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
@@ -100,11 +216,8 @@ export const Financials: React.FC = () => {
     const handleExport = async () => {
         const doc = new jsPDF();
         
-        // For proper Persian text rendering, a font that supports Arabic script (like Amiri) is required.
-        // In a real-world scenario, you would load this font file into jsPDF. This is a placeholder.
         if (lang === 'fa') {
-            // doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal'); // Font file would be needed
-            doc.setFont('Amiri', 'normal'); // Fallbacks to helvetica if font not present
+            doc.setFont('Amiri', 'normal');
             doc.setR2L(true);
         }
 
@@ -118,13 +231,11 @@ export const Financials: React.FC = () => {
             styles: { font: lang === 'fa' ? 'Amiri' : 'helvetica' },
             headStyles: { halign: 'center' },
             didDrawPage: (data) => {
-                // Header
                 doc.setFontSize(18);
                 doc.setTextColor(40);
                 doc.text("GMEL Geothermal Vision - Financial Data", data.settings.margin.left, 15);
             },
             didParseCell: function (data) {
-                // For Persian, right-align the body cells
                 if (lang === 'fa' && data.section === 'body') {
                     data.cell.styles.halign = 'right';
                 }
@@ -132,37 +243,28 @@ export const Financials: React.FC = () => {
         });
 
         const totalPages = (doc as any).internal.getNumberOfPages();
-
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
-            
-            // WATERMARK
             doc.saveGraphicsState();
             doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
             doc.setFontSize(45);
             doc.setTextColor(150);
             const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.xyz";
-            const textRotationAngle = 45;
             const centerX = doc.internal.pageSize.getWidth() / 2;
             const centerY = doc.internal.pageSize.getHeight() / 2;
-            doc.text(text, centerX, centerY, { align: 'center', angle: textRotationAngle });
+            doc.text(text, centerX, centerY, { align: 'center', angle: 45 });
             if (KKM_LOGO_DATA_URL) {
                 doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
             }
             doc.restoreGraphicsState();
-
-            // FOOTER (Timestamp and Page Number)
             doc.setFontSize(8);
             doc.setTextColor(100);
-            const footerText = `Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`;
-            doc.text(footerText, 14, doc.internal.pageSize.getHeight() - 10);
+            doc.text(`Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`, 14, doc.internal.pageSize.getHeight() - 10);
         }
-        
         doc.setProperties({
             title: 'GMEL Financial Data (Confidential)',
             creator: 'KKM International Group',
         });
-
         doc.save(`KKM_GMEL_Financials_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
@@ -204,41 +306,30 @@ export const Financials: React.FC = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-                <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                    <h2 className="text-xl font-semibold mb-4 text-white">{t('net_revenue_projection_title')}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 p-4 bg-slate-900/50 rounded-lg">
+                <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
+                    <h2 className="text-xl font-semibold text-white">{t('interactive_financial_model_title')}</h2>
+                    <p className="text-sm text-slate-400 -mt-2">{t('interactive_financial_model_desc')}</p>
+                    <div className="space-y-4">
                         <div>
-                            <label htmlFor="customAnnualRevenue" className="block text-sm font-medium text-slate-300">{t('custom_annual_revenue')}</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <input
-                                    type="number"
-                                    id="customAnnualRevenue"
-                                    value={customAnnualRevenue}
-                                    onChange={(e) => setCustomAnnualRevenue(Number(e.target.value) || 0)}
-                                    className="w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white"
-                                />
-                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <span className="text-slate-400 sm:text-sm">B Toman</span>
-                                </div>
-                            </div>
+                            <label className="block text-sm font-medium text-slate-300">{t('energy_price_modifier')}: <span className="font-bold text-sky-400">{energyPriceModifier.toFixed(0)}%</span></label>
+                            <input type="range" min="-50" max="50" value={energyPriceModifier} onChange={(e) => setEnergyPriceModifier(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
                         </div>
-                        <div>
-                            <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300">{t('custom_initial_investment')}</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <input
-                                    type="number"
-                                    id="customInitialInvestment"
-                                    value={customInitialInvestment}
-                                    onChange={(e) => setCustomInitialInvestment(Number(e.target.value) || 0)}
-                                    className="w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white"
-                                />
-                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <span className="text-slate-400 sm:text-sm">B Toman</span>
-                                </div>
-                            </div>
+                         <div>
+                            <label className="block text-sm font-medium text-slate-300">{t('opex_modifier')}: <span className="font-bold text-amber-400">{opExModifier.toFixed(0)}%</span></label>
+                            <input type="range" min="-20" max="20" value={opExModifier} onChange={(e) => setOpExModifier(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
                         </div>
                     </div>
-                    <div style={{ width: '100%', height: 250 }}>
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div className="bg-slate-900 p-3 rounded-lg text-center">
+                            <p className="text-xs text-slate-400">{t('calculated_roi')}</p>
+                            <p className="text-2xl font-bold text-white">{isFinite(calculatedROI) ? `${calculatedROI.toFixed(1)}%` : 'N/A'}</p>
+                        </div>
+                        <div className="bg-slate-900 p-3 rounded-lg text-center">
+                            <p className="text-xs text-slate-400">{t('calculated_payback')}</p>
+                            <p className="text-2xl font-bold text-white">{isFinite(calculatedPayback) ? `${calculatedPayback.toFixed(1)} Yrs` : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div style={{ width: '100%', height: 200 }}>
                          <ResponsiveContainer>
                             <LineChart data={projectionData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
@@ -254,6 +345,8 @@ export const Financials: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <IPOAnalysis />
 
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
                  <h2 className="text-xl font-semibold mb-4 text-white">{t('market_analysis_for', { region })}</h2>

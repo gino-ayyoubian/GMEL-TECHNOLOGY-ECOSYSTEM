@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
-import { useI18n } from '../hooks/useI18n';
-import { AppContext } from '../contexts/AppContext';
+import { useI18n } from '../../hooks/useI18n';
+import { AppContext } from '../../contexts/AppContext';
 
 // This component replaces the old AccessControl.tsx and is part of the new auth flow.
 // It will be rendered by App.tsx when authStep is 'nda'.

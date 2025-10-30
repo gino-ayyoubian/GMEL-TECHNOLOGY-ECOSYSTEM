@@ -6,6 +6,8 @@ export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ay
 
 // NOTE: The following data is updated to reflect the "Ultimate Optimized Version (2025)" of the GMEL project.
 
+export const PREDEFINED_USERS: string[] = Array.from({ length: 15 }, (_, i) => `Gmel-kkm user-${i + 1}`);
+
 export const CORE_PATENT: Patent = {
   level: 'Core',
   code: 'GMEL-CLG',
