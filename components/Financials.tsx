@@ -9,7 +9,7 @@ import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 
-const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
+const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6', '#10b981', '#6366f1'];
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
@@ -135,6 +135,114 @@ const IPOAnalysis: React.FC = () => {
         </div>
     );
 };
+
+interface RevenueStream {
+    stream: string;
+    percentage: number;
+    value: number;
+    assumptions: string;
+}
+
+interface RevenueStreamsData {
+    table: RevenueStream[];
+    narrative: string;
+}
+
+const RevenueStreamsAnalysis: React.FC = () => {
+    const { region } = useContext(AppContext)!;
+    const { t } = useI18n();
+    const financialData = useMemo(() => getFinancialData(region), [region]);
+    const [data, setData] = useState<RevenueStreamsData | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        setData(null);
+
+        const annualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
+        const prompt = t('revenue_streams_prompt', { region, revenue: annualRevenue });
+        
+        try {
+            const result = await generateJsonWithThinking(prompt);
+            const parsed = extractJson(result);
+            if (parsed && parsed.table && parsed.narrative) {
+                setData(parsed);
+            } else {
+                throw new Error("Invalid format received from AI.");
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to generate revenue breakdown.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-xl font-semibold mb-2 text-white">{t('revenue_streams_title')}</h2>
+            <p className="text-sm text-slate-400 mb-4">{t('revenue_streams_desc', { region })}</p>
+            {!data && (
+                <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
+                    {isLoading ? t('analyzing') : t('generate_revenue_breakdown')}
+                </button>
+            )}
+            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            {error && <p className="mt-4 text-red-400">{error}</p>}
+
+            {data && (
+                <div className="mt-6 space-y-6 animate-fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-4">{t('revenue_stream_chart_title')}</h3>
+                             <div style={{ width: '100%', height: 250 }}>
+                                <ResponsiveContainer>
+                                    <PieChart>
+                                        <Pie data={data.table} dataKey="percentage" nameKey="stream" cx="50%" cy="50%" outerRadius="80%" labelLine={false} label={renderCustomizedLabel}>
+                                            {data.table.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} formatter={(value: number) => `${value.toFixed(1)}%`} />
+                                        <Legend wrapperStyle={{fontSize: '12px'}}/>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                        <div>
+                             <h3 className="text-lg font-semibold text-white mb-2 flex items-center">{t('narrative_summary')} <SpeakerIcon text={data.narrative} /></h3>
+                             <p className="text-slate-300 text-sm whitespace-pre-wrap">{data.narrative}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-slate-700 text-sm">
+                                <thead className="bg-slate-700/50">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('stream')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('contribution')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('projected_value')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-2/5">{t('assumptions')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                    {data.table.map((row, index) => (
+                                        <tr key={index}>
+                                            <td className="px-4 py-3 whitespace-nowrap font-medium text-white">{row.stream}</td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-slate-300">{row.percentage.toFixed(1)}%</td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-slate-300">{row.value.toFixed(1)}</td>
+                                            <td className="px-4 py-3 text-slate-400">{row.assumptions}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                     <Feedback sectionId={`revenue-streams-${region}`} />
+                </div>
+            )}
+        </div>
+    );
+}
 
 
 export const Financials: React.FC = () => {
@@ -345,6 +453,8 @@ export const Financials: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <RevenueStreamsAnalysis />
 
             <IPOAnalysis />
 

@@ -10,7 +10,7 @@ export type Language = 'en' | 'fa' | 'ku' | 'ar';
 export const locales: Record<Language, string> = {
     en: 'en-US',
     fa: 'fa-IR',
-    ku: 'ku-IQ',
+    ku: 'ckb-IQ',
     ar: 'ar-SA',
 }
 

@@ -1,3 +1,4 @@
+
 export const app_title = "KKM | GeoMeta Energy Layer Vision";
 export const nav_dashboard = "Dashboard";
 export const nav_ip = "IP Roadmap";
@@ -362,10 +363,8 @@ export const budget_justification = "Budget Justification";
 export const error_generating_strategy = "Error generating the strategy. Please try again.";
 export const generating_strategy = "Generating Strategy...";
 export const proposal_generator_title = "Intelligent Proposal Generator";
-export const proposal_generator_description = "This module generates a comprehensive, region-based proposal using the GMEL-Proposal Engine. Select a target region and specify focus areas to generate a branded, downloadable PDF proposal aligned with GMEL's patented intellectual property architecture.";
+export const proposal_generator_description = "This module generates a comprehensive, region-based proposal using the GMEL-Proposal Engine. The proposal is formulated based on the comprehensive patents held by GMEL and its associated intellectual assets to be as optimal, cost-effective, and innovative as possible, taking into account regional conditions to ensure approval and endorsement.";
 export const select_proposal_region = "Select Proposal Region";
-export const focus_areas = "Specify Focus Areas";
-export const focus_areas_placeholder = "e.g., desalination, DLE, green hydrogen";
 export const generate_proposal = "Generate Proposal";
 export const generating_proposal = "Generating Proposal...";
 export const generated_proposal_title = "Generated Proposal for {region}";
@@ -374,19 +373,22 @@ export const regional_analysis_prompt = "Provide a current (2024-2025) and detai
 export const proposal_generation_prompt = `
     You are the GMEL-Proposal Engine, an AI for KKM International. Your task is to generate a comprehensive project proposal for the GeoMeta Energy Layer (GMEL) project.
     
+    The proposal must be formulated based on the comprehensive patents held by GMEL and its associated intellectual assets, designed to be as optimal, cost-effective, and innovative as possible.
+    It MUST encompass analyses, positive elements, and outcomes that are indicative for approval and endorsement, taking into account regional conditions, prevailing circumstances, and current policies. These aspects should be emphasized and presented more prominently.
+
     The proposal should be structured as a single JSON object. The root key must be "gmel_proposal".
     The value of "gmel_proposal" must be an object with the following keys, each containing a detailed string in the specified language:
     "region": "{region}",
     "language": "{language}",
     "sector": "Geothermal Energy and Integrated Systems",
-    "executive_summary": "A powerful, concise summary of the proposal, highlighting the key value proposition for the specified region and focus areas.",
+    "executive_summary": "A powerful, concise summary of the proposal, highlighting the key value proposition for the specified region. It should be formulated to be as optimal, cost-effective, and innovative as possible, emphasizing positive elements and outcomes indicative of approval and endorsement based on regional conditions, circumstances, and policies.",
     "regional_analysis": "Placeholder text: [REGIONAL_ANALYSIS_CONTENT_WILL_BE_INJECTED_HERE]",
-    "technical_modeling": "An overview of the GMEL-CLG core technology and the specific applied patents relevant to the focus areas ({focus_areas}).",
-    "financial_analysis": "A high-level financial projection based on the 5MW pilot data, adapted for the region. Mention CAPEX, revenue streams, ROI, and payback period.",
-    "innovation_and_patent_layer": "Describe the strategic value of the GMEL patent portfolio as a whole, emphasizing its role in creating a defensible, long-term competitive advantage.",
-    "strategy_model": "Propose a partnership model (e.g., Joint Venture, Technology Licensing) suitable for {region} and outline the mutual benefits.",
-    "risk_and_roadmap": "Identify 3 key risks for the project in this region and present a high-level project roadmap with major milestones for the next 5 years.",
-    "gmel_patent_reference": ["GMEL-CLG", "GMEL-EHS", "GMEL-DrillX", "GMEL-Desal", "GMEL-LithiumLoop"],
+    "technical_modeling": "An overview of the GMEL-CLG core technology and the most relevant applied patents from GMEL's comprehensive intellectual assets, selected to create an optimal and innovative solution for the region.",
+    "financial_analysis": "A high-level financial projection based on the 5MW pilot data, adapted for the region. Mention CAPEX, revenue streams, ROI, and payback period. Emphasize the cost-effectiveness and positive financial outcomes.",
+    "innovation_and_patent_layer": "Describe the strategic value of the GMEL patent portfolio as a whole, emphasizing its role in creating a defensible, long-term competitive advantage and fostering innovation.",
+    "strategy_model": "Propose a partnership model (e.g., Joint Venture, Technology Licensing) suitable for {region} that aligns with current policies and outlines mutual benefits that would lead to endorsement.",
+    "risk_and_roadmap": "Identify 3 key risks for the project in this region and present a high-level project roadmap with major milestones for the next 5 years, highlighting positive outcomes and approval pathways.",
+    "gmel_patent_reference": ["GMEL-CLG", "GMEL-EHS", "GMEL-DrillX", "GMEL-Desal", "GMEL-LithiumLoop", "GMEL-H₂Cell", "GMEL-AgriCell"],
     "ownership_statement": "All intellectual property rights for the GeoMeta Energy Layer (GMEL) and its associated technologies are retained by inventor Seyed Gino Ayyoubian and the KKM International Group. This proposal is confidential."
 
     CRITICAL: The entire output MUST be a single, valid JSON object. Do not include any text or markdown outside of the JSON structure.
@@ -445,4 +447,21 @@ export const pre_ipo_valuation = "Pre-IPO Valuation";
 export const expected_market_cap = "Expected Market Cap";
 export const analyst_narrative = "Analyst Narrative";
 export const ipo_analysis_prompt = `As a financial analyst specializing in energy sector IPOs, analyze the following project data for a potential Initial Public Offering. Project: GMEL in {region}. Financials (5MW Pilot): 10-Year NPV of {npv}B Toman, Annual Revenue of {revenue}B Toman, ROI of {roi}%, and Payback Period of {payback} years. The project has a strong, defensible patent portfolio covering multiple revenue streams (energy, DLE, desalination). Provide a projection in JSON format with keys: "projected_date" (string, e.g., 'Q3 2028'), "pre_ipo_valuation" (string, e.g., '$150M - $200M USD'), "expected_market_cap" (string, e.g., '$250M - $300M USD'), and "narrative" (string, a paragraph justifying these figures based on market trends for renewable tech and project strengths).`;
-// FIX: Removed duplicate variables that were causing redeclaration errors. They were already defined correctly above.
+// FIX: Corrected Arabic values that were mistakenly in the English file and added missing keys.
+export const roi_projection_title = "10-Year ROI Projection";
+export const roi_chart_legend = "ROI (%)";
+export const revenue_streams_title = "Projected Revenue Streams";
+export const revenue_streams_desc = "Generate a granular breakdown of the annual revenue streams for the {region} pilot project based on its integrated applications. This analysis models the contribution of each technology to the overall financial viability.";
+export const revenue_streams_prompt = `
+    Based on a 5 MW GMEL pilot project in {region}, which has a total projected annual revenue of {revenue} billion Toman, break this revenue down into its constituent streams. The project integrates the following technologies from the GMEL patent portfolio: GMEL-CLG (Core Energy), GMEL-Desal (Thermal Desalination), GMEL-LithiumLoop (Direct Lithium Extraction), GMEL-H₂Cell (Green Hydrogen), and GMEL-AgriCell (Thermal Agriculture).
+    
+    Provide the output as a single JSON object. The object must have two keys: "table" and "narrative".
+    - "table": an array of objects. Each object must have the following keys: "stream" (string, e.g., 'Electricity Sales'), "percentage" (number, 0-100), "value" (number, in Billion Toman), and "assumptions" (string, a brief justification for the percentage). The sum of all "percentage" values must be 100.
+    - "narrative": a string (2-3 paragraphs) explaining the synergy between these revenue streams and the strategic importance for {region}.
+`;
+export const generate_revenue_breakdown = "Generate Revenue Breakdown";
+export const revenue_stream_chart_title = "Revenue Contribution by Stream";
+export const stream = "Stream";
+export const contribution = "Contribution (%)";
+export const projected_value = "Projected Value (B Toman)";
+export const assumptions = "Assumptions";

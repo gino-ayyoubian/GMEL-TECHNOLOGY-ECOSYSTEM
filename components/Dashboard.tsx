@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
 import { generateTextWithThinking, generateGroundedText, generateJsonWithThinking } from '../services/geminiService';
 import { Milestone } from '../types';
@@ -326,6 +326,25 @@ export const Dashboard: React.FC = () => {
 
     const financialData = useMemo(() => getFinancialData(region), [region]);
 
+    const roiProjectionData = useMemo(() => {
+        const capex = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value;
+        const annualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value;
+
+        if (!capex || !annualRevenue) return [];
+
+        const data = [];
+        for (let i = 0; i <= 10; i++) {
+            const cumulativeRevenue = annualRevenue * i;
+            const roi = ((cumulativeRevenue - capex) / capex) * 100;
+            data.push({
+                year: i,
+                roi: roi,
+            });
+        }
+        return data;
+    }, [financialData]);
+
+
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
         setError(null);
@@ -432,23 +451,40 @@ export const Dashboard: React.FC = () => {
             </div>
         </div>
 
-        <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg border border-slate-700 h-full">
-            <h2 className="text-xl font-semibold mb-4 text-white">{t('financial_overview')}</h2>
-            <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                    <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                        <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
-                        <YAxis tick={{ fill: '#94a3b8' }} unit=" B" />
-                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                        <Legend wrapperStyle={{ color: '#94a3b8' }}/>
-                        <Bar dataKey="value" name={t('financial_chart_legend')}>
-                            {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
+        <div className="lg:col-span-2 space-y-6">
+            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                <h2 className="text-xl font-semibold mb-4 text-white">{t('financial_overview')}</h2>
+                <div style={{ width: '100%', height: 300 }}>
+                    <ResponsiveContainer>
+                        <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                            <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
+                            <YAxis tick={{ fill: '#94a3b8' }} unit=" B" />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
+                            <Legend wrapperStyle={{ color: '#94a3b8' }}/>
+                            <Bar dataKey="value" name={t('financial_chart_legend')}>
+                                {chartData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                <h2 className="text-xl font-semibold mb-4 text-white">{t('roi_projection_title')}</h2>
+                <div style={{ width: '100%', height: 300 }}>
+                    <ResponsiveContainer>
+                        <LineChart data={roiProjectionData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                            <XAxis dataKey="year" tick={{ fill: '#94a3b8' }} unit=" yr" />
+                            <YAxis tick={{ fill: '#94a3b8' }} unit="%" domain={['dataMin', 'auto']} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} formatter={(value: number) => `${value.toFixed(1)}%`} />
+                            <Legend wrapperStyle={{ color: '#94a3b8' }} />
+                            <Line type="monotone" dataKey="roi" name={t('roi_chart_legend')} stroke="#22c55e" strokeWidth={2} dot={{r: 4}} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
         </div>
       </div>

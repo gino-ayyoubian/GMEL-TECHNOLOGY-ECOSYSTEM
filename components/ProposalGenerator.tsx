@@ -78,7 +78,6 @@ export const ProposalGenerator: React.FC = () => {
     const { lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [targetRegion, setTargetRegion] = useState<Region>('Kurdistan Region, Iraq');
-    const [focusAreas, setFocusAreas] = useState('energy independence, DLE, green hydrogen');
     const [proposalData, setProposalData] = useState<ProposalData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -101,7 +100,6 @@ export const ProposalGenerator: React.FC = () => {
             // Step 2: Generate the full proposal, injecting the analysis.
             const proposalPrompt = t('proposal_generation_prompt', { 
                 region: targetRegion, 
-                focus_areas: focusAreas, 
                 language: lang,
                 regional_analysis_content: regionalAnalysisContent
             });
@@ -232,19 +230,13 @@ export const ProposalGenerator: React.FC = () => {
                 {t('proposal_generator_description')}
             </p>
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label htmlFor="target-region" className="block text-sm font-medium text-slate-300">{t('select_proposal_region')}</label>
-                        <select id="target-region" value={targetRegion} onChange={(e) => setTargetRegion(e.target.value as Region)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md text-white font-semibold">
-                            <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
-                            <option value="Qeshm Free Zone">Qeshm Free Zone</option>
-                            <option value="Makoo Free Zone">Makoo Free Zone</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="focus-areas" className="block text-sm font-medium text-slate-300">{t('focus_areas')}</label>
-                        <input type="text" id="focus-areas" value={focusAreas} onChange={e => setFocusAreas(e.target.value)} placeholder={t('focus_areas_placeholder')} className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md text-slate-200" />
-                    </div>
+                <div className="max-w-md">
+                    <label htmlFor="target-region" className="block text-sm font-medium text-slate-300">{t('select_proposal_region')}</label>
+                    <select id="target-region" value={targetRegion} onChange={(e) => setTargetRegion(e.target.value as Region)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md text-white font-semibold">
+                        <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
+                        <option value="Qeshm Free Zone">Qeshm Free Zone</option>
+                        <option value="Makoo Free Zone">Makoo Free Zone</option>
+                    </select>
                 </div>
                  <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-800">
                     {isLoading ? t('generating_proposal') : t('generate_proposal')}
