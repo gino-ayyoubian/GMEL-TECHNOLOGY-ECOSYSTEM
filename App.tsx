@@ -163,17 +163,6 @@ const MainAppLayout: React.FC = () => {
                                     <option value="Saudi Arabia">Saudi Arabia</option>
                                 </select>
                             </div>
-                            <div className="flex items-center">
-                                <label htmlFor="lang-select" className="sr-only">{t('language')}</label>
-                                <select
-                                    id="lang-select"
-                                    value={lang}
-                                    onChange={(e) => setLang(e.target.value as Language)}
-                                    className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold"
-                                >
-                                    {supportedLangs.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
-                                </select>
-                            </div>
                         </div>
                     </div>
                 </header>

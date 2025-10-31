@@ -64,6 +64,7 @@ export const SiteAnalysis: React.FC = () => {
     const userMarkerRef = useRef<any>(null);
     const infrastructureLayerRef = useRef<any>(null);
     const heatmapLayerRef = useRef<any>(null);
+    const heatmapMarkersLayerRef = useRef<any>(null); // For hover tooltips
     const legendRef = useRef<any>(null);
 
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
@@ -150,6 +151,10 @@ export const SiteAnalysis: React.FC = () => {
                 mapRef.current.removeLayer(heatmapLayerRef.current);
                 heatmapLayerRef.current = null;
             }
+            if (heatmapMarkersLayerRef.current) {
+                mapRef.current.removeLayer(heatmapMarkersLayerRef.current);
+                heatmapMarkersLayerRef.current = null;
+            }
             setActiveLayer('infrastructure');
         }
     }, [region]);
@@ -160,6 +165,7 @@ export const SiteAnalysis: React.FC = () => {
     
         if (activeLayer === 'infrastructure') {
             if (heatmapLayerRef.current) mapRef.current.removeLayer(heatmapLayerRef.current);
+            if (heatmapMarkersLayerRef.current) mapRef.current.removeLayer(heatmapMarkersLayerRef.current);
             if (legendRef.current) mapRef.current.removeControl(legendRef.current);
             if (infrastructureLayerRef.current) infrastructureLayerRef.current.addTo(mapRef.current);
         } else { // heatmap
@@ -169,6 +175,20 @@ export const SiteAnalysis: React.FC = () => {
                 if (heatmapLayerRef.current) mapRef.current.removeLayer(heatmapLayerRef.current);
                 heatmapLayerRef.current = L.heatLayer(heatmapData, { radius: 25, maxZoom: 12 }).addTo(mapRef.current);
                 if (legendRef.current) legendRef.current.addTo(mapRef.current);
+
+                // Add invisible markers for hover tooltips
+                if (heatmapMarkersLayerRef.current) mapRef.current.removeLayer(heatmapMarkersLayerRef.current);
+                heatmapMarkersLayerRef.current = L.layerGroup();
+                heatmapData.forEach(([lat, lng, intensity]) => {
+                    L.circleMarker([lat, lng], {
+                        radius: 10, // Hover target size
+                        fillOpacity: 0,
+                        stroke: false,
+                    })
+                    .bindTooltip(`<b>Intensity:</b> ${intensity.toFixed(3)}<br><b>Coords:</b> ${lat.toFixed(4)}, ${lng.toFixed(4)}`)
+                    .addTo(heatmapMarkersLayerRef.current);
+                });
+                heatmapMarkersLayerRef.current.addTo(mapRef.current);
             }
         }
     }, [activeLayer, heatmapData]);
