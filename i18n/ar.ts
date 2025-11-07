@@ -5,6 +5,7 @@
 
 
 
+
 export const app_title = "KKM | رؤية طبقة الطاقة جيو-ميتا";
 export const nav_dashboard = "لوحة التحكم";
 export const nav_ip = "خارطة طريق الملكية الفكرية";
@@ -476,6 +477,8 @@ export const projected_value = "القيمة المتوقعة (مليار توم
 export const assumptions = "الافتراضات";
 export const tech_spec_comparison_title = "مقارنة المواصفات الفنية";
 export const tech_spec_comparison_desc = "أنشئ مقارنة مباشرة بين تقنية الحفر الأساسية لـ GMEL والطرق التقليدية المستخدمة في منطقة القياس المحددة.";
+export const generate_tech_comparison = "إنشاء مقارنة فنية";
+// FIX: Add missing keys
 export const benchmark_specifications_in_region = "التقنية التقليدية في {region}";
 export const benchmark_tech_comparison_prompt = `
     أنشئ مقارنة فنية واقتصادية مفصلة بين تقنية '{gmel_tech}' وتقنية الحفر التقليدية/السائدة المستخدمة في مشاريع الطاقة الحرارية الأرضية في '{benchmark_region}'.
@@ -493,4 +496,3 @@ export const benchmark_tech_comparison_prompt = `
     - وقت التوقف النموذجي للصيانة
     - ميزات السلامة الرئيسية
 `;
-export const generate_tech_comparison = "إنشاء مقارنة فنية";

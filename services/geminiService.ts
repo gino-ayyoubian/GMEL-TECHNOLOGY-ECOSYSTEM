@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Type, Chat, Content } from "@google/genai";
-import { ChatMessage } from '../types';
+import { ChatMessage, FinancialData } from '../types';
 
 const getAiClient = () => {
   if (!process.env.API_KEY) {
@@ -157,6 +157,48 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
         console.error("Error generating JSON data for heatmap:", error);
         throw new Error("Failed to generate structured data. The model's response may have been invalid.");
     }
+};
+
+export const generateFinancialData = async (region: string, lang: string): Promise<FinancialData[]> => {
+  try {
+    const ai = getAiClient();
+    const prompt = `As a financial analyst, generate key financial projections for a 5MW GMEL geothermal pilot project in '${region}'. Use up-to-date economic data for the region. The output MUST be a valid JSON array. The baseline for a similar project in an Iranian Free Zone is: 575B Toman CAPEX, 390B Toman Annual Revenue, 2-year Payback, 42% ROI, 2750B Toman 10-Year NPV. Adjust these figures based on the specific economic conditions, labor costs, and energy market of '${region}'. Provide descriptions in ${lang}.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              component: { type: Type.STRING },
+              value: { type: Type.NUMBER },
+              unit: { type: Type.STRING },
+              description: { type: Type.STRING },
+            },
+            required: ['component', 'value', 'unit', 'description']
+          }
+        },
+        thinkingConfig: { thinkingBudget: 8192 }
+      },
+    });
+
+    const jsonStr = response.text.trim();
+    const data = JSON.parse(jsonStr);
+    
+    const requiredComponents = ['CAPEX', 'Revenue', 'Payback', 'ROI', 'NPV'];
+    if (data.length < requiredComponents.length) {
+        throw new Error('Generated data is missing required financial components.');
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error generating financial data:", error);
+    throw new Error(`An error occurred while generating financial data for ${region}. The service may be unavailable.`);
+  }
 };
 
 

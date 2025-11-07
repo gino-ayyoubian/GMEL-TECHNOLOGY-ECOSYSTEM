@@ -3,6 +3,7 @@
 
 
 
+
 export const app_title = "KKM | GeoMeta Energy Layer Vision";
 export const nav_dashboard = "Dashboard";
 export const nav_ip = "IP Roadmap";

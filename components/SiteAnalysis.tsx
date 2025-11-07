@@ -1,4 +1,5 @@
 
+
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -10,15 +11,13 @@ import { Region } from '../types';
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
-// FIX: Added missing regions 'Oman' and 'Saudi Arabia' to satisfy the Record<Region, ...> type.
-// FIX: Added missing region 'Iranian Kurdistan' to satisfy the Record<Region, ...> type.
+// FIX: Added missing 'Iranian Kurdistan' to satisfy the Record<Region, ...> type.
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
     'Kurdistan Region, Iraq': [36.1911, 44.0094], // Coordinates for Erbil
     'Oman': [23.5859, 58.3816], // Coordinates for Muscat
     'Saudi Arabia': [24.7136, 46.6753], // Coordinates for Riyadh
-    // FIX: Added missing 'Iranian Kurdistan' to resolve TypeScript error.
     'Iranian Kurdistan': [36.7633, 45.7201] // Mahabad
 };
 
