@@ -1,5 +1,5 @@
 import React, { useState, createContext, useEffect } from 'react';
-import { Region, View } from '../types';
+import { Region, View, UserRole } from '../types';
 import { Language, locales } from '../hooks/useI18n';
 
 export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted';
@@ -9,6 +9,8 @@ interface AppContextType {
   setAuthStep: (step: AuthStep) => void;
   currentUser: string | null;
   setCurrentUser: (user: string | null) => void;
+  userRole: UserRole | null;
+  setUserRole: (role: UserRole | null) => void;
   grantAccess: () => void;
   region: Region;
   setRegion: (region: Region) => void;
@@ -40,6 +42,7 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [authStep, setAuthStepState] = useState<AuthStep>(getInitialState('gmel_auth_step', 'language'));
     const [currentUser, setCurrentUserState] = useState<string | null>(getInitialState('gmel_current_user', null));
+    const [userRole, setUserRoleState] = useState<UserRole | null>(getInitialState('gmel_user_role', null));
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
     const [lang, setLangState] = useState<Language>(getInitialState('gmel_lang', 'en'));
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -56,6 +59,11 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setCurrentUserState(user);
     }
     
+    const setUserRole = (role: UserRole | null) => {
+        sessionStorage.setItem('gmel_user_role', JSON.stringify(role));
+        setUserRoleState(role);
+    };
+
     const setLang = (newLang: Language) => {
         sessionStorage.setItem('gmel_lang', JSON.stringify(newLang));
         setLangState(newLang);
@@ -150,6 +158,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const value = {
         authStep, setAuthStep,
         currentUser, setCurrentUser,
+        userRole, setUserRole,
         grantAccess,
         region, setRegion,
         lang, setLang,

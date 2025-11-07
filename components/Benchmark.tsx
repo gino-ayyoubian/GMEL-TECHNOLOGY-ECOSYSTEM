@@ -40,11 +40,12 @@ const extractJson = (text: string): any | null => {
 };
 
 const baseRegions = ["Iceland", "Turkey (Denizli/Aydin)", "USA (California's Salton Sea)", "Germany (Bavaria)"];
-const comparisonRegions = ["Qeshm Free Zone", "Makoo Free Zone", "Kurdistan Region, Iraq", ...baseRegions];
+const comparisonRegions = ["Qeshm Free Zone", "Makoo Free Zone", "Iranian Kurdistan", "Kurdistan Region, Iraq", ...baseRegions];
 
 const regionCoordinates: Record<string, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
+    'Iranian Kurdistan': [36.7633, 45.7201],
     'Kurdistan Region, Iraq': [36.1911, 44.0094],
     'Iceland': [64.9631, -19.0208],
     "Turkey (Denizli/Aydin)": [37.838, 28.536],
@@ -62,6 +63,15 @@ interface ComparisonResult {
     narrative: string;
 }
 
+interface TechComparisonResult {
+    table: {
+        metric: string;
+        gmel_spec: string | { [key: string]: any };
+        benchmark_spec: string | { [key: string]: any };
+    }[];
+    narrative: string;
+}
+
 // Helper to safely render content that might be an object
 const renderCellContent = (content: any): string => {
     if (typeof content === 'object' && content !== null) {
@@ -71,6 +81,105 @@ const renderCellContent = (content: any): string => {
         return JSON.stringify(content);
     }
     return String(content);
+};
+
+const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRegion }) => {
+    const { t } = useI18n();
+    const [techComparison, setTechComparison] = useState<TechComparisonResult | null>(null);
+    const [isTechLoading, setIsTechLoading] = useState(false);
+    const [techError, setTechError] = useState<string | null>(null);
+
+    const handleTechCompare = async () => {
+        setIsTechLoading(true);
+        setTechError(null);
+        setTechComparison(null);
+
+        const prompt = t('benchmark_tech_comparison_prompt', {
+            gmel_tech: 'GMEL-DrillX Autonomous Smart Drilling',
+            benchmark_region: benchmarkRegion
+        });
+        
+        let result: string | undefined;
+        try {
+            result = await generateJsonWithThinking(prompt);
+            const parsed = extractJson(result);
+
+            if (parsed && parsed.table && parsed.narrative) {
+                setTechComparison(parsed);
+            } else {
+                throw new Error("Invalid format received from API for tech comparison.");
+            }
+        } catch (e: any) {
+            setTechError(e.message || t('error_generating_comparison'));
+            console.error("Failed to parse tech comparison JSON:", e, "Raw result:", result);
+        } finally {
+            setIsTechLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-xl font-semibold text-white mb-2">{t('tech_spec_comparison_title')}</h2>
+            <p className="text-sm text-slate-400 mb-4">{t('tech_spec_comparison_desc')}</p>
+            
+            {!techComparison && !isTechLoading && (
+                <button onClick={handleTechCompare} disabled={isTechLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-400">
+                    {isTechLoading ? t('analyzing') : t('generate_tech_comparison')}
+                </button>
+            )}
+
+            {isTechLoading && (
+                <div className="w-full bg-slate-900 rounded-lg p-6 animate-pulse mt-4">
+                    <div className="h-5 bg-slate-700 rounded w-1/3 mb-4"></div>
+                    <div className="space-y-3">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="grid grid-cols-3 gap-4">
+                                <div className="h-4 bg-slate-700 rounded col-span-1"></div>
+                                <div className="h-4 bg-slate-700 rounded col-span-1"></div>
+                                <div className="h-4 bg-slate-700 rounded col-span-1"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {techError && <p className="text-red-400 text-center mt-4">{techError}</p>}
+
+            {techComparison && (
+                 <div className="space-y-6 mt-6">
+                    <h3 className="text-lg font-semibold text-white">{t('comparison_between', { region1: 'GMEL-DrillX', region2: `${benchmarkRegion} Tech` })}</h3>
+                    <div className="overflow-hidden border border-slate-700 rounded-lg">
+                         <table className="min-w-full divide-y divide-slate-700">
+                            <thead className="bg-slate-700/50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('metric')}</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('gmel_drillx_specs')}</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('benchmark_specifications_in_region', { region: benchmarkRegion })}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                {techComparison.table.map((row, index) => (
+                                    <tr key={index} className="hover:bg-slate-700/50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white align-top">{row.metric}</td>
+                                        <td className="px-6 py-4 text-sm text-slate-300 align-top whitespace-pre-wrap">{renderCellContent(row.gmel_spec)}</td>
+                                        <td className="px-6 py-4 text-sm text-slate-400 align-top whitespace-pre-wrap">{renderCellContent(row.benchmark_spec)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                            {t('narrative_summary')}
+                            <SpeakerIcon text={techComparison.narrative} />
+                        </h3>
+                         <p className="text-slate-300 whitespace-pre-wrap">{techComparison.narrative}</p>
+                         <Feedback sectionId={`benchmark-tech-comparison-${benchmarkRegion}`} />
+                    </div>
+                 </div>
+            )}
+        </div>
+    );
 };
 
 
@@ -263,6 +372,12 @@ export const Benchmark: React.FC = () => {
                         </h2>
                          <p className="text-slate-300 whitespace-pre-wrap">{comparisonResult.narrative}</p>
                          <Feedback sectionId={`benchmark-comparison-${region1}-vs-${region2}`} />
+                    </div>
+                )}
+                
+                {comparisonResult && (
+                    <div className="lg:col-span-2">
+                        <TechSpecComparison benchmarkRegion={region2} />
                     </div>
                 )}
             </div>

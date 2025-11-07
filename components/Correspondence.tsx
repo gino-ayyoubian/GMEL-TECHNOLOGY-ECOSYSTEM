@@ -7,7 +7,7 @@ import { KKM_LOGO_DATA_URL } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 
 export const Correspondence: React.FC = () => {
-    const { region, lang } = useContext(AppContext)!;
+    const { region, lang, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
     const [recipient, setRecipient] = useState('');
     const [subject, setSubject] = useState('');
@@ -37,33 +37,32 @@ export const Correspondence: React.FC = () => {
         }
     };
 
-    const handlePrint = () => {
+    const handleExportPdf = () => {
         if (!letterRef.current) return;
         const doc = new jsPDF();
         
-        // The font settings and RTL direction are handled by the CSS and browser rendering.
-        // `doc.html` will capture the visual output.
-
         doc.html(letterRef.current, {
             callback: function (doc) {
                 const totalPages = (doc as any).internal.getNumberOfPages();
                 for (let i = 1; i <= totalPages; i++) {
                     doc.setPage(i);
                     
-                    // WATERMARK
-                    doc.saveGraphicsState();
-                    doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
-                    doc.setFontSize(45);
-                    doc.setTextColor(150);
-                    const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.org";
-                    const textRotationAngle = 45;
-                    const centerX = doc.internal.pageSize.getWidth() / 2;
-                    const centerY = doc.internal.pageSize.getHeight() / 2;
-                    doc.text(text, centerX, centerY, { align: 'center', angle: textRotationAngle });
-                    if (KKM_LOGO_DATA_URL) {
-                         doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
+                    if (userRole !== 'admin') {
+                        // WATERMARK
+                        doc.saveGraphicsState();
+                        doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+                        doc.setFontSize(45);
+                        doc.setTextColor(150);
+                        const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.org";
+                        const textRotationAngle = 45;
+                        const centerX = doc.internal.pageSize.getWidth() / 2;
+                        const centerY = doc.internal.pageSize.getHeight() / 2;
+                        doc.text(text, centerX, centerY, { align: 'center', angle: textRotationAngle });
+                        if (KKM_LOGO_DATA_URL) {
+                             doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
+                        }
+                        doc.restoreGraphicsState();
                     }
-                    doc.restoreGraphicsState();
 
                     // FOOTER
                     doc.setFontSize(8);
@@ -78,10 +77,66 @@ export const Correspondence: React.FC = () => {
             width: 180,
             windowWidth: letterRef.current.scrollWidth,
             html2canvas: {
-                scale: 0.5, // Increased for better quality
+                scale: 0.5,
                 useCORS: true,
             }
         });
+    };
+
+    const handleExportWord = () => {
+        if (!letterRef.current) return;
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+            "xmlns='http://www.w3.org/TR/REC-html40'>"+
+            "<head><meta charset='utf-8'><title>Export HTML to Word</title></head><body>";
+        const footer = "</body></html>";
+        const sourceHTML = header + letterRef.current.innerHTML + footer;
+    
+        const blob = new Blob([sourceHTML], { type: 'application/vnd.ms-word' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `KKM_Correspondence_${letterNumber}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleExportTxt = () => {
+        if (!generatedLetter) return;
+    
+        let textContent = `
+Date: ${new Date().toLocaleDateString('en-CA')}
+Letter No.: ${letterNumber}
+To: ${recipient || "[Recipient Organization]"}
+
+Subject: ${subject || "[Subject of Letter]"}
+
+---
+
+${generatedLetter}
+
+---
+
+Sincerely,
+Seyed Gino Ayyoubian, Inventor
+KKM International Group
+`;
+    
+        if (attachments) {
+            textContent += `\nAttachments: ${attachments}`;
+        }
+    
+        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `KKM_Correspondence_${letterNumber}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     return (
@@ -123,12 +178,17 @@ export const Correspondence: React.FC = () => {
                             {generatedLetter && <SpeakerIcon text={generatedLetter} />}
                         </h2>
                         {generatedLetter && (
-                            <button onClick={handlePrint} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" />
-                                </svg>
-                                {t('print_secure_pdf')}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={handleExportPdf} className="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as PDF">
+                                    PDF
+                                </button>
+                                <button onClick={handleExportWord} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as Word">
+                                    Word
+                                </button>
+                                <button onClick={handleExportTxt} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as Text">
+                                    Text
+                                </button>
+                            </div>
                         )}
                     </div>
 

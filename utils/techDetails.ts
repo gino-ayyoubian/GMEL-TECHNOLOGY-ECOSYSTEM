@@ -8,5 +8,9 @@ export const getTechDetails = (t: TFunction) => ({
     "Drilling (GMEL-DrillX)": t('tech_detail_drilling'),
     "Fluid (GMEL-ThermoFluid)": t('tech_detail_fluid'),
     "Power Conversion (GMEL-ORC Compact)": t('tech_detail_power'),
-    "Control System (GMEL-EHS)": t('tech_detail_control')
+    "Control System (GMEL-EHS)": t('tech_detail_control'),
+    "Thermal Desalination (GMEL-Desal)": t('tech_detail_desal'),
+    "Hydrogen Production (GMEL-H₂Cell)": t('tech_detail_hydrogen'),
+    "Thermal Agriculture (GMEL-AgriCell)": t('tech_detail_agriculture'),
+    "Direct Lithium Extraction (GMEL-LithiumLoop)": t('tech_detail_lithium'),
 });

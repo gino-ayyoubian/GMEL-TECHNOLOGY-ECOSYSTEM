@@ -1,12 +1,20 @@
-import { Patent, FinancialData, Milestone, Region } from './types';
+import { Patent, FinancialData, Milestone, Region, UserRole } from './types';
+import { Language } from './hooks/useI18n';
 
-export const KKM_LOGO_DATA_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxAHBgYIAxMPARAPDRAPFREVDQ8QDxAPFRIWFhURFRUYHSggGBolHRMVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OFw8QFS0dFR0tLS0tLSstKystLSstKysrLS0rLSstLS0tLS0rLS0rKysrKysrLSstKysrKysrKysrK//AABEIAEAAQAMBIgACEQEDEQH/xAAVAAEBAAAAAAAAAAAAAAAAAAAAAf/EAB0QAAICAwEBAQAAAAAAAAAAAAECABEDBCExYXH/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQT/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDk4oAgHt2AGjW1yY6gXmC6g8gC1n6iYgI51//9k=";
+export const KKM_LOGO_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSI4IiBmaWxsPSIjRkZGRkZGIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaGyPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzBlYTVlOSI+S0tNPC90ZXh0Pjwvc3ZnPg==";
 
 export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ayyoubian and the KKM International Group. Any form of usage or exploitation in any manner is prohibited and subject to legal repercussions.";
 
 // NOTE: The following data is updated to reflect the "Ultimate Optimized Version (2025)" of the GMEL project.
 
-export const PREDEFINED_USERS: string[] = Array.from({ length: 15 }, (_, i) => `Gmel-kkm user-${i + 1}`);
+export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole }> = {
+  'GMEL-kkm-admin': { password: 'kkmadmin_gmel25', role: 'admin' },
+  'GMEL-kkm-guest': { password: 'kkmguest_public', role: 'guest' },
+  'GMEL-kkm-member': { password: 'member_gmel_2025', role: 'member' },
+  'GMEL-kkm-team': { password: 'team_gmel_2025', role: 'team' },
+  'GMEL-kkm-client': { password: 'client_gmel_2025', role: 'client' }
+};
+
 
 export const CORE_PATENT: Patent = {
   level: 'Core',
@@ -25,120 +33,66 @@ export const PATENT_PORTFOLIO: Patent[] = [
   { level: 'Derivatives', code: 'GMEL-ThermoFluid', title: 'Heat Transfer Fluid', application: 'Proprietary nanocomposite fluid increasing heat transfer efficiency by over 35%.', status: 'Confidential', path: 'Proprietary formula registration', kpi: 'Increases heat transfer efficiency by over 35%', progress: 80 },
   { level: 'Applied', code: 'GMEL-Desal', title: 'Thermal Desalination', application: 'Low-energy desalination (GOR >10) integrated with Direct Air Capture (DAC) for carbon-neutral water production.', status: 'Qeshm Pilot', path: 'National registration 1405', kpi: 'Low-energy desalination (GOR > 10)', progress: 60 },
   { level: 'Applied', code: 'GMEL-H₂Cell', title: 'Hydrogen Production', application: 'Green hydrogen production via thermal electrolysis, achieving 60% efficiency and costs under $1/kg.', status: 'Lab validated', path: '1405–1406', kpi: '60% efficiency, costs under $1/kg', progress: 50 },
-  { level: 'Applied', code: 'GMEL-AgriCell', title: 'Thermal Agriculture', application: 'AI-controlled sustainable greenhouse using geothermal heat, achieving a 6x increase in yield.', status: 'Studies in progress', path: '1405', kpi: '6x increase in yield', progress: 40 },
-  { level: 'Applied', code: 'GMEL-LithiumLoop', title: 'Lithium Extraction', application: 'Advanced DLE with 92% yield using selective membranes for extraction from geothermal brine.', status: 'Lab validated', path: '1406', kpi: '92% yield with selective membranes', progress: 50 },
-  { level: 'Strategic', code: 'GMEL-EcoCluster', title: 'Energy-Centric Villages', application: 'Sustainable economic model for energy-centric rural development, generating up to 150 jobs/MW.', status: 'In development', path: 'Management model registration 1405', kpi: 'Generates up to 150 jobs/MW', progress: 30 },
-  { level: 'Strategic', code: 'GMEL-SmartFund', title: 'Marine-Village Fund', application: 'A fund dedicated to developing marine and village ecosystems, creating a sustainable, circular economy around GMEL hubs.', status: 'Concept Phase', path: '1406', kpi: 'Sustainable community funding model', progress: 15 },
-  { level: 'Strategic', code: 'GMEL-GeoCredit', title: 'Carbon Credit Platform', application: 'Blockchain-based platform for transparent carbon credit financing and trading.', status: 'Software design phase', path: '1406', kpi: 'Blockchain-based financing & trading', progress: 20 },
+  { level: 'Applied', code: 'GMEL-AgriCell', title: 'Thermal Agriculture', application: 'Geothermal greenhouses for sustainable, year-round agriculture, increasing crop yields by 200%.', status: 'Design phase', path: '1405–1406', kpi: 'Increases crop yields by 200%', progress: 40 },
+  { level: 'Applied', code: 'GMEL-LithiumLoop', title: 'Direct Lithium Extraction (DLE)', application: 'DLE from geothermal brines with 90% recovery, producing battery-grade lithium.', status: 'Lab validated', path: '1405–1406', kpi: '90% lithium recovery', progress: 55 },
+  { level: 'Strategic', code: 'GMEL-EcoCluster', title: 'Eco-Industrial Parks', application: 'Master planning for zero-waste industrial zones powered by GMEL, attracting high-tech industries.', status: 'Conceptual', path: '1407+', kpi: 'Zero-waste industrial zones', progress: 15 },
+  { level: 'Strategic', code: 'GMEL-SmartFund', title: 'Sovereign Wealth Fund', application: 'A fund leveraging GMEL profits to invest in future energy and water technologies, ensuring long-term national prosperity.', status: 'Conceptual', path: '1407+', kpi: 'Invests in future technologies', progress: 10 },
+  { level: 'Strategic', code: 'GMEL-GeoCredit', title: 'Carbon Credit Trading', application: 'Framework for monetizing carbon credits generated by GMEL projects on international markets.', status: 'Conceptual', path: '1407+', kpi: 'Monetizes carbon credits', progress: 10 },
 ];
 
-const BASE_FINANCIAL_DATA: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 575, unit: 'Billion Toman', description: 'Total capital expenditure for a 5MW pilot plant in Qeshm, based on $11.5M USD.' },
-    { component: 'Annual Revenue (5MW)', value: 390, unit: 'Billion Toman', description: 'Projected annual revenue from 7 streams including energy, DLE, and e-fuels, based on $7.8M USD.' },
-    { component: 'Payback Period', value: 2, unit: 'Years', description: 'The project is projected to achieve payback by 2028 based on current financial models.' },
-    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'The expected annual Return on Investment for the 5MW pilot project.' },
-    { component: '10-Year NPV', value: 2750, unit: 'Billion Toman', description: 'The 10-year Net Present Value of the project, estimated at $55M USD.' },
+const FINANCIAL_DATA_QESHM: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 575, unit: 'Billion Toman', description: 'Total capital expenditure for the initial 5MW pilot plant.' },
+    { component: 'Annual Revenue (5MW)', value: 390, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales and by-products.' },
+    { component: 'Payback Period', value: 2, unit: 'Years', description: 'Time required for the project to recoup its initial investment.' },
+    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'The profitability ratio of the investment.' },
+    { component: '10-Year NPV', value: 2750, unit: 'Billion Toman', description: 'Net Present Value of cash flows over a 10-year period.' },
 ];
 
-const KURDISTAN_FINANCIAL_DATA: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 633, unit: 'Billion Toman', description: 'Adjusted for logistics to a landlocked region, representing an estimated 10% increase.' },
-    { component: 'Annual Revenue (5MW)', value: 449, unit: 'Billion Toman', description: 'Adjusted for higher industrial tariffs and the value of stable, baseload power for regional development.' },
-    { component: 'Payback Period', value: 1.5, unit: 'Years', description: 'Recalculated based on adjusted CAPEX and the higher revenue potential from industrial partnerships.' },
-    { component: 'Return on Investment (ROI)', value: 45, unit: 'Percent', description: 'Enhanced ROI reflecting strong demand for stable energy and integrated applications like agriculture.' },
-    { component: '10-Year NPV', value: 3245, unit: 'Billion Toman', description: 'Recalculated NPV reflecting higher sustained revenue and strategic value in an energy-critical region.' },
+const FINANCIAL_DATA_MAKOO: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 575, unit: 'Billion Toman', description: 'Total capital expenditure for the initial 5MW pilot plant.' },
+    { component: 'Annual Revenue (5MW)', value: 390, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales and direct heat.' },
+    { component: 'Payback Period', value: 2, unit: 'Years', description: 'Time required for the project to recoup its initial investment.' },
+    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'The profitability ratio of the investment.' },
+    { component: '10-Year NPV', value: 2750, unit: 'Billion Toman', description: 'Net Present Value of cash flows over a 10-year period.' },
+];
+
+const FINANCIAL_DATA_IRANIAN_KURDISTAN: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 600, unit: 'Billion Toman', description: 'Total capital expenditure for the initial 5MW pilot plant, adjusted for mountainous terrain.' },
+    { component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales to local industry and agriculture.' },
+    { component: 'Payback Period', value: 2.2, unit: 'Years', description: 'Time required for the project to recoup its initial investment.' },
+    { component: 'Return on Investment (ROI)', value: 38, unit: 'Percent', description: 'The profitability ratio of the investment.' },
+    { component: '10-Year NPV', value: 2800, unit: 'Billion Toman', description: 'Net Present Value of cash flows over a 10-year period.' },
+];
+
+const FINANCIAL_DATA_KURDISTAN: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 633, unit: 'Billion Toman', description: 'Adjusted total capital expenditure for the 5MW pilot plant.' },
+    { component: 'Annual Revenue (5MW)', value: 429, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales to industrial clients.' },
+    { component: 'Payback Period', value: 1.5, unit: 'Years', description: 'Accelerated payback period due to higher energy tariffs.' },
+    { component: 'Return on Investment (ROI)', value: 52, unit: 'Percent', description: 'Enhanced profitability ratio of the investment.' },
+    { component: '10-Year NPV', value: 3200, unit: 'Billion Toman', description: 'Higher Net Present Value reflecting improved project economics.' },
 ];
 
 export const getFinancialData = (region: Region): FinancialData[] => {
-    if (region === 'Kurdistan Region, Iraq') {
-        return KURDISTAN_FINANCIAL_DATA;
+    switch (region) {
+        case 'Qeshm Free Zone': return FINANCIAL_DATA_QESHM;
+        case 'Makoo Free Zone': return FINANCIAL_DATA_MAKOO;
+        case 'Iranian Kurdistan': return FINANCIAL_DATA_IRANIAN_KURDISTAN;
+        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_KURDISTAN;
+        // Default to Qeshm for other regions for now
+        default: return FINANCIAL_DATA_QESHM;
     }
-    // Default data for Qeshm, Makoo, Oman, and Saudi Arabia
-    return BASE_FINANCIAL_DATA;
 };
 
+
 export const PROJECT_MILESTONES: Milestone[] = [
-  {
-    title: 'Core Patent Registration',
-    date: 'Q1 1403',
-    status: 'Completed',
-    description: 'National registration of the GMEL-CLG core technology was successfully completed.'
-  },
-  {
-    title: 'DLE Technology Validation',
-    date: 'Q2 1403',
-    status: 'Completed',
-    description: 'Successfully validated Direct Lithium Extraction (DLE) process with 92% yield in lab-scale tests.'
-  },
-   {
-    title: 'Qeshm Pilot Project Greenlit',
-    date: 'Q3 1403',
-    status: 'Completed',
-    description: 'Secured initial funding and agreements for the pilot implementation on Qeshm Island.'
-  },
-  {
-    title: 'PCT Filing Preparation',
-    date: 'Q2 1404',
-    status: 'In Progress',
-    description: 'Preparing the application for international patent filing under the Patent Cooperation Treaty (PCT).'
-  },
-  {
-    title: 'Pilot Plant Construction',
-    date: 'Q1 1405 (est. 2026)',
-    status: 'Planned',
-    description: 'Scheduled start for the construction of the 5 MW pilot plant in the Qeshm Free Zone.'
-  },
-  {
-    title: 'First Energy & Water Production',
-    date: 'Q4 1405 (est. 2026)',
-    status: 'Planned',
-    description: 'Projected date for the 5 MW pilot plant to become fully operational and start generating revenue.'
-  }
+  { title: 'National Patent Registration', date: 'Q1 1403', status: 'Completed', description: 'Core GMEL-CLG patent officially registered, securing foundational IP.' },
+  { title: 'Pilot Project Site Selection', date: 'Q2 1403', status: 'Completed', description: 'Qeshm Free Zone confirmed as the optimal site for the 5MW pilot project.' },
+  { title: 'Feasibility & Engineering Studies', date: 'Q4 1403', status: 'In Progress', description: 'Detailed geological surveys and engineering designs for the Qeshm pilot.' },
+  { title: 'Securing Pilot Project Funding', date: 'Q2 1404', status: 'Planned', description: 'Finalizing investment rounds with national and international partners.' },
+  { title: 'Pilot Project Construction Start', date: 'Q4 1404', status: 'Planned', description: 'Commencement of drilling and construction activities in Qeshm.' },
+  { title: 'Pilot Project Commissioning', date: 'Q4 1406', status: 'Planned', description: '5MW plant becomes operational, begins grid integration and desalination.' },
 ];
 
-export const getProjectSummaryPrompt = (region: Region): string => {
-  const commonIntro = `Generate a comprehensive and persuasive project summary for the GMEL-CLG ecosystem, tailored for the board of directors of the ${region}. The project is developed by Kimia Karan Maad (KKM) and is centered around a nationally registered invention: a closed-loop geothermal energy harvesting system for low-gradient thermal resources.`;
-
-  const regionSpecifics: Partial<Record<Region, string>> = {
-    'Qeshm Free Zone': `
-      - Specific Focus for Qeshm: Highlight its strategic location in the Persian Gulf, the critical need for fresh water (making the desalination application a primary value proposition), and its role as a logistical and energy hub. Emphasize synergies with existing industries on the island.
-      - Economic Viability: Adapt the pilot project figures (575 billion Toman CAPEX, 2-year payback for a 5MW plant) to Qeshm's context, considering its industrial electricity tariffs and the high value of desalinated water.
-      - Integrated Applications: Detail the potential for integrated systems, especially thermal desalination, thermal agriculture to support local food security, and direct lithium extraction (DLE) from the Persian Gulf's brine sources.
-      - Export Potential: Mention Qeshm's port infrastructure as ideal for exporting containerized, portable GMEL-ORC units to neighboring Gulf countries.
-    `,
-    'Makoo Free Zone': `
-      - Specific Focus for Makoo: Highlight its strategic location as a gateway to Turkey and Europe, the potential for cross-border energy sales, and its mountainous, cold climate where geothermal heating for agriculture and industry is highly valuable.
-      - Economic Viability: Adapt the pilot project figures (575 billion Toman CAPEX, 2-year payback for a 5MW plant) to Makoo's context, considering potential export electricity tariffs and the value of direct heat for industrial parks.
-      - Integrated Applications: Detail the potential for integrated systems, especially thermal agriculture (greenhouses) to extend growing seasons in a cold climate, and providing process heat for local industries like mining and manufacturing.
-      - Export Potential: Frame the project as a technology showcase for export to Turkey, the Caucasus region, and Central Asia, leveraging Makoo's trade-focused infrastructure.
-    `,
-    'Kurdistan Region, Iraq': `
-      - Specific Focus for Kurdistan: Highlight its landlocked geography, the critical need for energy independence and grid stability for post-conflict reconstruction and industrial growth. Frame it as a strategic national infrastructure project.
-      - Economic Viability: Adapt pilot project figures (633 billion Toman CAPEX, 1.5-year payback for a 5MW plant) to Kurdistan's context, emphasizing the value of stable, baseload power for industries like cement and steel, and direct heat for agriculture.
-      - Integrated Applications: Detail potential for thermal agriculture to enhance food security, process heat for industrial zones, and using geothermal energy to power potential green hydrogen projects for future export or local use.
-      - Strategic Partnership: Position the project as an ideal joint venture for technology transfer, local capacity building, and strengthening economic ties with Iran.
-    `,
-    'Oman': `
-      - Specific Focus for Oman: Highlight Oman's Vision 2040 for economic diversification away from hydrocarbons. Position GMEL as a key enabler for renewable energy goals, especially for powering green hydrogen hubs (e.g., Duqm) and large-scale desalination projects.
-      - Economic Viability: Use base figures, but emphasize the high value of produced water for industrial and agricultural use, and stable power for new industrial zones.
-      - Integrated Applications: Focus heavily on thermal desalination to combat water scarcity, DLE from coastal brine, and providing baseload power for green hydrogen electrolysis.
-      - Strategic Partnership: Align with Oman's goals for technology transfer and developing a local renewable energy workforce.
-    `,
-    'Saudi Arabia': `
-      - Specific Focus for Saudi Arabia: Align with Saudi Vision 2030 and NEOM's goals for futuristic, sustainable cities. Position GMEL as a foundational power source for smart cities, providing 24/7 clean energy.
-      - Economic Viability: Use base figures, but emphasize scalability and the project's ability to support massive industrial and urban developments like NEOM and the Red Sea Project.
-      - Integrated Applications: Highlight large-scale desalination, district cooling, DLE from Red Sea brine, and powering advanced manufacturing and data centers.
-      - Strategic Partnership: Frame as a high-tech partnership that aligns with Saudi Arabia's ambition to become a global leader in technology and renewable energy.
-    `
-  };
-
-  return `
-    ${commonIntro}
-
-    Key aspects to highlight:
-    - Core Technology (GMEL-CLG): Emphasize its suitability for the geology of ${region}, its 95% efficiency, its pump-free thermosiphon mechanism, and its independence from water injection.
-    ${regionSpecifics[region] || ''}
-    - Strategic Alignment: Connect the project with national/regional development goals for ${region}, focusing on sustainable development, job creation (200 jobs), and technology leadership.
-
-    The summary should be professional, data-informed, and forward-looking, positioning the project as an ideal, economical, and innovative investment for the region.
-  `;
+export const getProjectSummaryPrompt = (region: Region, lang: Language): string => {
+    return `Generate a concise, one-paragraph project summary in ${lang} for the GMEL geothermal project targeting ${region}. The summary should be grounded in up-to-date information (as of late 2024/early 2025) about the region's economic needs, energy landscape, and strategic importance. Use Google Search to ensure accuracy. Highlight how GMEL's key features (e.g., energy independence, water production via desalination, DLE) align with the specific opportunities in ${region}. The tone should be suitable for an executive briefing.`;
 };

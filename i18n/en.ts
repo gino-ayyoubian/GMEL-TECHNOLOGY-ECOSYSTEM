@@ -1,4 +1,8 @@
 
+
+
+
+
 export const app_title = "KKM | GeoMeta Energy Layer Vision";
 export const nav_dashboard = "Dashboard";
 export const nav_ip = "IP Roadmap";
@@ -33,7 +37,7 @@ export const generate_summary = "Generate Summary";
 export const error_no_analysis = "No analysis could be generated.";
 export const thinking = "Thinking...";
 export const generate_strategic_analysis = "Generate Strategic Analysis";
-export const strategic_analysis_prompt = "Based on the project summary for {region} and baseline financial data, generate a concise strategic analysis (3-4 paragraphs) covering potential market impact, key risks, and strategic recommendations for the board of directors of the {region}. Ensure the analysis references the GMEL patent portfolio's advantages.";
+export const strategic_analysis_prompt = "Based on the following project summary for {region} and your knowledge of baseline financial data, generate a concise strategic analysis (3-4 paragraphs) covering potential market impact, key risks, and strategic recommendations for the board of directors. Ensure the analysis references the GMEL patent portfolio's advantages.\n\nProject Summary:\n{summary}";
 export const generated_strategic_analysis = "Generated Strategic Analysis";
 export const project_milestones = "Project Milestones";
 export const financial_overview = "Financial Overview (Baseline)";
@@ -78,6 +82,10 @@ export const tech_detail_drilling = "Smart drilling technology utilizing autonom
 export const tech_detail_fluid = "A proprietary nanocomposite fluid with a novel formulation that increases heat transfer efficiency by over 35%. It is engineered for high thermal conductivity and stability under operational pressures.";
 export const tech_detail_power = "A compact and portable Organic Rankine Cycle (ORC) converter with 25% thermal efficiency. This module is optimized to convert low-temperature heat (70-150°C) from the geothermal fluid into electricity.";
 export const tech_detail_control = "An intelligent sensing and control system using self-powered quantum sensors and machine learning. It provides 99.5% accuracy in real-time monitoring to optimize fluid flow, predict maintenance needs, and maximize energy output.";
+export const tech_detail_desal = "Low-energy thermal desalination with a Gain Output Ratio (GOR) over 10. This system is integrated with Direct Air Capture (DAC) technology, enabling carbon-neutral fresh water production, a critical asset in arid regions.";
+export const tech_detail_hydrogen = "High-efficiency green hydrogen production through thermal electrolysis. By leveraging direct geothermal heat, this process achieves over 60% efficiency and targets production costs below $1/kg, making it highly competitive.";
+export const tech_detail_agriculture = "Advanced geothermal greenhouses (AgriCells) designed for sustainable, year-round agriculture. This system utilizes waste heat to control climate, increasing crop yields by over 200% and ensuring food security.";
+export const tech_detail_lithium = "Direct Lithium Extraction (DLE) from geothermal brines with a 90% recovery rate. This closed-loop process efficiently produces battery-grade lithium carbonate, creating a valuable secondary revenue stream from the same geothermal resource.";
 export const technical_explanation_prompt = "Explain the following technical concept in more detail for a semi-technical audience (e.g., an investor). Focus on the innovation and business advantage. Concept: {topic}. Details: {detail}";
 export const error_no_explanation = "No explanation could be generated.";
 export const technical_diagram_prompt = "A simple, clear, technical diagram of a '{topic}'. Use clean lines, a white background, and minimalist icons. The diagram should be suitable for a presentation.";
@@ -350,7 +358,7 @@ export const strategy_modeler_prompt = `
     The output should be a single JSON object with keys for each section: "optimal_patent_package", "local_value_proposition", "tech_transfer_plan", "risk_analysis", and "budget_justification". Each key's value should be a detailed string.
 
     1.  **Optimal Patent Package**: Identify the most suitable combination of patents from the GMEL portfolio for this region's specific needs (energy, water, agriculture, etc.). Explain why this package is the most profitable and feasible.
-    2.  **Local Value Proposition**: Articulate the key benefits for a local Iraqi partner. Focus on energy independence, economic development, job creation, and acquiring cutting-edge technology.
+    2.  **Local Value Proposition**: Articulate the key benefits for a local partner. Focus on energy independence, economic development, job creation, and acquiring cutting-edge technology.
     3.  **Technology Transfer Plan**: Outline a phased approach for transferring knowledge and technology to the local partner, ensuring sustainable local operation and capacity building.
     4.  **Risk Analysis**: Identify the top 3-4 political, economic, and operational risks of entering this market and propose mitigation strategies for each.
     5.  **Budget Justification**: Write a compelling argument for allocating a preliminary budget for feasibility studies and partnership negotiations, emphasizing the long-term ROI and strategic importance of the project.
@@ -425,7 +433,7 @@ export const welcome_title = "Welcome to the GeoMeta Energy Layer Vision";
 export const welcome_prompt = "Please select your preferred language to continue.";
 export const login_title = "Authorized Personnel Login";
 export const login_prompt = "Please enter your assigned User ID to proceed.";
-export const user_id_placeholder = "e.g., Gmel-kkm user-1";
+export const user_id_placeholder = "e.g., GMEL-kkm-admin";
 export const login_button = "Login";
 export const login_error = "Invalid User ID. Access is restricted.";
 export const two_factor_title = "Two-Factor Authentication";
@@ -447,7 +455,6 @@ export const pre_ipo_valuation = "Pre-IPO Valuation";
 export const expected_market_cap = "Expected Market Cap";
 export const analyst_narrative = "Analyst Narrative";
 export const ipo_analysis_prompt = `As a financial analyst specializing in energy sector IPOs, analyze the following project data for a potential Initial Public Offering. Project: GMEL in {region}. Financials (5MW Pilot): 10-Year NPV of {npv}B Toman, Annual Revenue of {revenue}B Toman, ROI of {roi}%, and Payback Period of {payback} years. The project has a strong, defensible patent portfolio covering multiple revenue streams (energy, DLE, desalination). Provide a projection in JSON format with keys: "projected_date" (string, e.g., 'Q3 2028'), "pre_ipo_valuation" (string, e.g., '$150M - $200M USD'), "expected_market_cap" (string, e.g., '$250M - $300M USD'), and "narrative" (string, a paragraph justifying these figures based on market trends for renewable tech and project strengths).`;
-// FIX: Corrected Arabic values that were mistakenly in the English file and added missing keys.
 export const roi_projection_title = "10-Year ROI Projection";
 export const roi_chart_legend = "ROI (%)";
 export const revenue_streams_title = "Projected Revenue Streams";
@@ -465,3 +472,23 @@ export const stream = "Stream";
 export const contribution = "Contribution (%)";
 export const projected_value = "Projected Value (B Toman)";
 export const assumptions = "Assumptions";
+export const tech_spec_comparison_title = "Technical Specification Comparison";
+export const tech_spec_comparison_desc = "Create a direct comparison between GMEL's core drilling technology and the conventional methods used in the selected benchmark region.";
+export const generate_tech_comparison = "Generate Technical Comparison";
+export const benchmark_specifications_in_region = "Conventional Tech in {region}";
+export const benchmark_tech_comparison_prompt = `
+    Create a detailed technical and economic comparison between the '{gmel_tech}' technology and the conventional/dominant drilling technology used in geothermal projects in '{benchmark_region}'.
+    Use your knowledge and search capabilities to find details on the technology used in that region.
+    Provide the output as a single JSON object with two keys: "table" and "narrative".
+    The "table" must be an array of objects, each with "metric", "gmel_spec", and "benchmark_spec" keys.
+    The "narrative" must be a string summarizing GMEL's key competitive advantages, differences, and strategic implications in 2-3 paragraphs.
+    Cover these metrics:
+    - Core Operating Principle
+    - Key Innovation / Differentiator
+    - Typical Drilling Speed (Rate of Penetration)
+    - Estimated Cost-Effectiveness ($/meter drilled)
+    - Maximum Operating Temperature
+    - Precision & Path Optimization (e.g., MWD/LWD capabilities)
+    - Typical Downtime for Maintenance
+    - Key Safety Features
+`;

@@ -46,7 +46,7 @@ interface StrategyResult {
 
 export const StrategyModeler: React.FC = () => {
     const { t } = useI18n();
-    const [targetRegion, setTargetRegion] = useState<Region>('Kurdistan Region, Iraq');
+    const [targetRegion, setTargetRegion] = useState<Region>('Iranian Kurdistan');
     const [strategy, setStrategy] = useState<StrategyResult | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -104,6 +104,7 @@ export const StrategyModeler: React.FC = () => {
                         onChange={(e) => setTargetRegion(e.target.value as Region)}
                         className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-white font-semibold"
                     >
+                        <option value="Iranian Kurdistan">Iranian Kurdistan</option>
                         <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
                         <option value="Qeshm Free Zone">Qeshm Free Zone</option>
                         <option value="Makoo Free Zone">Makoo Free Zone</option>

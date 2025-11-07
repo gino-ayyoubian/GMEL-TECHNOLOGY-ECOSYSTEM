@@ -49,9 +49,10 @@ const viewContexts: Partial<Record<View, string>> = {
 
 interface GeminiChatProps {
     activeView: View;
+    onClose?: () => void;
 }
 
-export const GeminiChat: React.FC<GeminiChatProps> = ({ activeView }) => {
+export const GeminiChat: React.FC<GeminiChatProps> = ({ activeView, onClose }) => {
     const { region } = useContext(AppContext)!;
     const { t } = useI18n();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -117,8 +118,15 @@ You are the GMEL Project Assistant. Your knowledge base includes the following i
     };
 
     return (
-        <div className="flex flex-col h-full bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-            <h2 className="p-4 text-lg font-semibold text-white border-b border-slate-700">{t('chat_title')}</h2>
+        <div className="flex flex-col h-full bg-slate-800 sm:rounded-lg overflow-hidden">
+            <div className="p-4 flex justify-between items-center text-lg font-semibold text-white border-b border-slate-700 flex-shrink-0">
+                <h2>{t('chat_title')}</h2>
+                {onClose && (
+                    <button onClick={onClose} className="text-slate-400 hover:text-white" aria-label="Close chat">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                )}
+            </div>
             <div className="flex-grow p-4 space-y-4 overflow-y-auto">
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -149,7 +157,7 @@ You are the GMEL Project Assistant. Your knowledge base includes the following i
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t border-slate-700 bg-slate-800">
+            <div className="p-4 border-t border-slate-700 bg-slate-800 flex-shrink-0">
                 <form onSubmit={handleSend} className="flex items-center gap-2">
                     <input
                         type="text"

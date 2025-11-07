@@ -1,7 +1,9 @@
+
 import React, { useState, useContext, useEffect, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+// FIX: Changed import from static FINANCIAL_DATA to dynamic getFinancialData function.
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
-import { generateTextWithThinking, generateGroundedText, generateJsonWithThinking } from '../services/geminiService';
+import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
 import { Milestone } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
@@ -52,21 +54,15 @@ const DataCard: React.FC<{ title: string; value: string; description: string; ic
   </div>
 );
 
-const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => void, onError: (error: string) => void }> = ({ prompt, onResult, onError }) => {
+const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => void }> = ({ prompt, onResult }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useI18n();
 
     const handleClick = async () => {
         setIsLoading(true);
-        onError('');
-        try {
-            const result = await generateTextWithThinking(prompt);
-            onResult(result);
-        } catch (e: any) {
-            onError(e.message || t('error_no_analysis'));
-        } finally {
-            setIsLoading(false);
-        }
+        const result = await generateTextWithThinking(prompt);
+        onResult(result ? `${result}` : t('error_no_analysis'));
+        setIsLoading(false);
     };
 
     return (
@@ -96,44 +92,21 @@ const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => v
 };
 
 const MilestoneCard: React.FC<{ milestone: Milestone; isLast: boolean }> = ({ milestone, isLast }) => {
-    const getStatusIcon = (status: Milestone['status']) => {
-        switch (status) {
-            case 'Completed':
-                return (
-                    <div className="bg-teal-500 rounded-full p-1 milestone-completed">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                );
-            case 'In Progress':
-                return (
-                    <div className="bg-sky-500 rounded-full p-1">
-                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
-                );
-            case 'Planned':
-                return (
-                     <div className="bg-amber-500 rounded-full p-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    </div>
-                );
-        }
-    };
+  const statusColor = {
+    Completed: 'bg-teal-500',
+    'In Progress': 'bg-sky-500',
+    Planned: 'bg-amber-500',
+  }[milestone.status];
 
-    return (
-        <div className="relative ps-10">
-            <div className="absolute top-0 start-0 w-6 h-6 flex items-center justify-center" title={milestone.status}>
-                {getStatusIcon(milestone.status)}
-            </div>
-            {!isLast && <div className="absolute top-6 start-[11px] w-px h-full bg-slate-600"></div>}
-            <p className="font-semibold text-white">{milestone.title} - <span className="text-slate-400 font-normal">{milestone.date}</span></p>
-            <p className="text-sm text-slate-500 mt-1">{milestone.description}</p>
-        </div>
-    );
+  return (
+    <div className="relative ps-8">
+      <div className={`absolute top-1 start-0 w-3 h-3 rounded-full ${statusColor}`} title={milestone.status}></div>
+      {!isLast && <div className="absolute top-4 start-[5px] w-px h-full bg-slate-600"></div>}
+      <p className="font-semibold text-white">{milestone.title} - <span className="text-slate-400 font-normal">{milestone.date}</span></p>
+      <p className="text-sm text-slate-500 mt-1">{milestone.description}</p>
+    </div>
+  );
 };
-
 
 // --- Impact Calculator Components ---
 
@@ -196,18 +169,18 @@ const ImpactCalculator: React.FC = () => {
         setResults(null);
 
         const prompt = t('impact_generation_prompt', { scale });
+        const result = await generateTextWithThinking(prompt);
         
         try {
-            const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
                 throw new Error("Invalid format received from API");
             }
-        } catch (e: any) {
-            setError(e.message || t('error_generating_impact_analysis'));
-            console.error("Failed to parse impact JSON:", e);
+        } catch (e) {
+            setError(t('error_generating_impact_analysis'));
+            console.error("Failed to parse impact JSON:", e, "Raw result:", result);
         } finally {
             setIsLoading(false);
         }
@@ -317,52 +290,28 @@ const GMELStatementBanner = () => {
 
 
 export const Dashboard: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    // FIX: Add lang to context destructuring to pass to getProjectSummaryPrompt.
+    const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
+    // FIX: Financial data is now dynamically retrieved based on the current region.
     const financialData = useMemo(() => getFinancialData(region), [region]);
-
-    const roiProjectionData = useMemo(() => {
-        const capex = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value;
-        const annualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value;
-
-        if (!capex || !annualRevenue) return [];
-
-        const data = [];
-        for (let i = 0; i <= 10; i++) {
-            const cumulativeRevenue = annualRevenue * i;
-            const roi = ((cumulativeRevenue - capex) / capex) * 100;
-            data.push({
-                year: i,
-                roi: roi,
-            });
-        }
-        return data;
-    }, [financialData]);
-
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        setError(null);
-        try {
-            const prompt = getProjectSummaryPrompt(region);
-            const result = await generateGroundedText(prompt);
-            setSummary(result.text);
-        } catch (e: any) {
-            setError(e.message || 'Failed to fetch summary.');
-        } finally {
-            setIsSummaryLoading(false);
-        }
+        // FIX: Pass lang as the second argument to getProjectSummaryPrompt.
+        const prompt = getProjectSummaryPrompt(region, lang);
+        const result = await generateGroundedText(prompt);
+        setSummary(result.text);
+        setIsSummaryLoading(false);
     };
     
     useEffect(() => {
         setSummary('');
         setStrategicAnalysis('');
-        setError(null);
     }, [region]);
 
     const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
@@ -384,6 +333,7 @@ export const Dashboard: React.FC = () => {
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {/* FIX: Use the dynamic financialData variable instead of the static import. */}
         {financialData.map((item, index) => (
           <DataCard 
             key={index}
@@ -420,15 +370,13 @@ export const Dashboard: React.FC = () => {
                 {summary && !isSummaryLoading && (
                     <>
                         <ThinkingButton 
-                            prompt={t('strategic_analysis_prompt', { region })}
+                            prompt={t('strategic_analysis_prompt', { region, summary })}
                             onResult={setStrategicAnalysis}
-                            onError={setError}
                         />
                         <Feedback sectionId={`summary-${region}`} />
                     </>
                 )}
 
-                {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
                 {strategicAnalysis && (
                     <div className="mt-6 p-4 bg-slate-900 rounded-lg border border-sky-500/30">
@@ -451,40 +399,23 @@ export const Dashboard: React.FC = () => {
             </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                <h2 className="text-xl font-semibold mb-4 text-white">{t('financial_overview')}</h2>
-                <div style={{ width: '100%', height: 300 }}>
-                    <ResponsiveContainer>
-                        <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                            <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
-                            <YAxis tick={{ fill: '#94a3b8' }} unit=" B" />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                            <Legend wrapperStyle={{ color: '#94a3b8' }}/>
-                            <Bar dataKey="value" name={t('financial_chart_legend')}>
-                                {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                <h2 className="text-xl font-semibold mb-4 text-white">{t('roi_projection_title')}</h2>
-                <div style={{ width: '100%', height: 300 }}>
-                    <ResponsiveContainer>
-                        <LineChart data={roiProjectionData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                            <XAxis dataKey="year" tick={{ fill: '#94a3b8' }} unit=" yr" />
-                            <YAxis tick={{ fill: '#94a3b8' }} unit="%" domain={['dataMin', 'auto']} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} formatter={(value: number) => `${value.toFixed(1)}%`} />
-                            <Legend wrapperStyle={{ color: '#94a3b8' }} />
-                            <Line type="monotone" dataKey="roi" name={t('roi_chart_legend')} stroke="#22c55e" strokeWidth={2} dot={{r: 4}} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
+        <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg border border-slate-700 h-full">
+            <h2 className="text-xl font-semibold mb-4 text-white">{t('financial_overview')}</h2>
+            <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer>
+                    <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                        <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
+                        <YAxis tick={{ fill: '#94a3b8' }} unit=" B" />
+                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
+                        <Legend wrapperStyle={{ color: '#94a3b8' }}/>
+                        <Bar dataKey="value" name={t('financial_chart_legend')}>
+                            {chartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
             </div>
         </div>
       </div>
