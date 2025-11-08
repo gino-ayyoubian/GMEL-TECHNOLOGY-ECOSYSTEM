@@ -126,9 +126,31 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             }
             const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
             const allVoices = speechSynthesis.getVoices();
-
             const desiredLangCode = locales[lang];
-            const selectedVoice = allVoices.find(v => v.lang === desiredLangCode) || allVoices.find(v => v.lang.startsWith(lang));
+            let selectedVoice: SpeechSynthesisVoice | undefined;
+
+            if (lang === 'fa' || lang === 'ar') {
+                const femaleVoices = allVoices.filter(v => 
+                    v.lang.startsWith(lang) && 
+                    ((v as any).gender === 'female' || v.name.toLowerCase().includes('female'))
+                );
+
+                if (femaleVoices.length > 0) {
+                    // Prioritize specific, known high-quality female voices for a more natural tone.
+                    const preferredArabicVoice = femaleVoices.find(v => v.name.toLowerCase().includes('leila') || v.name.toLowerCase().includes('laila'));
+                    
+                    if (lang === 'ar' && preferredArabicVoice) {
+                        selectedVoice = preferredArabicVoice;
+                    } else {
+                        // Fallback: prefer non-Google (often native system) voices, then any female voice.
+                        selectedVoice = femaleVoices.find(v => !v.name.toLowerCase().includes('google')) || femaleVoices[0];
+                    }
+                }
+            }
+    
+            if (!selectedVoice) {
+                selectedVoice = allVoices.find(v => v.lang === desiredLangCode) || allVoices.find(v => v.lang.startsWith(lang));
+            }
             
             if (selectedVoice) {
                 utterance.voice = selectedVoice;

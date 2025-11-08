@@ -1,5 +1,4 @@
 
-
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -11,17 +10,16 @@ import { Region } from '../types';
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
-// FIX: Added missing 'Iranian Kurdistan' to satisfy the Record<Region, ...> type.
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
+    // FIX: Added missing 'Iranian Kurdistan' to the region coordinates map.
+    'Iranian Kurdistan': [36.7633, 45.7201], // Mahabad
     'Kurdistan Region, Iraq': [36.1911, 44.0094], // Coordinates for Erbil
     'Oman': [23.5859, 58.3816], // Coordinates for Muscat
-    'Saudi Arabia': [24.7136, 46.6753], // Coordinates for Riyadh
-    'Iranian Kurdistan': [36.7633, 45.7201] // Mahabad
+    'Saudi Arabia': [24.7136, 46.6753] // Coordinates for Riyadh
 };
 
-// FIX: Changed type to Partial<Record<...>> to allow for regions without specific infrastructure points and added missing data for 'Oman' and 'Saudi Arabia'.
 const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {
     'Qeshm Free Zone': [
         { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },

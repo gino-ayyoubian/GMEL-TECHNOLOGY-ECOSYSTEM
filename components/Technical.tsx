@@ -89,7 +89,7 @@ export const Technical: React.FC = () => {
         setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
         const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}`;
         try {
-            const result = await generateText(prompt, 'gemini-2.5-flash-lite');
+            const result = await generateText(prompt, 'gemini-flash-lite-latest');
             setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));
         } catch (e: any) {
              setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: null, error: e.message || t('error_no_explanation')}}));
@@ -107,7 +107,6 @@ export const Technical: React.FC = () => {
         }
     };
 
-
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-white">{t('technical_title')}</h1>
@@ -115,84 +114,59 @@ export const Technical: React.FC = () => {
                 {t('technical_description')}
             </p>
 
+            <CLGSystemDiagram />
+
             <div className="space-y-4">
                 {Object.entries(techDetails).map(([topic, detail]) => (
-                    <div key={topic} id={`topic-${topic}`} className="bg-slate-800 p-5 rounded-lg border border-slate-700 scroll-mt-8">
-                        <div className="flex justify-between items-start cursor-pointer" onClick={() => handleToggleTopic(topic)}>
-                            <div>
-                                <h3 className="text-lg font-semibold text-white flex items-center">
-                                    {topic}
-                                    <SpeakerIcon text={`${topic}. ${detail}`} />
-                                    <span className="ml-2 text-slate-500 transform transition-transform">
-                                        {activeTopic === topic ? '▼' : '▶'}
-                                    </span>
-                                </h3>
-                                <p className="text-sm text-slate-400 mt-1 max-w-xl">{detail}</p>
-                            </div>
-                        </div>
-                        
+                    <div key={topic} id={`topic-${topic}`} className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                        <button
+                            onClick={() => handleToggleTopic(topic)}
+                            className="w-full p-4 text-left flex justify-between items-center hover:bg-slate-700/50 transition-colors"
+                        >
+                            <h2 className="text-lg font-semibold text-white">{topic}</h2>
+                            <svg className={`w-6 h-6 text-slate-400 transform transition-transform ${activeTopic === topic ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </button>
                         {activeTopic === topic && (
-                            <div className="mt-4 pt-4 border-t border-slate-700 space-y-4">
-                                <div className="flex items-center space-x-3 flex-wrap">
-                                    <button onClick={(e) => { e.stopPropagation(); getDiagram(topic); }} disabled={diagrams[topic]?.isLoading} title={t('generate_diagram')} className="flex items-center gap-2 text-sm px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        {t('generate_diagram')}
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); getExplanation(topic, detail); }} className="text-sky-400 hover:text-sky-300 transition-colors text-sm font-medium px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600">
-                                        {t('explain_more')}
-                                    </button>
-                                     <button onClick={(e) => { e.stopPropagation(); getDemystification(topic, detail); }} className="text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600">
-                                        {t('demystify_spec')}
-                                    </button>
+                            <div className="p-4 border-t border-slate-700 space-y-6">
+                                <p className="text-slate-300 flex items-start">
+                                    <span className="flex-grow">{detail}</span>
+                                    <SpeakerIcon text={detail} />
+                                </p>
+                                <div className="flex flex-wrap gap-4">
+                                    <button onClick={() => getExplanation(topic, detail)} disabled={explanations[topic]?.isLoading} className="text-sm font-semibold text-sky-400 hover:text-sky-300 disabled:opacity-50">{explanations[topic]?.isLoading ? t('generating_explanation') + "..." : t('explain_more')}</button>
+                                    <button onClick={() => getDemystification(topic, detail)} disabled={demystified[topic]?.isLoading} className="text-sm font-semibold text-amber-400 hover:text-amber-300 disabled:opacity-50">{demystified[topic]?.isLoading ? t('generating_explanation') + "..." : t('demystify_spec')}</button>
+                                    <button onClick={() => getDiagram(topic)} disabled={diagrams[topic]?.isLoading} className="text-sm font-semibold text-teal-400 hover:text-teal-300 disabled:opacity-50">{diagrams[topic]?.isLoading ? t('generating_diagram') + "..." : t('generate_diagram')}</button>
                                 </div>
+
+                                {demystified[topic] && (
+                                     <div className="p-4 bg-slate-900/70 rounded-lg">
+                                        {demystified[topic].isLoading && <p className="text-slate-400 italic">Generating simple explanation...</p>}
+                                        {demystified[topic].error && <p className="text-red-400">{demystified[topic].error}</p>}
+                                        {demystified[topic].text && (
+                                            <p className="text-slate-300 flex items-start"><span className="flex-grow">{demystified[topic].text}</span> <SpeakerIcon text={demystified[topic].text || ''} /></p>
+                                        )}
+                                    </div>
+                                )}
                                 
-                                {topic === "Core System (GMEL-CLG)" && <CLGSystemDiagram />}
+                                {explanations[topic] && (
+                                    <div className="p-4 bg-slate-900/70 rounded-lg">
+                                        <h3 className="font-semibold text-white mb-2">{t('detailed_explanation')}</h3>
+                                        {explanations[topic].isLoading && <p className="text-slate-400 italic">Generating detailed explanation...</p>}
+                                        {explanations[topic].error && <p className="text-red-400">{explanations[topic].error}</p>}
+                                        {explanations[topic].text && (
+                                             <p className="text-slate-300 whitespace-pre-wrap flex items-start"><span className="flex-grow">{explanations[topic].text}</span> <SpeakerIcon text={explanations[topic].text || ''} /></p>
+                                        )}
+                                    </div>
+                                )}
                                 
                                 {diagrams[topic] && (
-                                    <div>
-                                        {diagrams[topic].isLoading && (
-                                            <div className="w-full aspect-square bg-slate-900 rounded-lg flex items-center justify-center"><p className="text-slate-500">{t('generating_diagram')}...</p></div>
-                                        )}
-                                        {diagrams[topic].error && <p className="text-red-400 text-sm">{diagrams[topic].error}</p>}
-                                        {diagrams[topic].url && <img src={diagrams[topic].url} alt={`Diagram for ${topic}`} className="w-full max-w-md mx-auto rounded-lg" />}
+                                     <div className="p-4 bg-slate-900/70 rounded-lg">
+                                        {diagrams[topic].isLoading && <p className="text-slate-400 italic">Generating diagram...</p>}
+                                        {diagrams[topic].error && <p className="text-red-400">{diagrams[topic].error}</p>}
+                                        {diagrams[topic].url && <img src={diagrams[topic].url || ''} alt={`Diagram of ${topic}`} className="w-full max-w-sm mx-auto rounded-lg" />}
                                     </div>
                                 )}
 
-                                {demystified[topic] && (
-                                     <div className="p-4 bg-amber-900/20 rounded-lg border border-amber-500/30">
-                                        {demystified[topic].isLoading ? (
-                                            <p className="text-slate-500">{t('generating_explanation')}...</p>
-                                        ) : demystified[topic].error ? (
-                                            <p className="text-red-400 text-sm">{demystified[topic].error}</p>
-                                        ) : (
-                                            <div className="text-amber-300 text-sm whitespace-pre-wrap">
-                                                <div className="flex items-center">
-                                                    <h4 className="text-base font-semibold text-amber-200 mb-2">Simplified</h4>
-                                                    <SpeakerIcon text={demystified[topic].text || ''} />
-                                                </div>
-                                                <p>{demystified[topic].text}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                 
-                                {explanations[topic] && (
-                                    <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-600/50">
-                                        {explanations[topic].isLoading ? (
-                                            <p className="text-slate-500">{t('generating_explanation')}...</p>
-                                        ) : explanations[topic].error ? (
-                                            <p className="text-red-400 text-sm">{explanations[topic].error}</p>
-                                        ) : (
-                                            <div className="text-slate-300 text-sm whitespace-pre-wrap">
-                                                <div className="flex items-center">
-                                                    <h4 className="text-base font-semibold text-slate-200 mb-2">{t('detailed_explanation')}</h4>
-                                                    <SpeakerIcon text={explanations[topic].text || ''} />
-                                                </div>
-                                                <p>{explanations[topic].text}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>

@@ -26,7 +26,7 @@ export const Correspondence: React.FC = () => {
         setGeneratedLetter('');
         
         try {
-            const generationPrompt = t('letter_generation_prompt', { region, recipient, subject, prompt });
+            const generationPrompt = t('letter_generation_prompt', { region, recipient, subject, prompt, language: lang });
             const result = await generateText(generationPrompt);
             setGeneratedLetter(result);
             setLetterNumber(`KKM-GMEL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);

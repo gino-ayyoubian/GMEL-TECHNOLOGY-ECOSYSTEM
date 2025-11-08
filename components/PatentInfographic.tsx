@@ -80,9 +80,9 @@ export const PatentInfographic: React.FC = () => {
     };
 
     return (
-        <div className="relative flex flex-col items-center gap-12 py-8 min-w-[1024px]">
-            {/* SVG Connector Lines */}
-            <svg className="absolute top-0 left-0 w-full h-full z-0" aria-hidden="true" preserveAspectRatio="none">
+        <div className="relative flex flex-col items-center gap-12 py-8 px-4 min-w-[1200px]">
+            {/* SVG Connector Lines - Hidden on smaller screens for responsiveness */}
+            <svg className="absolute top-0 left-0 w-full h-full z-0 hidden lg:block" aria-hidden="true" preserveAspectRatio="none">
                 <defs>
                     <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                         <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(71, 85, 105, 0.7)" />
@@ -99,7 +99,7 @@ export const PatentInfographic: React.FC = () => {
             {/* Core Level */}
             <div className="z-10 w-full flex flex-col items-center">
                 <h3 className="text-sm font-semibold uppercase text-teal-400 tracking-widest mb-4">Core Technology</h3>
-                <div className="w-64">
+                <div className="w-full max-w-xs sm:w-64">
                     <PatentNode patent={CORE_PATENT} />
                 </div>
             </div>
@@ -107,7 +107,7 @@ export const PatentInfographic: React.FC = () => {
             {/* Derivatives Level */}
             <div className="z-10 w-full flex flex-col items-center">
                 <h3 className="text-sm font-semibold uppercase text-sky-400 tracking-widest mb-4">Derivatives</h3>
-                <div className="w-full max-w-4xl grid grid-cols-4 gap-4">
+                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {patentsByLevel.Derivatives.map(p => <PatentNode key={p.code} patent={p} />)}
                 </div>
             </div>
@@ -115,7 +115,7 @@ export const PatentInfographic: React.FC = () => {
             {/* Applied Level */}
             <div className="z-10 w-full flex flex-col items-center">
                 <h3 className="text-sm font-semibold uppercase text-amber-400 tracking-widest mb-4">Applied Innovations</h3>
-                <div className="w-full max-w-4xl grid grid-cols-4 gap-4">
+                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {patentsByLevel.Applied.map(p => <PatentNode key={p.code} patent={p} />)}
                 </div>
             </div>
@@ -123,7 +123,7 @@ export const PatentInfographic: React.FC = () => {
             {/* Strategic Level */}
             <div className="z-10 w-full flex flex-col items-center">
                 <h3 className="text-sm font-semibold uppercase text-purple-400 tracking-widest mb-4">Strategic Frameworks</h3>
-                <div className="w-full max-w-3xl grid grid-cols-3 gap-4">
+                <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {patentsByLevel.Strategic.map(p => <PatentNode key={p.code} patent={p} />)}
                 </div>
             </div>

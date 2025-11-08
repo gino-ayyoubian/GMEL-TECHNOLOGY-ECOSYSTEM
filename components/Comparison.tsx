@@ -139,25 +139,27 @@ export const Comparison: React.FC = () => {
                     </div>
                 </div>
             ) : comparisonData.length > 0 && (
-                <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                    <table className="min-w-full divide-y divide-slate-700">
-                        <thead className="bg-slate-700/50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('metric')}</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Qeshm Free Zone</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Makoo Free Zone</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-slate-800 divide-y divide-slate-700">
-                            {comparisonData.map((row, index) => (
-                                <tr key={index} className="hover:bg-slate-700/50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{row.metric}</td>
-                                    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.qeshm)}</td>
-                                    <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.makoo)}</td>
+                <div className="bg-slate-800 rounded-lg border border-slate-700">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-700">
+                            <thead className="bg-slate-700/50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('metric')}</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Qeshm Free Zone</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Makoo Free Zone</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                {comparisonData.map((row, index) => (
+                                    <tr key={index} className="hover:bg-slate-700/50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{row.metric}</td>
+                                        <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.qeshm)}</td>
+                                        <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{renderCellContent(row.makoo)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
             

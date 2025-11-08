@@ -125,25 +125,27 @@ export const TechComparison: React.FC = () => {
             {comparisonResult ? (
                 <div className="space-y-8">
                     <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1: 'GMEL-DrillX', region2: 'Conventional RSS' })}</h2>
-                    <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                         <table className="min-w-full divide-y divide-slate-700">
-                            <thead className="bg-slate-700/50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('metric')}</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('gmel_drillx_specs')}</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('conventional_rss_specs')}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-slate-800 divide-y divide-slate-700">
-                                {comparisonResult.table.map((row, index) => (
-                                    <tr key={index} className="hover:bg-slate-700/50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{row.metric}</td>
-                                        <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-300">{row.gmel_spec}</td>
-                                        <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{row.benchmark_spec}</td>
+                    <div className="bg-slate-800 rounded-lg border border-slate-700">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-slate-700">
+                                <thead className="bg-slate-700/50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('metric')}</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('gmel_drillx_specs')}</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('conventional_rss_specs')}</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                    {comparisonResult.table.map((row, index) => (
+                                        <tr key={index} className="hover:bg-slate-700/50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{row.metric}</td>
+                                            <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-300">{row.gmel_spec}</td>
+                                            <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-400">{row.benchmark_spec}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                      <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
                         <h2 className="text-xl font-semibold text-white mb-4 flex items-center">

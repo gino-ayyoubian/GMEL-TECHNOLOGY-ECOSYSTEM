@@ -14,7 +14,7 @@ export const locales: Record<Language, string> = {
     ar: 'ar-SA',
 }
 
-const translations: Record<Language, Record<keyof typeof en, string>> = { en, fa, ku, ar };
+const translations: Record<Language, Partial<Record<keyof typeof en, string>>> = { en, fa, ku, ar };
 
 export const useI18n = () => {
     const { lang } = useContext(AppContext)!;
@@ -28,7 +28,7 @@ export const useI18n = () => {
             });
         }
         
-        return translation;
+        return translation || '';
     };
 
     return { t };

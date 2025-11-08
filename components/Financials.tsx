@@ -3,7 +3,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getFinancialData, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
-import { generateGroundedText, generateJsonWithThinking } from '../services/geminiService';
+import { generateGroundedText, generateJsonWithThinking, generateFinancialData } from '../services/geminiService';
+import { FinancialData } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
@@ -250,8 +251,23 @@ export const Financials: React.FC = () => {
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
+    const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
     
-    const financialData = useMemo(() => getFinancialData(region), [region]);
+    useEffect(() => {
+        const staticData = getFinancialData(region);
+        if (lang === 'en') {
+            setFinancialData(staticData);
+            return;
+        }
+
+        generateFinancialData(region, lang)
+            .then(data => setFinancialData(data))
+            .catch(err => {
+                console.error("Failed to fetch translated financial data, falling back to English.", err);
+                setFinancialData(staticData);
+            });
+    }, [region, lang]);
+
 
     const baseInitialInvestment = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
     const baseAnnualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;

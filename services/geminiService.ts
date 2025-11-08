@@ -8,7 +8,8 @@ const getAiClient = () => {
   return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
-export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' = 'gemini-2.5-flash'): Promise<string> => {
+// @ts-ignore
+export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash' | 'gemini-flash-lite-latest' = 'gemini-2.5-flash'): Promise<string> => {
   try {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
@@ -32,10 +33,26 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
         thinkingConfig: { thinkingBudget: 32768 }
       }
     });
+
+    if (!response.text) {
+        const finishReason = response.candidates?.[0]?.finishReason;
+        if (finishReason === 'SAFETY') {
+            throw new Error("The analysis was blocked due to safety concerns. Please modify your request.");
+        }
+        if (finishReason && finishReason !== 'STOP') {
+            throw new Error(`The analysis could not be completed. Reason: ${finishReason}.`);
+        }
+        throw new Error("The model returned an empty response. Please try rephrasing your request.");
+    }
+    
     return response.text;
   } catch (error) {
     console.error("Error generating text with thinking:", error);
-    throw new Error("An error occurred during complex analysis. The service may be temporarily unavailable.");
+    if (error instanceof Error && (error.message.includes("safety concerns") || error.message.includes("could not be completed") || error.message.includes("empty response"))) {
+        throw error; // Re-throw our custom, more specific errors.
+    }
+    // Generic catch-all for network errors, API key issues, etc.
+    throw new Error("An error occurred during complex analysis. The service may be temporarily unavailable or the API key may be invalid.");
   }
 };
 
@@ -69,6 +86,17 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
       },
     });
     
+    if (!response.text) {
+        const finishReason = response.candidates?.[0]?.finishReason;
+        if (finishReason === 'SAFETY') {
+            throw new Error("The request was blocked for safety reasons. Please adjust your prompt.");
+        }
+        if (finishReason && finishReason !== 'STOP') {
+            throw new Error(`The model failed to generate a response. Reason: ${finishReason}.`);
+        }
+        throw new Error("Received an empty response from the model. Please try again.");
+    }
+    
     const text = response.text;
     const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
@@ -76,7 +104,10 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
 
   } catch (error) {
     console.error("Error generating grounded text:", error);
-    throw new Error("An error occurred while fetching up-to-date information. The service may be temporarily unavailable.");
+    if (error instanceof Error && (error.message.includes("safety reasons") || error.message.includes("failed to generate") || error.message.includes("empty response"))) {
+        throw error; // Re-throw our custom, more specific errors.
+    }
+    throw new Error("An error occurred while fetching up-to-date information. The service may be unavailable or there might be an issue with your API key.");
   }
 };
 
