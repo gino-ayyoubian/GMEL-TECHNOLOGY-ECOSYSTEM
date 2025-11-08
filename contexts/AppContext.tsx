@@ -136,13 +136,11 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 );
 
                 if (femaleVoices.length > 0) {
-                    // Prioritize specific, known high-quality female voices for a more natural tone.
                     const preferredArabicVoice = femaleVoices.find(v => v.name.toLowerCase().includes('leila') || v.name.toLowerCase().includes('laila'));
                     
                     if (lang === 'ar' && preferredArabicVoice) {
                         selectedVoice = preferredArabicVoice;
                     } else {
-                        // Fallback: prefer non-Google (often native system) voices, then any female voice.
                         selectedVoice = femaleVoices.find(v => !v.name.toLowerCase().includes('google')) || femaleVoices[0];
                     }
                 }
@@ -163,18 +161,24 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             };
 
             utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
-                console.error("Speech synthesis error:", e.error);
+                if (e.error !== 'canceled') {
+                    console.error("Speech synthesis error:", e.error);
+                }
                 setIsSpeaking(false);
             };
 
             speechSynthesis.speak(utterance);
         };
         
-        if (speechSynthesis.getVoices().length === 0) {
-            speechSynthesis.onvoiceschanged = speakNextChunk;
-        } else {
+        const starter = () => {
+            if (speechSynthesis.getVoices().length === 0) {
+                speechSynthesis.addEventListener('voiceschanged', starter, { once: true });
+                return;
+            }
             speakNextChunk();
-        }
+        };
+
+        starter();
     };
 
     const value = {

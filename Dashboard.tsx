@@ -289,7 +289,8 @@ const GMELStatementBanner = () => {
 
 
 export const Dashboard: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    // FIX: Add lang from AppContext to pass to getProjectSummaryPrompt
+    const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
@@ -300,7 +301,8 @@ export const Dashboard: React.FC = () => {
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        const prompt = getProjectSummaryPrompt(region);
+        // FIX: Pass the 'lang' variable to the getProjectSummaryPrompt function call.
+        const prompt = getProjectSummaryPrompt(region, lang);
         const result = await generateGroundedText(prompt);
         setSummary(result.text);
         setIsSummaryLoading(false);
@@ -367,7 +369,7 @@ export const Dashboard: React.FC = () => {
                 {summary && !isSummaryLoading && (
                     <>
                         <ThinkingButton 
-                            prompt={t('strategic_analysis_prompt', { region })}
+                            prompt={t('strategic_analysis_prompt', { region, summary: summary })}
                             onResult={setStrategicAnalysis}
                         />
                         <Feedback sectionId={`summary-${region}`} />

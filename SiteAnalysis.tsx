@@ -13,6 +13,8 @@ declare var L: any;
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
+    // FIX: Added missing 'Iranian Kurdistan' to the region coordinates map.
+    'Iranian Kurdistan': [36.7633, 45.7201], // Mahabad
     'Kurdistan Region, Iraq': [36.1911, 44.0094], // Coordinates for Erbil
     'Oman': [23.5859, 58.3816], // Coordinates for Muscat
     'Saudi Arabia': [24.7136, 46.6753] // Coordinates for Riyadh
