@@ -24,6 +24,8 @@ interface AppContextType {
   setActiveView: (view: View) => void;
   technicalTopic: string | null;
   setTechnicalTopic: (topic: string | null) => void;
+  allowedRegions: Region[] | null;
+  setAllowedRegions: (regions: Region[] | null) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -48,6 +50,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [activeView, setActiveView] = useState<View>('dashboard');
     const [technicalTopic, setTechnicalTopic] = useState<string | null>(null);
+    const [allowedRegions, setAllowedRegionsState] = useState<Region[] | null>(getInitialState('gmel_allowed_regions', null));
 
     const setAuthStep = (step: AuthStep) => {
         sessionStorage.setItem('gmel_auth_step', JSON.stringify(step));
@@ -67,6 +70,11 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const setLang = (newLang: Language) => {
         sessionStorage.setItem('gmel_lang', JSON.stringify(newLang));
         setLangState(newLang);
+    };
+
+    const setAllowedRegions = (regions: Region[] | null) => {
+        sessionStorage.setItem('gmel_allowed_regions', JSON.stringify(regions));
+        setAllowedRegionsState(regions);
     };
 
     const supportedLangs = [
@@ -196,6 +204,8 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setActiveView,
         technicalTopic,
         setTechnicalTopic,
+        allowedRegions,
+        setAllowedRegions,
     };
 
     return (

@@ -7,12 +7,14 @@ export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ay
 
 // NOTE: The following data is updated to reflect the "Ultimate Optimized Version (2025)" of the GMEL project.
 
-export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole }> = {
+export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole, regions?: Region[] }> = {
   'GMEL-kkm-admin': { password: 'kkmadmin_gmel25', role: 'admin' },
+  'GMEL-kkm-manager': { password: 'manager_gmel_25', role: 'manager' },
   'GMEL-kkm-guest': { password: 'kkmguest_public', role: 'guest' },
   'GMEL-kkm-member': { password: 'member_gmel_2025', role: 'member' },
   'GMEL-kkm-team': { password: 'team_gmel_2025', role: 'team' },
-  'GMEL-kkm-client': { password: 'client_gmel_2025', role: 'client' }
+  'GMEL-kkm-client': { password: 'client_gmel_2025', role: 'client', regions: ['Qeshm Free Zone', 'Makoo Free Zone'] },
+  'GMEL-kkm-client-oman': { password: 'clientoman_gmel_25', role: 'client', regions: ['Oman'] }
 };
 
 
@@ -72,13 +74,42 @@ const FINANCIAL_DATA_KURDISTAN: FinancialData[] = [
     { component: '10-Year NPV', value: 3200, unit: 'Billion Toman', description: 'Higher Net Present Value reflecting improved project economics.' },
 ];
 
+const FINANCIAL_DATA_CHABAHAR: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 580, unit: 'Billion Toman', description: 'Total capital expenditure, considering strategic port logistics.' },
+    { component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'Projected revenue from energy sales to port industries and desalination.' },
+    { component: 'Payback Period', value: 2.1, unit: 'Years', description: 'Time to recoup investment, factoring in industrial offtake agreements.' },
+    { component: 'Return on Investment (ROI)', value: 45, unit: 'Percent', description: 'High ROI due to strategic importance and industrial energy demand.' },
+    { component: '10-Year NPV', value: 2900, unit: 'Billion Toman', description: 'Net Present Value reflecting strong growth potential.' },
+];
+
+const FINANCIAL_DATA_OMAN: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 15, unit: 'Million USD', description: 'Capital expenditure for a 5MW pilot, aligned with GCC market costs.' },
+    { component: 'Annual Revenue (5MW)', value: 8, unit: 'Million USD', description: 'Revenue from electricity, desalinated water for green hydrogen, and industrial heat.' },
+    { component: 'Payback Period', value: 2.5, unit: 'Years', description: 'Rapid payback driven by high-value offtakes (e.g., green hydrogen projects).' },
+    { component: 'Return on Investment (ROI)', value: 48, unit: 'Percent', description: 'Strong ROI reflecting alignment with Oman Vision 2040 diversification goals.' },
+    { component: '10-Year NPV', value: 80, unit: 'Million USD', description: 'High NPV based on strategic value in renewable energy hubs like Duqm.' },
+];
+
+const FINANCIAL_DATA_SAUDI: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 18, unit: 'Million USD', description: 'Capital expenditure for a 5MW pilot for giga-projects like NEOM.' },
+    { component: 'Annual Revenue (5MW)', value: 10, unit: 'Million USD', description: 'Revenue from baseload power for smart cities, cooling, and DLE from Red Sea brines.' },
+    { component: 'Payback Period', value: 2, unit: 'Years', description: 'Very fast payback due to high energy demand and premium for 24/7 clean power.' },
+    { component: 'Return on Investment (ROI)', value: 55, unit: 'Percent', description: 'Exceptional ROI driven by Saudi Vision 2030 and giga-project needs.' },
+    { component: '10-Year NPV', value: 110, unit: 'Million USD', description: 'Significant NPV reflecting large-scale deployment potential.' },
+];
+
 export const getFinancialData = (region: Region): FinancialData[] => {
     switch (region) {
         case 'Qeshm Free Zone': return FINANCIAL_DATA_QESHM;
         case 'Makoo Free Zone': return FINANCIAL_DATA_MAKOO;
+        case 'Chabahar Free Zone': return FINANCIAL_DATA_CHABAHAR;
         case 'Iranian Kurdistan': return FINANCIAL_DATA_IRANIAN_KURDISTAN;
+        case 'Mahabad': return FINANCIAL_DATA_IRANIAN_KURDISTAN; // Mahabad uses Iranian Kurdistan data
         case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_KURDISTAN;
-        // Default to Qeshm for other regions for now
+        case 'Oman': return FINANCIAL_DATA_OMAN;
+        case 'Saudi Arabia': return FINANCIAL_DATA_SAUDI;
+        case 'United Arab Emirates': return FINANCIAL_DATA_OMAN; // Placeholder, uses Oman data
+        case 'Qatar': return FINANCIAL_DATA_OMAN; // Placeholder, uses Oman data
         default: return FINANCIAL_DATA_QESHM;
     }
 };

@@ -253,33 +253,31 @@ export const Financials: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
     
+    const [energyPriceModifier, setEnergyPriceModifier] = useState(0); // in percent
+    const [opExModifier, setOpExModifier] = useState(0); // in percent
+    
     useEffect(() => {
+        // Reset component state when region changes to ensure data consistency
         const staticData = getFinancialData(region);
-        if (lang === 'en') {
-            setFinancialData(staticData);
-            return;
-        }
+        setFinancialData(staticData);
+        setEnergyPriceModifier(0);
+        setOpExModifier(0);
+        setAnalysis({text: '', sources: []}); // Clear previous analysis
 
-        generateFinancialData(region, lang)
-            .then(data => setFinancialData(data))
-            .catch(err => {
-                console.error("Failed to fetch translated financial data, falling back to English.", err);
-                setFinancialData(staticData);
-            });
+        if (lang !== 'en') {
+            generateFinancialData(region, lang)
+                .then(data => setFinancialData(data))
+                .catch(err => {
+                    console.error("Failed to fetch translated financial data, falling back to English.", err);
+                    setFinancialData(staticData); // Fallback to static data on error
+                });
+        }
     }, [region, lang]);
 
 
-    const baseInitialInvestment = financialData.find(d => d.component === 'Pilot CAPEX (5MW)')?.value || 575;
-    const baseAnnualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
+    const baseInitialInvestment = useMemo(() => financialData.find(d => d.component.includes('CAPEX'))?.value || 575, [financialData]);
+    const baseAnnualRevenue = useMemo(() => financialData.find(d => d.component.includes('Revenue'))?.value || 390, [financialData]);
     
-    const [energyPriceModifier, setEnergyPriceModifier] = useState(0); // in percent
-    const [opExModifier, setOpExModifier] = useState(0); // in percent
-
-    useEffect(() => {
-        setEnergyPriceModifier(0);
-        setOpExModifier(0);
-    }, [region]);
-
     const modifiedCapex = useMemo(() => baseInitialInvestment * (1 + opExModifier / 100), [baseInitialInvestment, opExModifier]);
     const modifiedRevenue = useMemo(() => baseAnnualRevenue * (1 + energyPriceModifier / 100), [baseAnnualRevenue, energyPriceModifier]);
     

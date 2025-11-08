@@ -40,13 +40,17 @@ const extractJson = (text: string): any | null => {
 };
 
 const baseRegions = ["Iceland", "Turkey (Denizli/Aydin)", "USA (California's Salton Sea)", "Germany (Bavaria)"];
-const comparisonRegions = ["Qeshm Free Zone", "Makoo Free Zone", "Iranian Kurdistan", "Kurdistan Region, Iraq", ...baseRegions];
+const comparisonRegions = ["Qeshm Free Zone", "Makoo Free Zone", "Chabahar Free Zone", "Iranian Kurdistan", "Mahabad", "Kurdistan Region, Iraq", "Oman", "Saudi Arabia", ...baseRegions];
 
 const regionCoordinates: Record<string, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
-    'Iranian Kurdistan': [36.7633, 45.7201],
+    'Chabahar Free Zone': [25.2915, 60.6431],
+    'Iranian Kurdistan': [35.4330, 46.9831],
+    'Mahabad': [36.7633, 45.7201],
     'Kurdistan Region, Iraq': [36.1911, 44.0094],
+    'Oman': [23.5859, 58.3816],
+    'Saudi Arabia': [24.7136, 46.6753],
     'Iceland': [64.9631, -19.0208],
     "Turkey (Denizli/Aydin)": [37.838, 28.536],
     "USA (California's Salton Sea)": [33.328, -115.844],

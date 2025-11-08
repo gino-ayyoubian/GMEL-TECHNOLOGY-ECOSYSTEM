@@ -28,8 +28,8 @@ export interface Milestone {
   description: string;
 }
 
-export type Region = 'Qeshm Free Zone' | 'Makoo Free Zone' | 'Iranian Kurdistan' | 'Kurdistan Region, Iraq' | 'Oman' | 'Saudi Arabia';
+export type Region = 'Qeshm Free Zone' | 'Makoo Free Zone' | 'Chabahar Free Zone' | 'Iranian Kurdistan' | 'Mahabad' | 'Kurdistan Region, Iraq' | 'Oman' | 'Saudi Arabia' | 'United Arab Emirates' | 'Qatar';
 
-export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'video' | 'chat' | 'site' | 'comparison' | 'correspondence' | 'tech_comparison' | 'simulations' | 'strategy_modeler' | 'proposal_generator';
+export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'video' | 'chat' | 'site' | 'comparison' | 'correspondence' | 'contact' | 'tech_comparison' | 'simulations' | 'strategy_modeler' | 'proposal_generator';
 
-export type UserRole = 'admin' | 'guest' | 'member' | 'team' | 'client';
+export type UserRole = 'admin' | 'guest' | 'member' | 'team' | 'client' | 'manager';

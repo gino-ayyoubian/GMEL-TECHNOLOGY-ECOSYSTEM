@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { generateJsonWithThinking, generateGroundedText } from '../services/geminiService';
+import { generateJsonWithThinking, generateGroundedText, generateTextWithThinking } from '../services/geminiService';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { AppContext } from '../contexts/AppContext';
 import { Region } from '../types';
@@ -65,8 +65,10 @@ const LoadingSpinner: React.FC<{text: string}> = ({ text }) => (
 
 
 export const Simulations: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region: globalRegion } = useContext(AppContext)!;
     const { t } = useI18n();
+
+    const [targetRegion, setTargetRegion] = useState<Region>(globalRegion);
 
     const [gmelPackage, setGmelPackage] = useState<GmelPackage | null>(null);
     const [isGmelLoading, setIsGmelLoading] = useState<boolean>(false);
@@ -76,15 +78,47 @@ export const Simulations: React.FC = () => {
     const [visionarySources, setVisionarySources] = useState<any[]>([]);
     const [isVisionaryLoading, setIsVisionaryLoading] = useState<boolean>(false);
     const [visionaryError, setVisionaryError] = useState<string | null>(null);
+    
+    const [idealProjectPlan, setIdealProjectPlan] = useState<string | null>(null);
+    const [isIdealPlanLoading, setIsIdealPlanLoading] = useState<boolean>(false);
+    const [visionaryProjectPlan, setVisionaryProjectPlan] = useState<string | null>(null);
+    const [isVisionaryPlanLoading, setIsVisionaryPlanLoading] = useState<boolean>(false);
+
+
+    const simulationRegions: Region[] = [
+        'Kurdistan Region, Iraq',
+        'Mahabad',
+        'Iranian Kurdistan',
+        'Qeshm Free Zone',
+        'Makoo Free Zone',
+        'Chabahar Free Zone',
+        'Oman',
+        'Saudi Arabia',
+        'United Arab Emirates',
+        'Qatar'
+    ];
+
+    const exportTxt = (content: string, filename: string) => {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
 
     const handleGenerateGmelPackage = async () => {
         setIsGmelLoading(true);
         setGmelError(null);
         setGmelPackage(null);
+        setIdealProjectPlan(null); // Reset plan on new generation
 
         try {
-            const prompt = t('gmel_package_prompt', { region });
+            const prompt = t('gmel_package_prompt', { region: targetRegion });
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.recommendedPatents) {
@@ -104,9 +138,10 @@ export const Simulations: React.FC = () => {
         setVisionaryError(null);
         setVisionaryProposal(null);
         setVisionarySources([]);
+        setVisionaryProjectPlan(null); // Reset plan on new generation
 
         try {
-            const prompt = t('visionary_proposal_prompt', { region });
+            const prompt = t('visionary_proposal_prompt', { region: targetRegion });
             const result = await generateGroundedText(prompt);
             const parsed = extractJson(result.text);
 
@@ -122,6 +157,50 @@ export const Simulations: React.FC = () => {
             setIsVisionaryLoading(false);
         }
     };
+    
+    const handleGenerateIdealPlan = async () => {
+        if (!gmelPackage) return;
+        setIsIdealPlanLoading(true);
+        setIdealProjectPlan(null);
+        try {
+            const prompt = t('ideal_plan_prompt', {
+                region: targetRegion,
+                patents: gmelPackage.recommendedPatents.join(', '),
+                synergies: gmelPackage.synergies,
+                valueProp: gmelPackage.primaryValueProposition,
+                profitability: gmelPackage.estimatedProfitability,
+            });
+            const result = await generateTextWithThinking(prompt);
+            setIdealProjectPlan(result);
+        } catch (e: any) {
+            setGmelError(e.message || "Failed to generate business plan.");
+        } finally {
+            setIsIdealPlanLoading(false);
+        }
+    };
+    
+    const handleGenerateVisionaryPlan = async () => {
+        if (!visionaryProposal) return;
+        setIsVisionaryPlanLoading(true);
+        setVisionaryProjectPlan(null);
+        try {
+            const prompt = t('visionary_plan_prompt', {
+                region: targetRegion,
+                title: visionaryProposal.proposalTitle,
+                concept: visionaryProposal.coreConcept,
+                tech: visionaryProposal.enablingTechnologies.join(', '),
+                impact: visionaryProposal.potentialImpact,
+                patentIdeas: visionaryProposal.newPatentIdeas.join('; '),
+            });
+            const result = await generateTextWithThinking(prompt);
+            setVisionaryProjectPlan(result);
+        } catch (e: any) {
+            setVisionaryError(e.message || "Failed to generate business plan.");
+        } finally {
+            setIsVisionaryPlanLoading(false);
+        }
+    };
+
 
     return (
         <div className="space-y-12">
@@ -130,6 +209,20 @@ export const Simulations: React.FC = () => {
                 <p className="text-slate-400 max-w-3xl mt-2">
                     {t('simulations_description')}
                 </p>
+            </div>
+
+            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                <label htmlFor="simulation-region" className="block text-sm font-medium text-slate-300 mb-2">
+                    Select Region for Simulation & Modeling
+                </label>
+                <select
+                    id="simulation-region"
+                    value={targetRegion}
+                    onChange={(e) => setTargetRegion(e.target.value as Region)}
+                    className="w-full max-w-sm bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-white font-semibold"
+                >
+                    {simulationRegions.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
             </div>
 
             {/* Ideal GMEL Project Modeler */}
@@ -167,7 +260,25 @@ export const Simulations: React.FC = () => {
                             <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('estimated_profitability')} <SpeakerIcon text={gmelPackage.estimatedProfitability} /></h3>
                             <p className="text-slate-300 whitespace-pre-wrap">{gmelPackage.estimatedProfitability}</p>
                         </div>
-                        <Feedback sectionId={`gmel-package-modeler-${region}`} />
+                        <Feedback sectionId={`gmel-package-modeler-${targetRegion}`} />
+
+                        <div className="pt-4 border-t border-slate-700">
+                            <button onClick={handleGenerateIdealPlan} disabled={isIdealPlanLoading} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800">
+                                {isIdealPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
+                            </button>
+                            {isIdealPlanLoading && <LoadingSpinner text={t('generating_business_plan')} />}
+                            {idealProjectPlan && (
+                                <div className="mt-4 p-4 bg-slate-900 rounded-lg">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="font-semibold text-teal-400">{t('generated_business_plan')}</h3>
+                                        <button onClick={() => exportTxt(idealProjectPlan, `Business_Plan_Ideal_${targetRegion.replace(/ /g, '_')}.txt`)} className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-md">
+                                            {t('export_txt')}
+                                        </button>
+                                    </div>
+                                    <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm">{idealProjectPlan}</pre>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
@@ -226,7 +337,25 @@ export const Simulations: React.FC = () => {
                                 </ul>
                             </div>
                         )}
-                        <Feedback sectionId={`visionary-proposal-${region}`} />
+                        <Feedback sectionId={`visionary-proposal-${targetRegion}`} />
+
+                        <div className="pt-4 border-t border-slate-700">
+                             <button onClick={handleGenerateVisionaryPlan} disabled={isVisionaryPlanLoading} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800">
+                                {isVisionaryPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
+                            </button>
+                             {isVisionaryPlanLoading && <LoadingSpinner text={t('generating_business_plan')} />}
+                             {visionaryProjectPlan && (
+                                <div className="mt-4 p-4 bg-slate-900 rounded-lg">
+                                     <div className="flex justify-between items-center mb-2">
+                                        <h3 className="font-semibold text-teal-400">{t('generated_business_plan')}</h3>
+                                         <button onClick={() => exportTxt(visionaryProjectPlan, `Business_Plan_Visionary_${targetRegion.replace(/ /g, '_')}.txt`)} className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-md">
+                                            {t('export_txt')}
+                                        </button>
+                                    </div>
+                                    <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm">{visionaryProjectPlan}</pre>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

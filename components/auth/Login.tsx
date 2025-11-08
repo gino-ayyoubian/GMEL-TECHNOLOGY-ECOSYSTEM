@@ -2,9 +2,10 @@ import React, { useState, useContext } from 'react';
 import { AppContext } from '../../contexts/AppContext';
 import { USER_CREDENTIALS } from '../../constants';
 import { useI18n } from '../../hooks/useI18n';
+import { Region } from '../../types';
 
 export const Login: React.FC = () => {
-    const { setCurrentUser, setUserRole, setAuthStep } = useContext(AppContext)!;
+    const { setCurrentUser, setUserRole, setAuthStep, setAllowedRegions, setRegion } = useContext(AppContext)!;
     const { t } = useI18n();
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
@@ -18,6 +19,14 @@ export const Login: React.FC = () => {
         if (userCredentials && userCredentials.password === password) {
             setCurrentUser(userId);
             setUserRole(userCredentials.role);
+
+            // Handle region restrictions
+            if (userCredentials.regions && userCredentials.regions.length > 0) {
+                setAllowedRegions(userCredentials.regions as Region[]);
+                setRegion(userCredentials.regions[0] as Region);
+            } else {
+                setAllowedRegions(null); // Clear restrictions for other users
+            }
             
             // Bypass 2FA and NDA for admin and guest roles
             if (userCredentials.role === 'admin' || userCredentials.role === 'guest') {

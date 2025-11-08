@@ -4,7 +4,7 @@ import { useI18n } from '../hooks/useI18n';
 
 export const VideoGenerator: React.FC = () => {
     const { t } = useI18n();
-    const [prompt, setPrompt] = useState('A photorealistic video of a futuristic, clean geothermal power plant. The design is grounded in plausible near-future engineering. The scene is at sunset, showing the plant integrated with a modern desalination facility.');
+    const [prompt, setPrompt] = useState('A cinematic, photorealistic 4k video. Start with a wide drone shot over a beautiful coastline at sunset. The camera smoothly flies towards a futuristic, sleek GMEL geothermal power plant seamlessly integrated into the landscape. Show a cutaway animation of the closed-loop system: a cool blue fluid descends deep underground, warms up to a glowing orange, and rises back to the surface to power turbines. The camera then pans across to show the clean energy powering an adjacent advanced desalination facility where fresh water is being produced, and then to glowing geothermal greenhouses (AgriCells) nearby, lush with crops. End on a wide, inspiring shot of the entire sustainable ecosystem humming with clean energy as the sun sets.');
     const [operation, setOperation] = useState<any>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);

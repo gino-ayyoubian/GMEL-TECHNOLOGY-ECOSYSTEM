@@ -108,6 +108,10 @@ export const StrategyModeler: React.FC = () => {
                         <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
                         <option value="Qeshm Free Zone">Qeshm Free Zone</option>
                         <option value="Makoo Free Zone">Makoo Free Zone</option>
+                        <option value="Chabahar Free Zone">Chabahar Free Zone</option>
+                        <option value="Mahabad">Mahabad</option>
+                        <option value="Oman">Oman</option>
+                        <option value="Saudi Arabia">Saudi Arabia</option>
                     </select>
                 </div>
                 <button

@@ -1,7 +1,5 @@
-
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-// FIX: Changed import from static FINANCIAL_DATA to dynamic getFinancialData function.
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
 import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
 import { Milestone } from '../types';
@@ -290,19 +288,16 @@ const GMELStatementBanner = () => {
 
 
 export const Dashboard: React.FC = () => {
-    // FIX: Add lang from AppContext to pass to getProjectSummaryPrompt
     const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
-    // FIX: Financial data is now dynamically retrieved based on the current region.
     const financialData = useMemo(() => getFinancialData(region), [region]);
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        // FIX: Pass the 'lang' variable to the getProjectSummaryPrompt function call.
         const prompt = getProjectSummaryPrompt(region, lang);
         const result = await generateGroundedText(prompt);
         setSummary(result.text);
@@ -312,6 +307,7 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         setSummary('');
         setStrategicAnalysis('');
+        // This effect runs when the region changes, resetting the generated content.
     }, [region]);
 
     const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
@@ -333,7 +329,6 @@ export const Dashboard: React.FC = () => {
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {/* FIX: Use the dynamic financialData variable instead of the static import. */}
         {financialData.map((item, index) => (
           <DataCard 
             key={index}
@@ -370,7 +365,7 @@ export const Dashboard: React.FC = () => {
                 {summary && !isSummaryLoading && (
                     <>
                         <ThinkingButton 
-                            prompt={t('strategic_analysis_prompt', { region })}
+                            prompt={t('strategic_analysis_prompt', { region, summary: summary })}
                             onResult={setStrategicAnalysis}
                         />
                         <Feedback sectionId={`summary-${region}`} />

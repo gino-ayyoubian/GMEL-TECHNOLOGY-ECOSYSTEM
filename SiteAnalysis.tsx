@@ -9,18 +9,21 @@ import { Region } from '../types';
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
-// FIX: Added missing regions 'Oman' and 'Saudi Arabia' to satisfy the Record<Region, ...> type.
+// FIX: Added missing regions to `regionCoordinates` to satisfy the `Record<Region, [number, number]>` type, and corrected the coordinates for 'Iranian Kurdistan'.
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
-    // FIX: Added missing 'Iranian Kurdistan' to the region coordinates map.
-    'Iranian Kurdistan': [36.7633, 45.7201], // Mahabad
-    'Kurdistan Region, Iraq': [36.1911, 44.0094], // Coordinates for Erbil
-    'Oman': [23.5859, 58.3816], // Coordinates for Muscat
-    'Saudi Arabia': [24.7136, 46.6753] // Coordinates for Riyadh
+    'Chabahar Free Zone': [25.2915, 60.6431],
+    'Iranian Kurdistan': [35.4330, 46.9831], // Sanandaj as center
+    'Mahabad': [36.7633, 45.7201],
+    'Kurdistan Region, Iraq': [36.1911, 44.0094], // Erbil
+    'Oman': [23.5859, 58.3816], // Muscat
+    'Saudi Arabia': [24.7136, 46.6753], // Riyadh
+    'United Arab Emirates': [24.466667, 54.366669], // Abu Dhabi
+    'Qatar': [25.286667, 51.533333] // Doha
 };
 
-// FIX: Changed type to Partial<Record<...>> to allow for regions without specific infrastructure points and added missing data for 'Oman' and 'Saudi Arabia'.
+// FIX: Added missing infrastructurePoints constant, which was used but not defined.
 const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {
     'Qeshm Free Zone': [
         { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },
@@ -31,6 +34,10 @@ const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; n
         { lat: 39.3994, lng: 44.4289, name: 'Makoo Airport', description: 'Supports regional travel and light cargo.', type: 'airport' },
         { lat: 39.4101, lng: 44.3853, name: 'Bazargan Border Crossing', description: 'Crucial trade gateway to Turkey and Europe.', type: 'transport' },
         { lat: 39.3000, lng: 44.5000, name: 'Makoo Industrial Town', description: 'Potential consumer of direct geothermal heat and power.', type: 'industrial' },
+    ],
+    'Iranian Kurdistan': [
+        { lat: 35.3142, lng: 46.9942, name: 'Sanandaj Industrial City', description: 'Hub for regional industries.', type: 'industrial' },
+        { lat: 35.25, lng: 47.00, name: 'Sanandaj Airport', description: 'Regional airport for logistics and transport.', type: 'airport' },
     ],
     'Kurdistan Region, Iraq': [
         { lat: 36.2375, lng: 43.9631, name: 'Erbil International Airport', description: 'Primary international gateway for the region.', type: 'airport' },
@@ -46,6 +53,25 @@ const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; n
         { lat: 26.370, lng: 49.988, name: 'King Fahd International Airport', description: 'Major airport serving the Eastern Province.', type: 'airport'},
         { lat: 26.476, lng: 50.151, name: 'King Abdulaziz Port (Dammam)', description: 'Main port on the Persian Gulf.', type: 'port'},
         { lat: 28.305, lng: 34.832, name: 'NEOM Project Area', description: 'Giga-project with massive demand for sustainable energy.', type: 'industrial'},
+    ],
+    'Chabahar Free Zone': [
+        { lat: 25.3242, lng: 60.6186, name: 'Shahid Beheshti Port', description: 'Strategic deep-water port, gateway to Central Asia.', type: 'port' },
+        { lat: 25.3986, lng: 60.3758, name: 'Konarak Airport', description: 'Serves the Chabahar region.', type: 'airport' },
+        { lat: 25.3000, lng: 60.6000, name: 'Chabahar Industrial Zone', description: 'Major consumer of power and processed heat.', type: 'industrial' },
+    ],
+    'Mahabad': [
+        { lat: 36.7633, lng: 45.7201, name: 'Mahabad Petrochemical', description: 'Major industrial energy consumer.', type: 'industrial' },
+        { lat: 37.47, lng: 45.07, name: 'Urmia Airport', description: 'Regional airport for logistics and transport.', type: 'airport' },
+    ],
+    'United Arab Emirates': [
+        { lat: 24.4347, lng: 54.6469, name: 'Khalifa Port', description: 'Major deep-water port.', type: 'port' },
+        { lat: 24.4329, lng: 54.6511, name: 'Abu Dhabi International Airport', description: 'Major international air hub.', type: 'airport' },
+        { lat: 24.2861, lng: 55.7594, name: 'Masdar City', description: 'Sustainable urban development, high demand for clean energy.', type: 'industrial' },
+    ],
+    'Qatar': [
+        { lat: 25.2581, lng: 51.6081, name: 'Hamad International Airport', description: 'Major international air hub.', type: 'airport' },
+        { lat: 25.1611, lng: 51.5439, name: 'Hamad Port', description: 'Main seaport of Qatar.', type: 'port' },
+        { lat: 25.6883, lng: 51.4883, name: 'Ras Laffan Industrial City', description: 'Major LNG production hub, large energy consumer.', type: 'industrial' },
     ]
 };
 
@@ -96,7 +122,7 @@ export const SiteAnalysis: React.FC = () => {
 
     // Map updates when region changes
     useEffect(() => {
-        if (mapRef.current) {
+        if (mapRef.current && regionCoordinates[region]) {
             mapRef.current.setView(regionCoordinates[region], 10);
 
             if (markerRef.current) {

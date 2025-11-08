@@ -20,6 +20,14 @@ export const nav_group_strategic = "أدوات استراتيجية";
 export const nav_group_generative = "مجموعة التوليد";
 export const nav_group_official = "أعمال رسمية";
 export const contact_us = "اتصل بنا";
+export const contact_title = "اتصل بنا";
+export const contact_description = "يرجى استخدام القنوات التالية للتواصل مع مجموعة KKM الدولية والمخترع.";
+export const direct_contact_info = "معلومات الاتصال المباشر";
+export const contact_phone = "رقم الهاتف";
+export const contact_gino_linkedin = "لينكد إن جينو أيوبيان";
+export const contact_kkm_linkedin = "لينكد إن KKM International";
+export const contact_general_email = "استفسارات عامة";
+export const contact_direct_email = "مباشرة إلى المخترع";
 export const proposal_for = "عرض لـ:";
 export const language = "اللغة";
 export const narrator = "صوت الراوي";
@@ -42,7 +50,12 @@ export const ip_roadmap_description = "استكشف محفظة براءات اخ
 export const core_technology_patent = "براءة اختراع التكنولوجيا الأساسية";
 export const portfolio_patents = "محفظة براءات الاختراع";
 export const filter_by_level = "تصفية حسب المستوى";
+export const filter_by_status = "تصفية حسب الحالة";
 export const sort_by = "ترتيب حسب";
+export const sort_option_level = "المستوى";
+export const sort_option_title = "العنوان";
+export const sort_option_status = "الحالة";
+export const sort_option_progress = "التقدم";
 export const title = "العنوان";
 export const status = "الحالة";
 export const path = "المسار";
@@ -52,7 +65,6 @@ export const search_placeholder = "ابحث بالعنوان، الكود، ال
 export const patent_timeline_title = "الجدول الزمني لتسجيل براءات الاختراع";
 export const no_timeline_data = "لا توجد بيانات متاحة للجدول الزمني لبراءات الاختراع.";
 export const financial_analysis_title = "تحليل مالي";
-// FIX: Add missing translation key for 'financial_analysis'
 export const financial_analysis = "تحليل مالي";
 export const export_secure_pdf = "تصدير PDF آمن";
 export const cost_revenue_breakdown = "تفصيل التكاليف والإيرادات";
@@ -316,42 +328,42 @@ export const patent_analysis_prompt = `تصرف كمحلل ملكية فكرية
 بناءً على بحثك، قدم تحليلًا منظمًا في كائن JSON واحد. يجب أن يحتوي كائن JSON على مفتاحين: "potential_overlaps" و "legal_strategy".
 
 1. "potential_overlaps": مصفوفة من الكائنات. يجب أن يمثل كل كائن براءة اختراع وجدتها بها تداخل محتمل ويجب أن تحتوي على هذه المفاتيح:
-    - "patent_identifier": رقم براءة الاختراع أو معرف الطلب (على سبيل المثال، "US 2023/012345 A1"). إذا لم يكن متاحًا، فاستخدم "N/A".
+    - "patent_identifier": رقم براءة الاختراع أو معرف الطلب (على سبيل المثال، "US 2023/012345 A1"). استخدم "N/A" إذا لم يكن متاحًا.
     - "title": عنوان براءة الاختراع.
     - "assignee": الشركة أو الفرد الذي أودع براءة الاختراع.
-    - "summary": ملخص موجز للتكنولوجيا الأساسية لبراءة الاختراع.
-    - "potential_overlap_with_gmel": رمز براءة اختراع GMEL (على سبيل المثال، "GMEL-DrillX") الذي قد يتداخل معه.
-    - "overlap_description": شرح قصير لسبب كونه تداخلًا محتملاً.
-    إذا لم يتم العثور على تداخلات، فيجب أن تكون هذه مصفوفة فارغة.
+    - "summary": ملخص موجز للتقنية الأساسية لبراءة الاختراع.
+    - "potential_overlap_with_gmel": رمز براءة اختراع GMEL (على سبيل المثال، "GMEL-DrillX") التي يحتمل أن تتداخل معها.
+    - "overlap_description": شرح قصير لسبب كونها تداخلًا محتملاً.
+    إذا لم يتم العثور على أي تداخلات، يجب أن تكون هذه مصفوفة فارغة.
 
-2. "legal_strategy": سلسلة نصية تحتوي على ملخص موجز متعدد الفقرات للاستراتيجيات القانونية الاستباقية التي يجب أن تدرسها KKM International بناءً على نتائجك. يجب أن يشمل هذا توصيات للمراقبة، وتقديم منشورات دفاعية، والإجراءات المحتملة إذا تم العثور على تداخلات كبيرة.
+2. "legal_strategy": سلسلة نصية تحتوي على ملخص قصير متعدد الفقرات للاستراتيجيات القانونية الاستباقية التي يجب على KKM International مراعاتها بناءً على النتائج التي توصلت إليها. يجب أن يشمل ذلك توصيات للمراقبة، والمنشورات الدفاعية، والإجراءات المحتملة في حالة العثور على تداخلات كبيرة.
 
-يجب أن يكون ردك بأكمله هو كائن JSON فقط. لا تقم بتضمين أي نص آخر أو تنسيق ماركداون خارج بنية JSON.`;
+يجب أن يكون ردك بالكامل هو كائن JSON فقط. لا تقم بتضمين أي نص أو تنسيق markdown آخر خارج بنية JSON.`;
 export const potential_overlaps_title = "التداخلات المحتملة المحددة";
 export const legal_strategy_title = "الاستراتيجية القانونية الاستباقية المقترحة";
-export const no_overlaps_found = "لم يتم تحديد أي تداخلات محتملة كبيرة في إيداعات براءات الاختراع العالمية الأخيرة. يبدو أن وضع الملكية الفكرية الحالي لـ GMEL قوي.";
+export const no_overlaps_found = "لم يتم تحديد أي تداخلات محتملة كبيرة في سجلات براءات الاختراع العالمية الحديثة. يبدو أن وضع الملكية الفكرية الحالي لـ GMEL قوي.";
 export const interactive_financial_model_title = "نموذج مالي تفاعلي";
-export const interactive_financial_model_desc = "عدل الافتراضات الرئيسية لرؤية تأثيرها على الجدوى المالية للمشروع في الوقت الفعلي. تستند التوقعات إلى محطة تجريبية بقدرة 5 ميجاوات.";
+export const interactive_financial_model_desc = "اضبط الافتراضات الرئيسية لمعرفة تأثيرها على الجدوى المالية للمشروع في الوقت الفعلي. تستند التوقعات إلى محطة تجريبية بقدرة 5 ميجاوات.";
 export const energy_price_modifier = "معدل سعر الطاقة / الإيرادات";
-export const opex_modifier = "معدل النفقات الرأسمالية / التشغيلية";
+export const opex_modifier = "معدل النفقات الرأسمالية / تكاليف التشغيل";
 export const calculated_roi = "عائد الاستثمار المحسوب";
 export const calculated_payback = "فترة الاسترداد المحسوبة";
-export const ipo_analysis_title = "تحليل توقعات الاكتتاب العام";
-export const ipo_analysis_desc = "أنشئ تحليلًا مدعومًا بالذكاء الاصطناعي لإمكانات المشروع للاكتتاب العام الأولي (IPO) بناءً على مساره المالي الحالي وظروف السوق.";
-export const generate_ipo_analysis = "إنشاء تحليل الاكتتاب العام";
-export const projected_ipo_date = "تاريخ الاكتتاب العام المتوقع";
-export const pre_ipo_valuation = "التقييم قبل الاكتتاب العام";
+export const ipo_analysis_title = "تحليل توقعات الاكتتاب العام الأولي";
+export const ipo_analysis_desc = "أنشئ تحليلًا مدعومًا بالذكاء الاصطناعي لإمكانية طرح المشروع للاكتتاب العام الأولي (IPO) بناءً على مساره المالي الحالي وظروف السوق.";
+export const generate_ipo_analysis = "إنشاء تحليل الاكتتاب العام الأولي";
+export const projected_ipo_date = "تاريخ الاكتتاب العام الأولي المتوقع";
+export const pre_ipo_valuation = "التقييم قبل الاكتتاب العام الأولي";
 export const expected_market_cap = "القيمة السوقية المتوقعة";
 export const analyst_narrative = "سرد المحلل";
-export const ipo_analysis_prompt = `بصفتك محللًا ماليًا متخصصًا في الاكتتابات العامة لقطاع الطاقة، قم بتحليل بيانات المشروع التالية لاكتتاب عام أولي محتمل. المشروع: GMEL في {region}. البيانات المالية (مشروع تجريبي 5 ميجاوات): صافي القيمة الحالية لمدة 10 سنوات {npv} مليار تومان، الإيرادات السنوية {revenue} مليار تومان، عائد الاستثمار {roi}٪، وفترة الاسترداد {payback} سنوات. يمتلك المشروع محفظة براءات اختراع قوية وقابلة للدفاع تغطي تدفقات إيرادات متعددة (الطاقة، استخلاص الليثيوم المباشر، تحلية المياه). قدم توقعًا بتنسيق JSON بالمفاتيح التالية: "projected_date" (سلسلة نصية، على سبيل المثال 'Q3 2028')، "pre_ipo_valuation" (سلسلة نصية، على سبيل المثال '150 - 200 مليون دولار أمريكي')، "expected_market_cap" (سلسلة نصية، على سبيل المثال '250 - 300 مليون دولار أمريكي')، و "narrative" (سلسلة نصية، فقرة تبرر هذه الأرقام بناءً على اتجاهات السوق للتكنولوجيا المتجددة ونقاط قوة المشروع).`;
+export const ipo_analysis_prompt = `بصفتك محللًا ماليًا متخصصًا في الاكتتابات العامة الأولية لقطاع الطاقة، قم بتحليل بيانات المشروع التالية لاكتتاب عام أولي محتمل. المشروع: GMEL في {region}. البيانات المالية (مشروع تجريبي 5 ميجاوات): صافي القيمة الحالية لمدة 10 سنوات {npv} مليار تومان، الإيرادات السنوية {revenue} مليار تومان، عائد الاستثمار {roi}٪، وفترة الاسترداد {payback} سنوات. يمتلك المشروع محفظة براءات اختراع قوية وقابلة للدفاع تغطي تدفقات إيرادات متعددة (الطاقة، استخلاص الليثيوم المباشر، تحلية المياه). قدم توقعًا بتنسيق JSON بالمفاتيح التالية: "projected_date" (سلسلة نصية، على سبيل المثال 'الربع الثالث 2028')، "pre_ipo_valuation" (سلسلة نصية، على سبيل المثال '150 مليون دولار - 200 مليون دولار')، "expected_market_cap" (سلسلة نصية، على سبيل المثال '250 مليون دولار - 300 مليون دولار')، و "narrative" (سلسلة نصية، فقرة تبرر هذه الأرقام بناءً على اتجاهات السوق للتكنولوجيا المتجددة ونقاط قوة المشروع).`;
 export const revenue_streams_title = "تدفقات الإيرادات المتوقعة";
-export const revenue_streams_desc = "أنشئ تفصيلاً دقيقًا لتدفقات الإيرادات السنوية لمشروع {region} التجريبي بناءً على تطبيقاته المتكاملة. يحلل هذا النموذج مساهمة كل تقنية في الجدوى المالية الشاملة.";
+export const revenue_streams_desc = "أنشئ تفصيلاً مفصلاً لتدفقات الإيرادات السنوية لمشروع {region} التجريبي بناءً على تطبيقاته المتكاملة. ينمذج هذا التحليل مساهمة كل تقنية في الجدوى المالية الشاملة.";
 export const revenue_streams_prompt = `
-    بناءً على مشروع GMEL تجريبي بقدرة 5 ميجاوات في {region}، والذي يبلغ إجمالي إيراداته السنوية المتوقعة {revenue} مليار تومان، قم بتقسيم هذه الإيرادات إلى تدفقاتها المكونة. يدمج المشروع التقنيات التالية من محفظة براءات اختراع GMEL: GMEL-CLG (الطاقة الأساسية)، GMEL-Desal (تحلية المياه الحرارية)، GMEL-LithiumLoop (استخلاص الليثيوم المباشر)، GMEL-H₂Cell (الهيدروجين الأخضر)، و GMEL-AgriCell (الزراعة الحرارية).
+    بناءً على مشروع GMEL تجريبي بقدرة 5 ميجاوات في {region}، والذي يبلغ إجمالي إيراداته السنوية المتوقعة {revenue} مليار تومان، قم بتفصيل هذه الإيرادات إلى تدفقاتها المكونة. يدمج المشروع التقنيات التالية من محفظة براءات اختراع GMEL: GMEL-CLG (الطاقة الأساسية)، GMEL-Desal (تحلية المياه الحرارية)، GMEL-LithiumLoop (استخلاص الليثيوم المباشر)، GMEL-H₂Cell (الهيدروجين الأخضر)، و GMEL-AgriCell (الزراعة الحرارية).
     
     قدم الإخراج ككائن JSON واحد. يجب أن يحتوي الكائن على مفتاحين: "table" و "narrative".
     - "table": مصفوفة من الكائنات. يجب أن يحتوي كل كائن على المفاتيح التالية: "stream" (سلسلة نصية، على سبيل المثال 'مبيعات الكهرباء')، "percentage" (رقم، 0-100)، "value" (رقم، بالمليار تومان)، و "assumptions" (سلسلة نصية، تبرير موجز للنسبة المئوية). يجب أن يكون مجموع جميع قيم "percentage" 100.
-    - "narrative": سلسلة نصية (2-3 فقرات) تشرح التآزر بين تدفقات الإيرادات هذه والأهمية الاستراتيجية لـ {region}.
+    - "narrative": سلسلة نصية (2-3 فقرات) تشرح أوجه التآزر بين تدفقات الإيرادات هذه والأهمية الاستراتيجية لـ {region}.
 `;
 export const generate_revenue_breakdown = "إنشاء تفصيل الإيرادات";
 export const revenue_stream_chart_title = "مساهمة الإيرادات حسب التدفق";
@@ -360,7 +372,7 @@ export const contribution = "المساهمة (٪)";
 export const projected_value = "القيمة المتوقعة (مليار تومان)";
 export const assumptions = "الافتراضات";
 export const tech_spec_comparison_title = "مقارنة المواصفات الفنية";
-export const tech_spec_comparison_desc = "أنشئ مقارنة مباشرة بين تقنية الحفر الأساسية لـ GMEL والأساليب التقليدية المستخدمة في منطقة القياس المحددة.";
+export const tech_spec_comparison_desc = "أنشئ مقارنة مباشرة بين تقنية الحفر الأساسية لـ GMEL والأساليب التقليدية المستخدمة في منطقة المقارنة المحددة.";
 export const generate_tech_comparison = "إنشاء مقارنة فنية";
 export const benchmark_specifications_in_region = "التقنية التقليدية في {region}";
 export const benchmark_tech_comparison_prompt = `
@@ -368,10 +380,10 @@ export const benchmark_tech_comparison_prompt = `
     استخدم معرفتك وقدراتك البحثية للعثور على تفاصيل حول التكنولوجيا المستخدمة في تلك المنطقة.
     قدم الإخراج ككائن JSON واحد بمفتاحين: "table" و "narrative".
     يجب أن تكون "table" مصفوفة من الكائنات، لكل منها مفاتيح "metric" و "gmel_spec" و "benchmark_spec".
-    يجب أن تكون "narrative" سلسلة نصية تلخص المزايا التنافسية الرئيسية لـ GMEL والاختلافات والآثار الاستراتيجية في 2-3 فقرات.
+    يجب أن تكون "narrative" سلسلة نصية تلخص المزايا التنافسية الرئيسية لـ GMEL، والاختلافات، والآثار الاستراتيجية في 2-3 فقرات.
     غطِ هذه المقاييس:
     - مبدأ التشغيل الأساسي
-    - الابتكار الرئيسي / المفرق
+    - الابتكار الرئيسي / الميزة الفارقة
     - سرعة الحفر النموذجية (معدل الاختراق)
     - الفعالية من حيث التكلفة المقدرة (دولار/متر محفور)
     - أقصى درجة حرارة تشغيل
@@ -379,101 +391,93 @@ export const benchmark_tech_comparison_prompt = `
     - وقت التوقف النموذجي للصيانة
     - ميزات السلامة الرئيسية
 `;
-export const welcome_title = "مرحبًا بك في بوابة رؤية GMEL";
+export const welcome_title = "مرحبًا بكم في بوابة رؤية GMEL";
 export const welcome_prompt = "هذه منصة آمنة وتفاعلية لاستكشاف مشروع طبقة الطاقة جيو-ميتا. يرجى تحديد لغتك المفضلة للمتابعة.";
 export const login_title = "بوابة الوصول الآمن";
 export const login_prompt = "أدخل بيانات الاعتماد الخاصة بك للوصول إلى مواد المشروع.";
 export const user_id_placeholder = "أدخل معرف المستخدم";
 export const login_button = "تسجيل الدخول";
-export const login_error = "معرف مستخدم أو كلمة مرور غير صالحة.";
+export const login_error = "معرف المستخدم أو كلمة المرور غير صالحة.";
 export const two_factor_title = "المصادقة الثنائية";
-export const two_factor_prompt = "تم إرسال رمز تحقق إلى جهازك المسجل. للعرض التوضيحي، يرجى استخدام '123456'.";
+export const two_factor_prompt = "تم إرسال رمز تحقق إلى جهازك المسجل. للعرض، يرجى استخدام '123456'.";
 export const verification_code_placeholder = "أدخل الرمز";
 export const verify_button = "تحقق";
-export const two_factor_error = "رمز تحقق غير صالح.";
+export const two_factor_error = "رمز التحقق غير صالح.";
 export const simulations_title = "المحاكاة والنمذجة";
-export const simulations_description = "استخدم قدرات النمذجة المتقدمة في Gemini لمحاكاة نتائج المشروع وإنشاء مقترحات استراتيجية جديدة بناءً على مجموعة تقنيات GMEL.";
-export const gmel_modeler_title = "مصمم مشروع GMEL المثالي";
-export const gmel_modeler_description = "بناءً على الاحتياجات والفرص الفريدة للمنطقة المحددة، قم بإنشاء حزمة محسّنة من تقنيات GMEL.";
+export const simulations_description = "استفد من قدرات النمذجة المتقدمة لـ Gemini لمحاكاة نتائج المشروع وإنشاء مقترحات استراتيجية جديدة بناءً على مجموعة تقنيات GMEL.";
+export const gmel_modeler_title = "منمذج مشروع GMEL المثالي";
+export const gmel_modeler_description = "بناءً على الاحتياجات والفرص الفريدة للمنطقة المحددة، قم بإنشاء حزمة محسنة من تقنيات GMEL.";
 export const generate_gmel_package = "إنشاء حزمة GMEL المثالية";
 export const generating_gmel_package = "ينشئ حزمة GMEL المثالية...";
 export const recommended_patents = "حزمة براءات الاختراع الموصى بها";
-export const package_synergies = "تآزر الحزمة";
-export const primary_value_prop = "القيمة المقترحة الأساسية";
+export const package_synergies = "أوجه التآزر في الحزمة";
+export const primary_value_prop = "عرض القيمة الأساسي";
 export const estimated_profitability = "ملف الربحية المقدر";
-export const gmel_package_prompt = `لمنطقة {region} المستهدفة، قم بنمذجة حزمة مشروع GMEL المثالية. قم بتحليل الاحتياجات الاقتصادية والجغرافية والاستراتيجية المعروفة للمنطقة. أوصِ بحزمة محددة من براءات اختراع GMEL (على سبيل المثال، GMEL-CLG، GMEL-Desal، GMEL-LithiumLoop) التي من شأنها أن تحقق أعلى قيمة. أخرج كائن JSON واحدًا بهذه المفاتيح: "recommendedPatents" (مصفوفة من السلاسل النصية)، "synergies" (سلسلة نصية تشرح كيفية عملها معًا)، "primaryValueProposition" (سلسلة نصية تصف الفائدة الرئيسية للمنطقة)، و "estimatedProfitability" (سلسلة نصية، على سبيل المثال، "مرتفعة، مع عائد استثمار متسارع بسبب...").`;
-export const visionary_engine_title = "محرك مقترحات المشاريع الرؤيوية";
-export const visionary_engine_description = "تجاوز خارطة الطريق الحالية. أنشئ اقتراح مشروع مستقبليًا وطموحًا، ولكنه معقول، يستفيد من نظام GMEL البيئي بطرق جديدة لحل تحدٍ كبير للمنطقة المحددة.";
+export const gmel_package_prompt = `لمنطقة {region} المستهدفة، قم بنمذجة حزمة مشروع GMEL مثالية. قم بتحليل الاحتياجات الاقتصادية والجغرافية والاستراتيجية المعروفة للمنطقة. أوصِ بحزمة محددة من براءات اختراع GMEL (على سبيل المثال، GMEL-CLG، GMEL-Desal، GMEL-LithiumLoop) التي من شأنها أن تقدم أعلى قيمة. أخرج كائن JSON واحدًا بهذه المفاتيح: "recommendedPatents" (مصفوفة من السلاسل النصية)، "synergies" (سلسلة نصية تشرح كيفية عملها معًا)، "primaryValueProposition" (سلسلة نصية تصف الفائدة الرئيسية للمنطقة)، و "estimatedProfitability" (سلسلة نصية، على سبيل المثال، "مرتفعة، مع عائد استثمار معجل بسبب...").`;
+export const visionary_engine_title = "محرك اقتراح المشاريع الرؤيوية";
+export const visionary_engine_description = "تجاوز خارطة الطريق الحالية. قم بإنشاء اقتراح مشروع مستقبلي وطموح ولكنه معقول يستفيد من نظام GMEL البيئي بطرق جديدة لحل تحدٍ كبير للمنطقة المحددة.";
 export const generate_visionary_proposal = "إنشاء اقتراح رؤيوي";
 export const generating_visionary_proposal = "ينشئ اقتراحًا رؤيويًا...";
 export const visionary_proposal_for = "اقتراح رؤيوي: {region}";
 export const core_concept = "المفهوم الأساسي";
-export const enabling_tech = "التقنيات الممكنة";
+export const enabling_tech = "التقنيات التمكينية";
 export const transformative_impact = "التأثير التحويلي المحتمل";
 export const new_patent_opportunities = "فرص براءات الاختراع الجديدة";
-export const visionary_proposal_prompt = `أنشئ اقتراح مشروع رؤيويًا طويل الأجل (15-20 عامًا) لـ {region} باستخدام نظام GMEL البيئي كأساس. استخدم بحث Google للاتجاهات المستقبلية. يجب أن يكون الاقتراح طموحًا ولكنه قائم على تطور تكنولوجي معقول. حدد تحديًا مستقبليًا كبيرًا لـ {region} (على سبيل المثال، ندرة المياه الشديدة، التحول الاقتصادي بعد النفط، الأمن الغذائي) وصمم حلاً شاملاً قائمًا على GMEL. يجب أن يكون الإخراج كائن JSON واحدًا بمفاتيح: "proposalTitle" (سلسلة نصية)، "coreConcept" (سلسلة نصية)، "enablingTechnologies" (مصفوفة من السلاسل النصية، بما في ذلك براءات اختراع GMEL الحالية والتكنولوجيا المستقبلية المحتملة)، "potentialImpact" (سلسلة نصية)، و "newPatentIdeas" (مصفوفة من السلاسل النصية لبراءات اختراع مفاهيمية جديدة مطلوبة لدعم الرؤية).`;
+export const visionary_proposal_prompt = `أنشئ اقتراح مشروع رؤيوي طويل الأجل (15-20 سنة) لـ {region} باستخدام نظام GMEL البيئي كأساس. استخدم بحث Google للاتجاهات المستقبلية. يجب أن يكون الاقتراح طموحًا ولكنه قائم على تطور تكنولوجي معقول. حدد تحديًا مستقبليًا كبيرًا لـ {region} (على سبيل المثال، ندرة المياه الشديدة، التحول الاقتصادي بعد النفط، الأمن الغذائي) وصمم حلاً شاملاً قائمًا على GMEL. يجب أن يكون الإخراج كائن JSON واحدًا بالمفاتيح التالية: "proposalTitle" (سلسلة نصية)، "coreConcept" (سلسلة نصية)، "enablingTechnologies" (مصفوفة من السلاسل النصية، بما في ذلك براءات اختراع GMEL الحالية والتكنولوجيا المستقبلية المحتملة)، "potentialImpact" (سلسلة نصية)، و "newPatentIdeas" (مصفوفة من السلاسل النصية لبراءات اختراع مفاهيمية جديدة مطلوبة لدعم الرؤية).`;
 export const error_generating_proposal = "خطأ في إنشاء الاقتراح";
 export const generated_proposal_title = "الاقتراح المُنشأ لـ {region}";
 export const executive_summary = "ملخص تنفيذي";
 export const regional_analysis = "تحليل إقليمي";
 export const technical_modeling = "نمذجة فنية";
 export const innovation_and_patent_layer = "طبقة الابتكار وبراءات الاختراع";
-export const strategy_model = "نموذج استراتيجي";
+export const strategy_model = "نموذج الاستراتيجية";
 export const risk_and_roadmap = "المخاطر وخارطة الطريق";
 export const gmel_patent_reference = "مرجع براءات اختراع GMEL";
 export const ownership_statement = "بيان الملكية والملكية الفكرية";
 export const proposal_generator_title = "مولد العروض";
-export const proposal_generator_description = "أنشئ اقتراح مشروع شاملًا ومخصصًا لمشروع GMEL في منطقة محددة. تجمع هذه الأداة بين التحليل الإقليمي القائم على أسس وتفاصيل المشروع الاستراتيجية في وثيقة رسمية.";
+export const proposal_generator_description = "أنشئ اقتراح مشروع شامل ومخصص لمشروع GMEL في منطقة محددة. تدمج هذه الأداة التحليل الإقليمي المستند إلى الواقع مع تفاصيل المشروع الاستراتيجية في وثيقة رسمية.";
 export const select_proposal_region = "حدد المنطقة المستهدفة للاقتراح";
 export const generate_proposal = "إنشاء اقتراح";
 export const generating_proposal = "ينشئ الاقتراح...";
-export const regional_analysis_prompt = `أنشئ تحليلًا إقليميًا مفصلاً لمشروع طاقة حرارية أرضية في {region}. يجب أن يستند هذا التحليل إلى معلومات محدثة من بحث Google. غطِ الجوانب التالية بالتفصيل: مشهد الطاقة الحالي (المزيج، التكاليف، الاستقرار)، الاحتياجات الاقتصادية الملحة (مثل خلق فرص العمل، التنويع الصناعي)، حالة الأمن المائي، الأولويات الاستراتيجية بناءً على المبادرات الحكومية، والبنية التحتية الرئيسية (الموانئ، الشبكات، النقل). يجب أن تكون النبرة رسمية ومناسبة لاقتراح مشروع رفيع المستوى.`;
-export const proposal_generation_prompt = `أنت نظام ذكاء اصطناعي مكلف بإنشاء اقتراح مشروع شامل لمشروع GMEL الحراري الأرضي مخصص لـ {region} باللغة {language}. سيتم تزويدك بقسم "تحليل إقليمي" مُنشأ مسبقًا وقائم على أسس. مهمتك هي إنشاء جميع الأقسام الأخرى من الاقتراح حوله.
-
-يجب أن يكون الإخراج النهائي كائن JSON واحدًا بمفتاح جذر واحد: "gmel_proposal". يجب أن تكون قيمة هذا المفتاح كائنًا يحتوي على خصائص السلسلة النصية التالية:
-- "region": "{region}"
-- "language": "{language}"
-- "sector": "الطاقة المستدامة والبنية التحتية"
-- "executive_summary": نظرة عامة قوية وموجزة على الاقتراح بأكمله.
-- "regional_analysis": "{{regional_analysis_content}}" // ** هام: استخدم المحتوى المقدم بالضبط لهذا المفتاح. لا تقم بتعديله أو تلخيصه. **
-- "technical_modeling": قم بتفصيل حزمة تقنية GMEL الموصى بها (على سبيل المثال، CLG، Desal، DLE) ولماذا هي مثالية للمنطقة.
-- "financial_analysis": قدم ملخصًا للجدوى المالية، مع الإشارة إلى المقاييس الأساسية مثل النفقات الرأسمالية، وعائد الاستثمار، والاسترداد، وشرح إمكانية تحقيق عوائد قوية.
-- "innovation_and_patent_layer": اشرح كيف توفر محفظة براءات اختراع GMEL خندقًا تنافسيًا ومنصة للابتكار المستقبلي.
-- "strategy_model": اقترح نموذج عمل (على سبيل المثال، BOO، BOT، JV) واستراتيجية تنفيذ عالية المستوى.
-- "risk_and_roadmap": حدد المخاطر الرئيسية (الجيولوجية، السياسية، المالية) وقدم خارطة طريق للمشروع مرحلية مع معالم رئيسية.
-- "gmel_patent_reference": قائمة (كسلسلة نصية مع نقاط) برموز براءات اختراع GMEL الأساسية ذات الصلة بهذا الاقتراح.
-- "ownership_statement": بيان رسمي يؤكد أن جميع حقوق الملكية الفكرية محفوظة للمخترع سيد جينو أيوبيان و KKM International.
+export const regional_analysis_prompt = `أنشئ تحليلًا إقليميًا مفصلاً لمشروع طاقة حرارية أرضية في {region}. يجب أن يكون هذا التحليل مستندًا إلى معلومات محدثة من بحث Google. غطِ الجوانب التالية بالتفصيل: المشهد الحالي للطاقة (المزيج، التكاليف، الاستقرار)، الاحتياجات الاقتصادية الملحة (مثل خلق فرص العمل، التنويع الصناعي)، حالة الأمن المائي، الأولويات الاستراتيجية بناءً على المبادرات الحكومية، والبنية التحتية الرئيسية (الموانئ، الشبكات، النقل). يجب أن تكون النبرة رسمية ومناسبة لاقتراح مشروع رفيع المستوى.`;
+export const proposal_generation_prompt = `أنت نظام ذكاء اصطناعي مكلف بإنشاء اقتراح مشروع شامل لمشروع GMEL الحراري الأرضي مصمم خصيصًا لـ {region} باللغة {language}. سيتم تزويدك بقسم "تحليل إقليمي" تم إنشاؤه مسبقًا ومستند إلى الواقع. مهمتك هي إنشاء جميع الأقسام الأخرى من الاقتراح حوله.
 
 يجب أن يكون كل النص باللغة {language}.
 
-إليك التحليل الإقليمي المُنشأ مسبقًا ليتم تضمينه:
+إليك التحليل الإقليمي الذي تم إنشاؤه مسبقًا ليتم تضمينه:
 ---
 {regional_analysis_content}
 ---
 `;
-export const strategy_modeler_title = "Joint Venture Strategy Modeler";
-export const strategy_modeler_description = "Design a tailored joint venture (JV) and technology transfer strategy for a specific target region. This tool models the optimal approach to local partnerships, balancing KKM's IP protection with the strategic goals of the host nation.";
-export const select_target_region = "Select Target Region";
-export const generate_jv_strategy = "Generate JV Strategy";
-export const generating_strategy = "Generating Strategy...";
-export const error_generating_strategy = "Error generating strategy. The AI response might be in an unexpected format.";
-export const jv_strategy_for = "Joint Venture Strategy for {region}";
-export const optimal_patent_package = "Optimal Patent Package for Tech Transfer";
-export const local_value_proposition = "Localized Value Proposition";
-export const tech_transfer_plan = "Phased Technology Transfer & Training Plan";
-export const risk_analysis = "Risk Analysis & Mitigation Strategy";
-export const budget_justification = "Budget Justification & Financial Model";
-export const strategy_modeler_prompt = `As a top-tier international business strategist specializing in technology transfer and joint ventures in the energy sector, create a comprehensive JV strategy for KKM International to deploy its GMEL technology in {region}.
+export const strategy_modeler_title = "منمذج استراتيجية المشروع المشترك";
+export const strategy_modeler_description = "صمم استراتيجية مشروع مشترك (JV) ونقل تكنولوجيا مخصصة لمنطقة مستهدفة محددة. تنمذج هذه الأداة النهج الأمثل للشراكات المحلية، مع موازنة حماية الملكية الفكرية لـ KKM مع الأهداف الاستراتيجية للدولة المضيفة.";
+export const select_target_region = "حدد المنطقة المستهدفة";
+export const generate_jv_strategy = "إنشاء استراتيجية JV";
+export const generating_strategy = "ينشئ الاستراتيجية...";
+export const error_generating_strategy = "خطأ في إنشاء الاستراتيجية. قد تكون استجابة الذكاء الاصطناعي بتنسيق غير متوقع.";
+export const jv_strategy_for = "استراتيجية المشروع المشترك لـ {region}";
+export const optimal_patent_package = "حزمة براءات الاختراع المثلى لنقل التكنولوجيا";
+export const local_value_proposition = "عرض القيمة المحلي";
+export const tech_transfer_plan = "خطة نقل التكنولوجيا والتدريب المرحلية";
+export const risk_analysis = "تحليل المخاطر واستراتيجية التخفيف";
+export const budget_justification = "تبرير الميزانية والنموذج المالي";
+export const strategy_modeler_prompt = `بصفتك استراتيجي أعمال دولي من الدرجة الأولى متخصص في نقل التكنولوجيا والمشاريع المشتركة في قطاع الطاقة، قم بإنشاء استراتيجية JV شاملة لـ KKM International لنشر تقنية GMEL الخاصة بها في {region}.
 
-The output must be a single JSON object with the following keys, each containing a detailed paragraph:
-- "optimal_patent_package": A string detailing which specific GMEL patents should be included in the initial JV and which should be reserved for later phases to protect core IP.
-- "local_value_proposition": A string that frames the JV's benefits specifically for {region}'s government and industry, focusing on their strategic priorities (e.g., economic diversification, job creation, energy independence).
-- "tech_transfer_plan": A string outlining a phased plan for transferring knowledge, training local engineers, and establishing local manufacturing or assembly capabilities.
-- "risk_analysis": A string identifying the top 3-4 political, economic, and operational risks of a JV in {region} and proposing a concise mitigation strategy for each.
-- "budget_justification": A string providing a high-level justification for a pilot project budget, explaining how the investment aligns with the long-term value and strategic importance of the partnership.`;
-export const market_analysis_prompt = `Generate a detailed market analysis for a geothermal energy project in {region}. Focus on the current energy policies, grid stability, major industrial consumers, and potential government incentives. Use Google Search to ensure the information is up-to-date.`;
-export const gmel_drillx_specs = "GMEL-DrillX Specs";
-export const tech_comparison_drillx_title = "Drilling Technology Comparison: GMEL-DrillX vs. Conventional";
-export const tech_comparison_drillx_desc = "This is a direct, data-driven look at GMEL's competitive advantages in drilling, comparing its autonomous capabilities, speed, and cost-effectiveness against leading conventional drilling technologies.";
-export const compare_technologies = "Compare Technologies";
-export const conventional_rss_specs = "Conventional RSS Specs";
+يجب أن يكون الإخراج ككائن JSON واحد بالمفاتيح التالية، يحتوي كل منها على فقرة مفصلة:
+- "optimal_patent_package": سلسلة نصية تفصل براءات اختراع GMEL المحددة التي يجب تضمينها في المشروع المشترك الأولي وتلك التي يجب حجزها للمراحل اللاحقة لحماية الملكية الفكرية الأساسية.
+- "local_value_proposition": سلسلة نصية تحدد فوائد المشروع المشترك خصيصًا لحكومة وصناعة {region}، مع التركيز على أولوياتها الاستراتيجية (مثل التنويع الاقتصادي، وخلق فرص العمل، واستقلال الطاقة).
+- "tech_transfer_plan": سلسلة نصية تحدد خطة مرحلية لنقل المعرفة، وتدريب المهندسين المحليين، وإنشاء قدرات تصنيع أو تجميع محلية.
+- "risk_analysis": سلسلة نصية تحدد أفضل 3-4 مخاطر سياسية واقتصادية وتشغيلية لمشروع مشترك في {region} وتقترح استراتيجية تخفيف موجزة لكل منها.
+- "budget_justification": سلسلة نصية تقدم تبريرًا رفيع المستوى لميزانية مشروع تجريبي، موضحًا كيف يتماشى الاستثمار مع القيمة طويلة الأجل والأهمية الاستراتيجية للشراكة.`;
+export const market_analysis_prompt = "أنشئ تحليلًا مفصلاً للسوق لمشروع طاقة حرارية أرضية في {region}. ركز على سياسات الطاقة الحالية، واستقرار الشبكة، والمستهلكين الصناعيين الرئيسيين، والحوافز الحكومية المحتملة. استخدم بحث Google للتأكد من أن المعلومات محدثة.";
+export const gmel_drillx_specs = "مواصفات GMEL-DrillX";
+export const tech_comparison_drillx_title = "مقارنة تقنية الحفر: GMEL-DrillX مقابل التقليدية";
+export const tech_comparison_drillx_desc = "هذه نظرة مباشرة قائمة على البيانات على المزايا التنافسية لـ GMEL في الحفر، ومقارنة قدراتها المستقلة وسرعتها وفعاليتها من حيث التكلفة مع تقنيات الحفر التقليدية الرائدة.";
+export const compare_technologies = "مقارنة التقنيات";
+export const conventional_rss_specs = "مواصفات RSS التقليدية";
+export const generate_business_plan = "إنشاء خطة عمل";
+export const generating_business_plan = "جاري إنشاء خطة العمل...";
+export const generated_business_plan = "خطة العمل المُنشأة";
+export const export_txt = "تصدير كـ .txt";
+export const ideal_plan_prompt = `بناءً على حزمة مشروع GMEL النموذجية التالية لـ {region}، قم بإنشاء خطة عمل أولية موجزة. قم بتنظيمها بعناوين واضحة لـ: 1. ملخص تنفيذي، 2. حزمة التكنولوجيا، 3. فرصة السوق، 4. القيمة الاستراتيجية، و 5. النظرة المالية. يجب أن يكون الإخراج نصًا عاديًا مناسبًا للمراجعة الداخلية.\n\nالبيانات:\nبراءات الاختراع الموصى بها: {patents}\nأوجه التآزر: {synergies}\nعرض القيمة الأساسي: {valueProp}\nالربحية المقدرة: {profitability}`;
+export const visionary_plan_prompt = `بناءً على اقتراح المشروع الرؤيوي التالي لـ {region}، قم بإنشاء خطة عمل أولية موجزة. قم بتنظيمها بعناوين واضحة لـ: 1. بيان الرؤية، 2. المفهوم الأساسي والتأثير، 3. التقنيات التأسيسية، 4. تطوير الملكية الفكرية الجديدة (اشرح بالتفصيل عناوين براءات الاختراع المقترحة كعناوين إنتاج قابلة للتطبيق)، و 5. الأهداف الاستراتيجية طويلة الأجل. يجب أن يكون الإخراج نصًا عاديًا للاستخدام الداخلي.\n\nبيانات الاقتراح:\nالعنوان: {title}\nالمفهوم الأساسي: {concept}\nالتقنيات التمكينية: {tech}\nالتأثير المحتمل: {impact}\nفرص براءات الاختراع الجديدة (تعامل معها كعناوين قابلة للإنتاج): {patentIdeas}`;

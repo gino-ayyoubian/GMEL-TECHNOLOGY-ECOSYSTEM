@@ -20,6 +20,14 @@ export const nav_group_strategic = "Strategic Tools";
 export const nav_group_generative = "Generative Suite";
 export const nav_group_official = "Official Business";
 export const contact_us = "Contact Us";
+export const contact_title = "Contact Us";
+export const contact_description = "Please use the following channels to get in touch with KKM International Group and the inventor.";
+export const direct_contact_info = "Direct Contact Information";
+export const contact_phone = "Phone Number";
+export const contact_gino_linkedin = "Gino Ayyoubian's LinkedIn";
+export const contact_kkm_linkedin = "KKM International's LinkedIn";
+export const contact_general_email = "General Inquiries";
+export const contact_direct_email = "Direct to Inventor";
 export const proposal_for = "Proposal for:";
 export const language = "Language";
 export const narrator = "Narrator Audio";
@@ -42,7 +50,12 @@ export const ip_roadmap_description = "Explore the GMEL patent portfolio. The co
 export const core_technology_patent = "Core Technology Patent";
 export const portfolio_patents = "Portfolio Patents";
 export const filter_by_level = "Filter by Level";
+export const filter_by_status = "Filter by Status";
 export const sort_by = "Sort by";
+export const sort_option_level = "Level";
+export const sort_option_title = "Title";
+export const sort_option_status = "Status";
+export const sort_option_progress = "Progress";
 export const title = "Title";
 export const status = "Status";
 export const path = "Path";
@@ -52,7 +65,6 @@ export const search_placeholder = "Search by title, code, application...";
 export const patent_timeline_title = "Patent Registration Timeline";
 export const no_timeline_data = "No timeline data available for patents.";
 export const financial_analysis_title = "Financial Analysis";
-// FIX: Add missing translation key for 'financial_analysis'
 export const financial_analysis = "Financial Analysis";
 export const export_secure_pdf = "Export Secure PDF";
 export const cost_revenue_breakdown = "Cost & Revenue Breakdown";
@@ -198,7 +210,7 @@ export const error_generating_comparison = "Error generating comparison. The AI 
 export const error_select_different_regions = "Please select two different regions to compare.";
 export const comparison_between = "Comparison: {region1} vs. {region2}";
 export const geographical_context_map = "Geographical Context Map";
-export const correspondence_title = "Letter Generator Output";
+export const correspondence_title = "Official Letter Generator";
 export const correspondence_description = "Generate official letters to related organizations. Fill in the details below and the AI will compose a formal letter based on the project's context. The output can be printed to a secure, watermarked PDF.";
 export const recipient_org = "Recipient Organization";
 export const subject = "Subject";
@@ -430,20 +442,6 @@ export const generating_proposal = "Generating Proposal...";
 export const regional_analysis_prompt = `Generate a detailed regional analysis for a geothermal energy project in {region}. This analysis should be grounded with up-to-date information from Google Search. Cover the following aspects in detail: current energy landscape (mix, costs, stability), pressing economic needs (e.g., job creation, industrial diversification), water security situation, strategic priorities based on government initiatives, and key infrastructure (ports, grids, transport). The tone should be formal and suitable for a high-level project proposal.`;
 export const proposal_generation_prompt = `You are an AI system tasked with creating a comprehensive project proposal for the GMEL Geothermal Project tailored for {region} in {language}. You will be provided with a pre-generated, grounded "Regional Analysis" section. Your job is to generate all OTHER sections of the proposal around it.
 
-The final output MUST be a single JSON object with one root key: "gmel_proposal". The value of this key should be an object containing the following string properties:
-- "region": "{region}"
-- "language": "{language}"
-- "sector": "Sustainable Energy & Infrastructure"
-- "executive_summary": A powerful, concise overview of the entire proposal.
-- "regional_analysis": "{{regional_analysis_content}}" // ** CRITICAL: Use the exact provided content for this key. Do not modify or summarize it. **
-- "technical_modeling": Detail the recommended GMEL tech package (e.g., CLG, Desal, DLE) and why it's ideal for the region.
-- "financial_analysis": Provide a summary of the financial viability, referencing baseline metrics like CAPEX, ROI, and Payback, and explaining the potential for strong returns.
-- "innovation_and_patent_layer": Explain how the GMEL patent portfolio provides a competitive moat and a platform for future innovation.
-- "strategy_model": Propose a business model (e.g., BOO, BOT, JV) and a high-level implementation strategy.
-- "risk_and_roadmap": Identify key risks (geological, political, financial) and present a phased project roadmap with major milestones.
-- "gmel_patent_reference": A list (as a string with bullet points) of the primary GMEL patent codes relevant to this proposal.
-- "ownership_statement": A formal statement asserting that all IP rights are retained by the inventor Seyed Gino Ayyoubian and KKM International.
-
 All text must be in {language}.
 
 Here is the pre-generated Regional Analysis to be included:
@@ -477,3 +475,9 @@ export const tech_comparison_drillx_title = "Drilling Technology Comparison: GME
 export const tech_comparison_drillx_desc = "This is a direct, data-driven look at GMEL's competitive advantages in drilling, comparing its autonomous capabilities, speed, and cost-effectiveness against leading conventional drilling technologies.";
 export const compare_technologies = "Compare Technologies";
 export const conventional_rss_specs = "Conventional RSS Specs";
+export const generate_business_plan = "إنشاء خطة عمل";
+export const generating_business_plan = "جاري إنشاء خطة العمل...";
+export const generated_business_plan = "خطة العمل المُنشأة";
+export const export_txt = "تصدير كـ .txt";
+export const ideal_plan_prompt = `بناءً على حزمة مشروع GMEL النموذجية التالية لـ {region}، قم بإنشاء خطة عمل أولية موجزة. قم بتنظيمها بعناوين واضحة لـ: 1. ملخص تنفيذي، 2. حزمة التكنولوجيا، 3. فرصة السوق، 4. القيمة الاستراتيجية، و 5. النظرة المالية. يجب أن يكون الإخراج نصًا عاديًا مناسبًا للمراجعة الداخلية.\n\nالبيانات:\nبراءات الاختراع الموصى بها: {patents}\nأوجه التآزر: {synergies}\nعرض القيمة الأساسي: {valueProp}\nالربحية المقدرة: {profitability}`;
+export const visionary_plan_prompt = `بناءً على اقتراح المشروع الرؤيوي التالي لـ {region}، قم بإنشاء خطة عمل أولية موجزة. قم بتنظيمها بعناوين واضحة لـ: 1. بيان الرؤية، 2. المفهوم الأساسي والتأثير، 3. التقنيات التأسيسية، 4. تطوير الملكية الفكرية الجديدة (اشرح بالتفصيل عناوين براءات الاختراع المقترحة)، و 5. الأهداف الاستراتيجية طويلة الأجل. يجب أن يكون الإخراج نصًا عاديًا للاستخدام الداخلي.\n\nبيانات الاقتراح:\nالعنوان: {title}\nالمفهوم الأساسي: {concept}\nالتقنيات التمكينية: {tech}\nالتأثير المحتمل: {impact}\nفرص براءات الاختراع الجديدة (تعامل معها كعناوين قابلة للإنتاج): {patentIdeas}`;
