@@ -7,6 +7,7 @@ export const getTechDetails = (t: TFunction) => ({
     "Core System (GMEL-CLG)": t('tech_detail_core'),
     "Drilling (GMEL-DrillX)": t('tech_detail_drilling'),
     "Fluid (GMEL-ThermoFluid)": t('tech_detail_fluid'),
+    "Nanofluid Stabilization (GMEL-NanoStab)": t('tech_detail_nanostab'),
     "Power Conversion (GMEL-ORC Compact)": t('tech_detail_power'),
     "Control System (GMEL-EHS)": t('tech_detail_control'),
     "Thermal Desalination (GMEL-Desal)": t('tech_detail_desal'),

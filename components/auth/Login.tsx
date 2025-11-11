@@ -105,7 +105,9 @@ export const Login: React.FC = () => {
             {showHints && (
                 <div className="mt-4 p-4 bg-slate-700/50 rounded-lg border border-slate-600 text-xs">
                     <ul className="space-y-3">
-                        {Object.entries(USER_CREDENTIALS).map(([user, { password, role }]) => (
+                        {Object.entries(USER_CREDENTIALS)
+                            .filter(([, { role }]) => role !== 'admin')
+                            .map(([user, { password, role }]) => (
                             <li key={user} onClick={() => handleHintClick(user, password)} className="p-2 rounded-md hover:bg-slate-600 cursor-pointer transition-colors">
                                 <p><span className="font-semibold text-slate-300">User:</span> <code className="text-sky-300">{user}</code></p>
                                 <p><span className="font-semibold text-slate-300">Pass:</span> <code className="text-sky-300">{password}</code></p>

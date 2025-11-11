@@ -40,7 +40,7 @@ export const generate_summary = "Generate Summary";
 export const error_no_analysis = "No analysis could be generated.";
 export const thinking = "Thinking...";
 export const generate_strategic_analysis = "Generate Strategic Analysis";
-export const strategic_analysis_prompt = "Based on the following project summary for {region} and your knowledge of baseline financial data, generate a concise strategic analysis (3-4 paragraphs) covering potential market impact, key risks, and strategic recommendations for the board of directors. Ensure the analysis references the GMEL patent portfolio's advantages.\n\nProject Summary:\n{summary}";
+export const strategic_analysis_prompt = "Based on the following project summary for {region} and your knowledge of baseline financial data, generate a concise strategic analysis (3-4 paragraphs) covering potential market impact, key risks, and strategic recommendations for the board of directors. Ensure the analysis references the GMEL patent portfolio's advantages, especially the synergy between the core loop, the nanofluid, and the new AI-controlled stabilization system.\n\nProject Summary:\n{summary}";
 export const generated_strategic_analysis = "Generated Strategic Analysis";
 export const project_milestones = "Project Milestones";
 export const financial_overview = "Financial Overview (Baseline)";
@@ -64,6 +64,13 @@ export const search_patents = "Search Patents";
 export const search_placeholder = "Search by title, code, application...";
 export const patent_timeline_title = "Patent Registration Timeline";
 export const no_timeline_data = "No timeline data available for patents.";
+export const grid_view = "Grid View";
+export const graph_view = "Graph View";
+export const add_to_compare = "Compare";
+export const compare_selected = "Compare Selected";
+export const clear_comparison = "Clear";
+export const patent_comparison_title = "Patent Comparison";
+export const close = "Close";
 export const financial_analysis_title = "Financial Analysis";
 export const financial_analysis = "Financial Analysis";
 export const export_secure_pdf = "Export Secure PDF";
@@ -85,11 +92,12 @@ export const generate_analysis = "Generate Analysis";
 export const sources = "Sources";
 export const technical_title = "Technical Deep Dive";
 export const technical_description = "The GMEL technology stack integrates several innovations to create a highly efficient and economically viable geothermal energy system. Explore the key components below.";
-export const tech_detail_core = "An advanced closed-loop system integrated with superhot rock technology (>400°C) for 30% higher energy output. It achieves 95% efficiency using nanofluids and predictive AI, circulating fluid via a natural thermosiphon effect, eliminating pumps and water injection.";
+export const tech_detail_core = "An advanced closed-loop system integrated with superhot rock technology (>400°C) for 30% higher energy output. It achieves and maintains 95% efficiency using a proprietary nanofluid (GMEL-ThermoFluid) kept at peak performance by an AI-controlled stabilization system (GMEL-NanoStab), all while operating via a natural thermosiphon effect.";
 export const tech_detail_drilling = "Smart drilling technology utilizing autonomous robots and advanced multi-axis directional techniques. This reduces drilling time by 50% and optimizes lateral paths for maximum heat exchange.";
-export const tech_detail_fluid = "A proprietary nanocomposite fluid with a novel formulation that increases heat transfer efficiency by over 35%. It is engineered for high thermal conductivity and stability under operational pressures.";
+export const tech_detail_fluid = "A proprietary nanocomposite fluid with a novel formulation that increases heat transfer efficiency by over 35%. Its long-term stability and performance, crucial for the system's 25-year lifespan, are actively guaranteed by the GMEL-NanoStab system.";
+export const tech_detail_nanostab = "A patented system using magnetic (0.5A) and ultrasonic (40-55 kHz) fields to actively stabilize the GMEL-ThermoFluid. It is controlled by an AI forecasting model to prevent sedimentation and performance drops, achieving 95% stability and preventing a potential 30% loss in thermal efficiency over the system's lifespan.";
 export const tech_detail_power = "A compact and portable Organic Rankine Cycle (ORC) converter with 25% thermal efficiency. This module is optimized to convert low-temperature heat (70-150°C) from the geothermal fluid into electricity.";
-export const tech_detail_control = "An intelligent sensing and control system using self-powered quantum sensors and machine learning. It provides 99.5% accuracy in real-time monitoring to optimize fluid flow, predict maintenance needs, and maximize energy output.";
+export const tech_detail_control = "An intelligent sensing and control system using self-powered quantum sensors and machine learning. It provides 99.5% accuracy in real-time monitoring to optimize fluid flow, predict maintenance needs, and actively manage the GMEL-NanoStab system to prevent efficiency drops.";
 export const tech_detail_desal = "Low-energy thermal desalination with a Gain Output Ratio (GOR) over 10. This system is integrated with Direct Air Capture (DAC) technology, enabling carbon-neutral fresh water production, a critical asset in arid regions.";
 export const tech_detail_hydrogen = "High-efficiency green hydrogen production through thermal electrolysis. By leveraging direct geothermal heat, this process achieves over 60% efficiency and targets production costs below $1/kg, making it highly competitive.";
 export const tech_detail_agriculture = "Advanced geothermal greenhouses (AgriCells) designed for sustainable, year-round agriculture. This system utilizes waste heat to control climate, increasing crop yields by over 200% and ensuring food security.";
@@ -284,6 +292,7 @@ export const impact_generation_prompt = `
     - Job creation factor: Up to 150 jobs/MW during construction, and 30 permanent jobs/MW for operations and integrated industries.
     - CO2 offset: A typical geothermal plant offsets ~700,000 tons of CO2 per 100MW annually compared to coal. Assume GMEL is 15% more effective due to its efficiency and integrated carbon-neutral processes.
     - Water production: Desalination modules can produce 5,000 m³ of fresh water per day per 5MW module.
+    - Nanofluid stabilization ensures near-100% uptime and consistent 95% thermal efficiency over a 25-year lifespan, preventing performance degradation and revenue loss.
 
     Provide the output as a single JSON object. The object must have three keys: "economic", "environmental", and "social".
     The value for each key must be an object with two keys: "metrics" and "narrative".
@@ -316,6 +325,7 @@ Use Google Search to find recent patent filings (last 24 months) related to geot
 - Closed-loop systems
 - Advanced drilling techniques (smart drilling, autonomous robotics)
 - Geothermal heat transfer fluids (nanofluids)
+- Nanofluid stabilization systems (magnetic, ultrasonic)
 - Smart sensors and control systems for geothermal plants
 - Geothermal-integrated desalination
 - Direct Lithium Extraction (DLE) from geothermal brines
@@ -325,7 +335,7 @@ Use Google Search to find recent patent filings (last 24 months) related to geot
 This is the relevant GMEL patent portfolio for your analysis:
 {gmel_patents_context}
 
-Based on your search, provide a structured analysis in a single JSON object. The JSON object must have two keys: "potential_overlaps" and "legal_strategy".
+Based on your search, provide a structured analysis. Format your response as a JSON object inside a markdown code block. The JSON object must have two keys: "potential_overlaps" and "legal_strategy".
 
 1. "potential_overlaps": An array of objects. Each object should represent a patent you found with potential overlap and must have these keys:
     - "patent_identifier": The patent number or application identifier (e.g., "US 2023/012345 A1"). Use "N/A" if not available.
@@ -336,9 +346,7 @@ Based on your search, provide a structured analysis in a single JSON object. The
     - "overlap_description": A short explanation of why it's a potential overlap.
     If no overlaps are found, this should be an empty array.
 
-2. "legal_strategy": A string containing a short, multi-paragraph summary of pre-emptive legal strategies KKM International should consider based on your findings. This should include recommendations for monitoring, defensive publications, and potential actions if significant overlaps are found.
-
-Your entire response must be only the JSON object. Do not include any other text or markdown formatting outside of the JSON structure.`;
+2. "legal_strategy": A string containing a short, multi-paragraph summary of pre-emptive legal strategies KKM International should consider based on your findings. This should include recommendations for monitoring, defensive publications, and potential actions if significant overlaps are found.`;
 export const potential_overlaps_title = "Potential Overlaps Identified";
 export const legal_strategy_title = "Proposed Pre-emptive Legal Strategy";
 export const no_overlaps_found = "No significant potential overlaps were identified in recent global patent records. GMEL's current IP position appears strong.";
@@ -423,7 +431,7 @@ export const core_concept = "Core Concept";
 export const enabling_tech = "Enabling Technologies";
 export const transformative_impact = "Potential Transformative Impact";
 export const new_patent_opportunities = "New Patent Opportunities";
-export const visionary_proposal_prompt = `Generate a visionary, long-term (15-20 year) project proposal for {region} using the GMEL ecosystem as a foundation. Use Google Search for forward-looking trends. The proposal should be ambitious but grounded in plausible technological evolution. Identify a major future challenge for {region} (e.g., extreme water scarcity, post-oil economic transition, food security) and design a comprehensive GMEL-based solution. The output must be a single JSON object with keys: "proposalTitle" (string), "coreConcept" (string), "enablingTechnologies" (array of strings, including existing GMEL patents and potential future tech), "potentialImpact" (string), and "newPatentIdeas" (array of strings for new, conceptual patents needed to support the vision).`;
+export const visionary_proposal_prompt = `Generate a visionary, long-term (15-20 year) project proposal for {region} using the GMEL ecosystem as a foundation. Use Google Search for forward-looking trends. The proposal should be ambitious but grounded in plausible technological evolution. Identify a major future challenge for {region} (e.g., extreme water scarcity, post-oil economic transition, food security) and design a comprehensive GMEL-based solution. Format the output as a JSON object inside a markdown code block. The JSON object must have keys: "proposalTitle" (string), "coreConcept" (string), "enablingTechnologies" (array of strings, including existing GMEL patents and potential future tech), "potentialImpact" (string), and "newPatentIdeas" (array of strings for new, conceptual patents needed to support the vision).`;
 export const error_generating_proposal = "Error generating proposal";
 export const generated_proposal_title = "Generated Proposal for {region}";
 export const executive_summary = "Executive Summary";
@@ -475,9 +483,9 @@ export const tech_comparison_drillx_title = "Drilling Technology Comparison: GME
 export const tech_comparison_drillx_desc = "This is a direct, data-driven look at GMEL's competitive advantages in drilling, comparing its autonomous capabilities, speed, and cost-effectiveness against leading conventional drilling technologies.";
 export const compare_technologies = "Compare Technologies";
 export const conventional_rss_specs = "Conventional RSS Specs";
-export const generate_business_plan = "إنشاء خطة عمل";
-export const generating_business_plan = "جاري إنشاء خطة العمل...";
-export const generated_business_plan = "خطة العمل المُنشأة";
-export const export_txt = "تصدير كـ .txt";
-export const ideal_plan_prompt = `بناءً على حزمة مشروع GMEL النموذجية التالية لـ {region}، قم بإنشاء خطة عمل أولية موجزة. قم بتنظيمها بعناوين واضحة لـ: 1. ملخص تنفيذي، 2. حزمة التكنولوجيا، 3. فرصة السوق، 4. القيمة الاستراتيجية، و 5. النظرة المالية. يجب أن يكون الإخراج نصًا عاديًا مناسبًا للمراجعة الداخلية.\n\nالبيانات:\nبراءات الاختراع الموصى بها: {patents}\nأوجه التآزر: {synergies}\nعرض القيمة الأساسي: {valueProp}\nالربحية المقدرة: {profitability}`;
-export const visionary_plan_prompt = `بناءً على اقتراح المشروع الرؤيوي التالي لـ {region}، قم بإنشاء خطة عمل أولية موجزة. قم بتنظيمها بعناوين واضحة لـ: 1. بيان الرؤية، 2. المفهوم الأساسي والتأثير، 3. التقنيات التأسيسية، 4. تطوير الملكية الفكرية الجديدة (اشرح بالتفصيل عناوين براءات الاختراع المقترحة)، و 5. الأهداف الاستراتيجية طويلة الأجل. يجب أن يكون الإخراج نصًا عاديًا للاستخدام الداخلي.\n\nبيانات الاقتراح:\nالعنوان: {title}\nالمفهوم الأساسي: {concept}\nالتقنيات التمكينية: {tech}\nالتأثير المحتمل: {impact}\nفرص براءات الاختراع الجديدة (تعامل معها كعناوين قابلة للإنتاج): {patentIdeas}`;
+export const generate_business_plan = "Generate Business Plan";
+export const generating_business_plan = "Generating Business Plan...";
+export const generated_business_plan = "Generated Business Plan";
+export const export_txt = "Export as .txt";
+export const ideal_plan_prompt = `Based on the following modeled GMEL project package for {region}, generate a concise initial business plan. Structure it with clear headings for: 1. Executive Summary, 2. Technology Package, 3. Market Opportunity, 4. Strategic Value, and 5. Financial Outlook. The output should be plain text suitable for internal review.\n\nData:\nRecommended Patents: {patents}\nSynergies: {synergies}\nPrimary Value Proposition: {valueProp}\nEstimated Profitability: {profitability}`;
+export const visionary_plan_prompt = `Based on the following visionary project proposal for {region}, generate a concise initial business plan. Structure it with clear headings for: 1. Vision Statement, 2. Core Concept & Impact, 3. Foundational Technologies, 4. New IP Development (elaborate on the proposed patent titles), and 5. Long-Term Strategic Goals. The output should be plain text for internal use.\n\nProposal Data:\nTitle: {title}\nCore Concept: {concept}\nEnabling Technologies: {tech}\nPotential Impact: {impact}\nNew Patent Opportunities (treat these as producible titles): {patentIdeas}`;

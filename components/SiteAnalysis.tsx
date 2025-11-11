@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
+import { generateGroundedText, generateMapsGroundedText, generateJsonData } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
@@ -73,6 +73,18 @@ const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; n
     ]
 };
 
+const tectonicPlateData = {
+    "type": "Feature",
+    "properties": { "name": "Simulated Zagros Suture Zone" },
+    "geometry": { "type": "LineString", "coordinates": [ [45, 37], [48, 34], [52, 30], [56, 28] ] }
+};
+
+const thermalZoneData = {
+    "type": "Feature",
+    "properties": { "name": "Simulated Hormuz Thermal Anomaly" },
+    "geometry": { "type": "Polygon", "coordinates": [ [ [55, 26], [57, 26], [57, 28], [55, 28], [55, 26] ] ] }
+};
+
 
 export const SiteAnalysis: React.FC = () => {
     const { region } = useContext(AppContext)!;
@@ -86,6 +98,18 @@ export const SiteAnalysis: React.FC = () => {
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Layer states
+    const [showHeatmap, setShowHeatmap] = useState(false);
+    const [showTectonicPlates, setShowTectonicPlates] = useState(false);
+    const [showThermalZones, setShowThermalZones] = useState(false);
+    
+    const [heatmapData, setHeatmapData] = useState<[number, number, number][]>([]);
+    const [isHeatmapLoading, setIsHeatmapLoading] = useState(false);
+
+    const heatmapLayerRef = useRef<any>(null);
+    const tectonicPlatesLayerRef = useRef<any>(null);
+    const thermalZonesLayerRef = useRef<any>(null);
 
     // Map initialization
     useEffect(() => {
@@ -109,14 +133,13 @@ export const SiteAnalysis: React.FC = () => {
             });
         }
 
-        // Cleanup function to remove map on component unmount
         return () => {
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
             }
         };
-    }, []); // Run only once
+    }, []);
 
     // Map updates when region changes
     useEffect(() => {
@@ -130,7 +153,6 @@ export const SiteAnalysis: React.FC = () => {
                 .bindPopup(`<b>${region}</b>`)
                 .openPopup();
             
-            // Add infrastructure markers
             if (infrastructureLayerRef.current) {
                 infrastructureLayerRef.current.clearLayers();
             } else {
@@ -175,6 +197,67 @@ export const SiteAnalysis: React.FC = () => {
         }
     };
 
+    const handleHeatmapToggle = async () => {
+        const nextState = !showHeatmap;
+        setShowHeatmap(nextState);
+
+        if (nextState && heatmapData.length === 0) {
+            setIsHeatmapLoading(true);
+            try {
+                const prompt = t('site_heatmap_prompt', { region });
+                const data = await generateJsonData(prompt);
+                setHeatmapData(data);
+            } catch (err: any) {
+                setError(err.message || 'Failed to generate heatmap data.');
+                setShowHeatmap(false);
+            } finally {
+                setIsHeatmapLoading(false);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (!mapRef.current) return;
+        if (showHeatmap && heatmapData.length > 0) {
+            if (heatmapLayerRef.current) mapRef.current.removeLayer(heatmapLayerRef.current);
+            heatmapLayerRef.current = L.heatLayer(heatmapData, {
+                radius: 25, blur: 15, maxZoom: 10,
+                gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
+            }).addTo(mapRef.current);
+        } else if (heatmapLayerRef.current) {
+            mapRef.current.removeLayer(heatmapLayerRef.current);
+        }
+    }, [showHeatmap, heatmapData]);
+
+    useEffect(() => {
+        if (!mapRef.current) return;
+        if (showTectonicPlates) {
+            if (!tectonicPlatesLayerRef.current) {
+                tectonicPlatesLayerRef.current = L.geoJSON(tectonicPlateData, {
+                    style: () => ({ color: '#ff7800', weight: 3, opacity: 0.7 })
+                }).bindPopup('Simulated Tectonic Plate Boundary');
+            }
+            tectonicPlatesLayerRef.current.addTo(mapRef.current);
+        } else if (tectonicPlatesLayerRef.current) {
+            mapRef.current.removeLayer(tectonicPlatesLayerRef.current);
+        }
+    }, [showTectonicPlates]);
+
+    useEffect(() => {
+        if (!mapRef.current) return;
+        if (showThermalZones) {
+            if (!thermalZonesLayerRef.current) {
+                thermalZonesLayerRef.current = L.geoJSON(thermalZoneData, {
+                    style: () => ({ fillColor: '#f03', fillOpacity: 0.3, color: '#f03', weight: 2 })
+                }).bindPopup('Simulated High-Potential Thermal Zone');
+            }
+            thermalZonesLayerRef.current.addTo(mapRef.current);
+        } else if (thermalZonesLayerRef.current) {
+            mapRef.current.removeLayer(thermalZonesLayerRef.current);
+        }
+    }, [showThermalZones]);
+
+
     return (
         <div className="space-y-8 flex flex-col h-full">
             <h1 className="text-3xl font-bold text-white">{t('site_analysis_title')}</h1>
@@ -183,7 +266,6 @@ export const SiteAnalysis: React.FC = () => {
             </p>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow min-h-0">
-                {/* Map Container */}
                 <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex flex-col relative">
                      <h2 className="text-xl font-semibold text-white mb-4">{t('generated_map_title', { region })}</h2>
                      <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-lg z-0"></div>
@@ -192,9 +274,23 @@ export const SiteAnalysis: React.FC = () => {
                            <path fillRule="evenodd" d="M10.022 1.13a.5.5 0 0 0-.044 0l-8.5 3a.5.5 0 0 0 .022.976l8.5-3a.5.5 0 0 0 .022-.976zM10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 1a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm-8.478 3.403a.5.5 0 0 0-.022.976l8.5 3a.5.5 0 0 0 .478-.022l8.5-3a.5.5 0 0 0-.022-.976l-8.5 3a.5.5 0 0 0-.456 0l-8.5-3z" clipRule="evenodd"/>
                         </svg>
                      </button>
+                     <div className="absolute top-20 left-6 z-10 bg-slate-800/80 backdrop-blur-sm p-3 rounded-lg border border-slate-700 space-y-2">
+                        <h4 className="text-sm font-semibold text-white">Map Layers</h4>
+                        <label className="flex items-center space-x-2 text-sm text-slate-300 cursor-pointer">
+                            <input type="checkbox" checked={showHeatmap} onChange={handleHeatmapToggle} disabled={isHeatmapLoading} className="w-4 h-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500" />
+                            <span>{isHeatmapLoading ? 'Loading...' : t('site_geothermal_gradient_layer')}</span>
+                        </label>
+                        <label className="flex items-center space-x-2 text-sm text-slate-300 cursor-pointer">
+                            <input type="checkbox" checked={showTectonicPlates} onChange={() => setShowTectonicPlates(p => !p)} className="w-4 h-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500" />
+                            <span>{t('tectonic_plates')}</span>
+                        </label>
+                        <label className="flex items-center space-x-2 text-sm text-slate-300 cursor-pointer">
+                            <input type="checkbox" checked={showThermalZones} onChange={() => setShowThermalZones(p => !p)} className="w-4 h-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500" />
+                            <span>{t('thermal_zones')}</span>
+                        </label>
+                    </div>
                 </div>
                 
-                {/* Analysis Container */}
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 flex flex-col">
                     <button
                         onClick={handleGenerate}

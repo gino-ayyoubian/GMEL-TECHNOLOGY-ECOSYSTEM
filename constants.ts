@@ -8,11 +8,11 @@ export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ay
 // NOTE: The following data is updated to reflect the "Ultimate Optimized Version (2025)" of the GMEL project.
 
 export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole, regions?: Region[] }> = {
-  'GMEL-kkm-admin': { password: 'kkmadmin_gmel25', role: 'admin' },
-  'GMEL-kkm-manager': { password: 'manager_gmel_25', role: 'manager' },
+  'GMEL-kkm-admin': { password: '84375690', role: 'admin' },
+  'GMEL-kkm-manager': { password: '287230', role: 'manager' },
   'GMEL-kkm-guest': { password: 'kkmguest_public', role: 'guest' },
-  'GMEL-kkm-member': { password: 'member_gmel_2025', role: 'member' },
-  'GMEL-kkm-team': { password: 'team_gmel_2025', role: 'team' },
+  'GMEL-kkm-member': { password: '4691', role: 'member' },
+  'GMEL-kkm-team': { password: '8666', role: 'team' },
   'GMEL-kkm-client': { password: 'client_gmel_2025', role: 'client', regions: ['Qeshm Free Zone', 'Makoo Free Zone'] },
   'GMEL-kkm-client-oman': { password: 'clientoman_gmel_25', role: 'client', regions: ['Oman'] }
 };
@@ -22,7 +22,7 @@ export const CORE_PATENT: Patent = {
   level: 'Core',
   code: 'GMEL-CLG',
   title: 'Closed-loop Geothermal',
-  application: 'Integrates superhot rock drilling and predictive AI to achieve 95% thermal efficiency in low-gradient zones.',
+  application: 'Core system integrating superhot rock drilling and predictive AI. Utilizes a stabilized nanofluid (GMEL-ThermoFluid & GMEL-NanoStab) to achieve and maintain 95% thermal efficiency in a pumpless, closed-loop design.',
   status: 'National registration completed',
   path: 'PCT filing ready',
   kpi: '95% thermal efficiency',
@@ -30,9 +30,10 @@ export const CORE_PATENT: Patent = {
 };
 
 export const PATENT_PORTFOLIO: Patent[] = [
-  { level: 'Derivatives', code: 'GMEL-EHS', title: 'Smart Energy Sensors', application: 'Self-powered quantum sensors and ML for 99.5% accurate real-time monitoring and predictive control.', status: 'In design', path: 'National registration by end of 1404', kpi: '99.5% accurate real-time monitoring', progress: 25 },
+  { level: 'Derivatives', code: 'GMEL-EHS', title: 'Smart Energy Sensors', application: 'Self-powered quantum sensors and ML providing 99.5% accurate real-time monitoring. Controls the entire ecosystem, including predictive AI for the GMEL-NanoStab system and drilling optimization with GMEL-DrillX.', status: 'In design', path: 'National registration by end of 1404', kpi: '99.5% accurate real-time monitoring', progress: 25 },
   { level: 'Derivatives', code: 'GMEL-DrillX', title: 'Advanced Drilling', application: 'Smart drilling with autonomous robots, reducing drilling time by 50% and optimizing heat exchange paths.', status: 'In design', path: 'Concurrent with EHS', kpi: 'Reduces drilling time by 50%', progress: 25 },
-  { level: 'Derivatives', code: 'GMEL-ThermoFluid', title: 'Heat Transfer Fluid', application: 'Proprietary nanocomposite fluid increasing heat transfer efficiency by over 35%.', status: 'Confidential', path: 'Proprietary formula registration', kpi: 'Increases heat transfer efficiency by over 35%', progress: 80 },
+  { level: 'Derivatives', code: 'GMEL-ThermoFluid', title: 'Heat Transfer Fluid', application: 'Proprietary nanocomposite fluid increasing heat transfer efficiency by over 35%. Its long-term stability and performance are actively maintained by the GMEL-NanoStab system to prevent sedimentation.', status: 'Formula registered', path: 'Proprietary formula registration', kpi: 'Increases heat transfer efficiency by over 35%', progress: 75 },
+  { level: 'Derivatives', code: 'GMEL-NanoStab', title: 'Nanofluid Stabilization System', application: 'AI-controlled system using magnetic (0.5A coil) and ultrasonic (40-55 kHz) fields to maintain 95% nanofluid stability. Prevents sedimentation in GMEL-ThermoFluid, guaranteeing consistent high-efficiency heat transfer in the core GMEL-CLG system and preventing a potential 30% performance drop.', status: 'Submitted (Filing No. Pending)', path: 'National Filing: Nov 2025; PCT planned for 1405', kpi: 'Prevents 30% efficiency drop & achieves 95% stability', progress: 50 },
   { level: 'Applied', code: 'GMEL-Desal', title: 'Thermal Desalination', application: 'Low-energy desalination (GOR >10) integrated with Direct Air Capture (DAC) for carbon-neutral water production.', status: 'Qeshm Pilot', path: 'National registration 1405', kpi: 'Low-energy desalination (GOR > 10)', progress: 60 },
   { level: 'Applied', code: 'GMEL-H₂Cell', title: 'Hydrogen Production', application: 'Green hydrogen production via thermal electrolysis, achieving 60% efficiency and costs under $1/kg.', status: 'Lab validated', path: '1405–1406', kpi: '60% efficiency, costs under $1/kg', progress: 50 },
   { level: 'Applied', code: 'GMEL-AgriCell', title: 'Thermal Agriculture', application: 'Geothermal greenhouses for sustainable, year-round agriculture, increasing crop yields by 200%.', status: 'Design phase', path: '1405–1406', kpi: 'Increases crop yields by 200%', progress: 40 },

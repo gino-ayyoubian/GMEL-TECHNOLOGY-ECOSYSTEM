@@ -5,15 +5,46 @@ import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 import { Patent } from '../types';
+import { PatentInfographic } from './PatentInfographic';
 
-// Helper to extract a JSON object from a string
+// Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
-    const match = text.match(/```json\s*([\s\S]*?)\s*```/);
-    const jsonString = match ? match[1] : text;
+    // First, try to find a JSON markdown block
+    const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match && match[1]) {
+        try {
+            return JSON.parse(match[1]);
+        } catch (error) {
+            console.error("Failed to parse JSON from markdown block:", match[1], error);
+            // Fall through to try parsing a substring
+        }
+    }
+
+    // If no block found, or parsing failed, try to find the first '{' or '[' and last '}' or ']'
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    
+    if (firstBrace === -1 && firstBracket === -1) return null;
+
+    let start = -1;
+    let end = -1;
+
+    // Determine if we're looking for an object or an array based on which comes first
+    if (firstBrace === -1 || (firstBracket !== -1 && firstBracket < firstBrace)) {
+        start = firstBracket;
+        end = text.lastIndexOf(']');
+    } else {
+        start = firstBrace;
+        end = text.lastIndexOf('}');
+    }
+
+    if (start === -1 || end === -1 || end < start) return null;
+
+    const jsonString = text.substring(start, end + 1);
     try {
         return JSON.parse(jsonString);
     } catch (error) {
-        console.error("Failed to parse JSON string:", jsonString, error);
+        console.error("Failed to parse extracted JSON substring:", jsonString, error);
         return null;
     }
 };
@@ -125,7 +156,8 @@ const CompetitiveAnalysis: React.FC = () => {
     );
 };
 
-const PatentCard: React.FC<{ patent: Patent }> = ({ patent }) => {
+const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, isSelected: boolean }> = ({ patent, onSelect, isSelected }) => {
+    const { t } = useI18n();
     const levelColors: Record<Patent['level'], string> = {
         Core: 'border-teal-400 bg-teal-500/10',
         Derivatives: 'border-sky-400 bg-sky-500/10',
@@ -140,7 +172,7 @@ const PatentCard: React.FC<{ patent: Patent }> = ({ patent }) => {
     };
 
     return (
-        <div className={`flex flex-col bg-slate-800 p-4 rounded-lg border-l-4 ${levelColors[patent.level]} h-full`}>
+        <div className={`flex flex-col bg-slate-800 p-4 rounded-lg border-l-4 transition-all duration-200 ${isSelected ? 'ring-2 ring-sky-400' : levelColors[patent.level]} h-full`}>
             <div className="flex-grow">
                 <div className="flex justify-between items-start">
                     <h3 className="font-bold text-white pr-2">{patent.title}</h3>
@@ -149,12 +181,59 @@ const PatentCard: React.FC<{ patent: Patent }> = ({ patent }) => {
                 <p className="text-sm text-slate-400 mt-2">{patent.application}</p>
             </div>
             <div className="mt-4 flex-shrink-0">
-                <div className="w-full bg-slate-700 rounded-full h-2 mb-1">
+                 <div className="flex justify-between items-center mb-1">
+                     <label htmlFor={`compare-${patent.code}`} className="flex items-center text-xs text-slate-400 cursor-pointer">
+                        <input
+                            id={`compare-${patent.code}`}
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => onSelect(patent.code)}
+                            className="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500"
+                        />
+                        <span className="ml-2">{t('add_to_compare')}</span>
+                    </label>
+                    <span className="font-semibold text-slate-300 text-xs">{patent.progress}%</span>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
                     <div className={`${progressColor[patent.level]} h-2 rounded-full`} style={{ width: `${patent.progress}%` }}></div>
                 </div>
-                <div className="text-xs flex justify-between">
-                    <span className="text-slate-400">{patent.status}</span>
-                    <span className="font-semibold text-slate-300">{patent.progress}%</span>
+            </div>
+        </div>
+    );
+};
+
+const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({ patents, onClose }) => {
+    const { t } = useI18n();
+    const fields: (keyof Patent)[] = ['code', 'level', 'application', 'status', 'path', 'kpi', 'progress'];
+    
+    return (
+         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-4 border-b border-slate-700">
+                    <h2 className="text-xl font-bold text-white">{t('patent_comparison_title')}</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white">&times;</button>
+                </div>
+                <div className="overflow-auto">
+                     <table className="w-full text-sm text-left text-slate-400">
+                        <thead className="text-xs text-slate-300 uppercase bg-slate-700/50 sticky top-0">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 w-1/6">{t('metric')}</th>
+                                {patents.map(p => <th key={p.code} scope="col" className="px-6 py-3">{p.title}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {fields.map(field => (
+                                <tr key={field} className="bg-slate-800 border-b border-slate-700 hover:bg-slate-700/50">
+                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap capitalize">{field}</th>
+                                    {patents.map(p => (
+                                        <td key={p.code} className="px-6 py-4 align-top">
+                                            {field === 'progress' ? `${p[field]}%` : p[field] || 'N/A'}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -167,17 +246,19 @@ export const IPRoadmap: React.FC = () => {
     const [levelFilter, setLevelFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortBy, setSortBy] = useState('level');
+    const [viewMode, setViewMode] = useState<'grid' | 'graph'>('grid');
+    const [comparisonSelection, setComparisonSelection] = useState<string[]>([]);
+    const [showComparisonModal, setShowComparisonModal] = useState(false);
+
 
     const allPatents = useMemo(() => [CORE_PATENT, ...PATENT_PORTFOLIO], []);
-    const patentLevels = useMemo(() => ['All', ...Array.from(new Set(allPatents.map(p => p.level)))], [allPatents]);
-    const patentStatuses = useMemo(() => ['All', ...Array.from(new Set(allPatents.map(p => p.status)))], [allPatents]);
 
     const filteredAndSortedPatents = useMemo(() => {
         let patents = allPatents.filter(p => {
-            const searchMatch = searchQuery === '' || 
-                p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            const searchMatch = searchQuery.length > 2 ? 
+                p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.application.toLowerCase().includes(searchQuery.toLowerCase());
+                p.application.toLowerCase().includes(searchQuery.toLowerCase()) : true;
             const levelMatch = levelFilter === 'All' || p.level === levelFilter;
             const statusMatch = statusFilter === 'All' || p.status === statusFilter;
             return searchMatch && levelMatch && statusMatch;
@@ -187,59 +268,90 @@ export const IPRoadmap: React.FC = () => {
             if (sortBy === 'title') return a.title.localeCompare(b.title);
             if (sortBy === 'status') return a.status.localeCompare(b.status);
             if (sortBy === 'progress') return b.progress - a.progress;
-            // Default sort by level order
+            // Default sort by level
             const levelOrder = { 'Core': 0, 'Derivatives': 1, 'Applied': 2, 'Strategic': 3 };
             return levelOrder[a.level] - levelOrder[b.level];
         });
 
         return patents;
-    }, [allPatents, searchQuery, levelFilter, statusFilter, sortBy]);
+    }, [searchQuery, levelFilter, statusFilter, sortBy, allPatents]);
+    
+    const handleSelectForComparison = (code: string) => {
+        setComparisonSelection(prev => 
+            prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+        );
+    };
 
+    const patentsForComparison = useMemo(() => 
+        allPatents.filter(p => comparisonSelection.includes(p.code)),
+        [comparisonSelection, allPatents]
+    );
 
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-white">{t('ip_roadmap_title')}</h1>
             <p className="text-slate-400 max-w-3xl">{t('ip_roadmap_description')}</p>
-            
-            <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
-                <div className="relative flex-grow">
-                    <input 
-                        type="text" 
-                        placeholder={t('search_placeholder')}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md py-2 pl-10 pr-4 text-white placeholder-slate-400"
-                    />
-                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)} className="bg-slate-700 border-slate-600 rounded-md text-white">
-                        <option value="All">{t('filter_by_level')}</option>
-                        {patentLevels.slice(1).map(l => <option key={l} value={l}>{l}</option>)}
-                    </select>
-                     <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-slate-700 border-slate-600 rounded-md text-white">
-                        <option value="All">{t('filter_by_status')}</option>
-                        {patentStatuses.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                     <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-slate-700 border-slate-600 rounded-md text-white">
-                        <option disabled>{t('sort_by')}</option>
-                        <option value="level">{t('sort_option_level')}</option>
-                        <option value="title">{t('sort_option_title')}</option>
-                        <option value="status">{t('sort_option_status')}</option>
-                        <option value="progress">{t('sort_option_progress')}</option>
-                    </select>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredAndSortedPatents.length > 0 ? (
-                    filteredAndSortedPatents.map(patent => <PatentCard key={patent.code} patent={patent} />)
-                ) : (
-                    <p className="text-slate-500 md:col-span-2 lg:col-span-3 xl:col-span-4 text-center">{t('no_patents_match')}</p>
-                )}
+            {/* View Mode Toggle */}
+            <div className="flex justify-center bg-slate-800 p-1 rounded-lg max-w-xs mx-auto">
+                <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-4 py-2 text-sm font-semibold rounded-md w-1/2 ${viewMode === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-slate-700'}`}
+                >
+                    {t('grid_view')}
+                </button>
+                <button
+                    onClick={() => setViewMode('graph')}
+                    className={`px-4 py-2 text-sm font-semibold rounded-md w-1/2 ${viewMode === 'graph' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-slate-700'}`}
+                >
+                    {t('graph_view')}
+                </button>
             </div>
+            
+            {viewMode === 'grid' && (
+                <>
+                    {/* Filtering and Sorting Controls */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-800 rounded-lg">
+                        <input
+                            type="text"
+                            placeholder={t('search_placeholder')}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-slate-700 border-slate-600 rounded-md text-slate-200 placeholder-slate-400"
+                        />
+                        {/* Other filters can go here */}
+                    </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {filteredAndSortedPatents.map(patent => (
+                            <PatentCard 
+                                key={patent.code} 
+                                patent={patent}
+                                onSelect={handleSelectForComparison}
+                                isSelected={comparisonSelection.includes(patent.code)}
+                            />
+                        ))}
+                    </div>
+
+                     {comparisonSelection.length > 0 && (
+                        <div className="fixed bottom-8 right-8 z-20 flex items-center gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-lg">
+                            <p className="text-sm font-semibold text-white">Comparing {comparisonSelection.length} patents</p>
+                            <button onClick={() => setShowComparisonModal(true)} className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-bold">{t('compare_selected')}</button>
+                            <button onClick={() => setComparisonSelection([])} className="px-4 py-2 bg-slate-600 text-white rounded-md text-sm">{t('clear_comparison')}</button>
+                        </div>
+                    )}
+
+                    {showComparisonModal && (
+                        <ComparisonModal patents={patentsForComparison} onClose={() => setShowComparisonModal(false)} />
+                    )}
+                </>
+            )}
+
+            {viewMode === 'graph' && (
+                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 overflow-x-auto">
+                    <PatentInfographic />
+                </div>
+            )}
+
 
             <CompetitiveAnalysis />
         </div>

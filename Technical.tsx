@@ -109,6 +109,50 @@ const DesalSystemDiagram = () => (
     </div>
 );
 
+const NanoStabSystemDiagram = () => (
+    <div className="my-4 p-4 bg-slate-900 rounded-lg flex justify-center items-center border border-slate-700">
+        <svg width="100%" height="250" viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg" className="max-w-md" aria-label="Diagram of Nanofluid Stabilization System">
+            <title>GMEL-NanoStab System Diagram</title>
+            <desc>A diagram showing a pipe with nanofluid flowing through it. A magnetic coil is wrapped around the pipe, and an ultrasonic transducer is attached to it. Both are connected to an AI control unit.</desc>
+            <defs>
+                <marker id="arrow-nanofluid" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#38bdf8" />
+                </marker>
+            </defs>
+
+            {/* AI Control Unit */}
+            <rect x="180" y="10" width="140" height="40" rx="5" fill="#475569" />
+            <text x="250" y="35" textAnchor="middle" fill="white" fontSize="12">AI Control (EHS)</text>
+            <path d="M 250 50 L 250 70" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 4" />
+            <path d="M 180 85 L 210 70" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 4" />
+            <path d="M 320 85 L 290 70" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 4" />
+
+            {/* Main Pipe */}
+            <rect x="50" y="100" width="400" height="50" rx="5" fill="#64748b" stroke="#9ca3af" strokeWidth="1" />
+            <text x="70" y="120" fill="white" fontSize="12">Nanofluid Flow</text>
+            <path d="M 70 135 L 150 135" stroke="#38bdf8" strokeWidth="3" fill="none" markerEnd="url(#arrow-nanofluid)" />
+
+            {/* Magnetic Coil */}
+            <path d="M 150 95 C 150 80, 170 80, 170 95 S 190 110, 190 95 S 210 80, 210 95" stroke="#f59e0b" strokeWidth="3" fill="none" />
+            <path d="M 150 155 C 150 170, 170 170, 170 155 S 190 140, 190 155 S 210 170, 210 155" stroke="#f59e0b" strokeWidth="3" fill="none" />
+            <rect x="150" y="95" width="60" height="60" fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.3" />
+            <text x="180" y="200" textAnchor="middle" fill="#f59e0b" fontSize="10">Magnetic Field (0.5A)</text>
+            
+            {/* Ultrasonic Transducer */}
+            <rect x="300" y="85" width="80" height="15" rx="3" fill="#10b981" />
+            <text x="340" y="200" textAnchor="middle" fill="#10b981" fontSize="10">Ultrasonic Waves (40-55 kHz)</text>
+            
+            {/* Ultrasonic waves representation */}
+            <path d="M 310 100 Q 320 105, 330 100 T 350 100 T 370 100" stroke="#10b981" strokeWidth="1.5" fill="none" opacity="0.7">
+                 <animate attributeName="d" values="M 310 100 Q 320 105, 330 100 T 350 100 T 370 100; M 310 100 Q 320 95, 330 100 T 350 100 T 370 100; M 310 100 Q 320 105, 330 100 T 350 100 T 370 100" dur="1s" repeatCount="indefinite" />
+            </path>
+             <path d="M 310 110 Q 320 115, 330 110 T 350 110 T 370 110" stroke="#10b981" strokeWidth="1.5" fill="none" opacity="0.5">
+                 <animate attributeName="d" values="M 310 110 Q 320 115, 330 110 T 350 110 T 370 110; M 310 110 Q 320 105, 330 110 T 350 110 T 370 110; M 310 110 Q 320 115, 330 110 T 350 110 T 370 110" dur="1s" repeatCount="indefinite" />
+            </path>
+        </svg>
+    </div>
+);
+
 export const Technical: React.FC = () => {
     const { technicalTopic, setTechnicalTopic } = useContext(AppContext)!;
     const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
@@ -162,9 +206,18 @@ export const Technical: React.FC = () => {
     };
 
     const getDiagram = async (topic: string) => {
+        if (diagrams[topic]?.url) return;
+        
         if (topic.includes('GMEL-Desal')) {
             setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: 'component:DesalSystemDiagram', error: null }}));
             return;
+        }
+        if (topic.includes('GMEL-NanoStab')) {
+            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: 'component:NanoStabSystemDiagram', error: null }}));
+            return;
+        }
+         if (topic.includes('GMEL-CLG')) {
+            return; 
         }
 
         setDiagrams(prev => ({ ...prev, [topic]: { isLoading: true, url: null, error: null }}));
@@ -205,7 +258,7 @@ export const Technical: React.FC = () => {
                                 <div className="flex flex-wrap gap-4">
                                     <button onClick={() => getExplanation(topic, detail)} disabled={explanations[topic]?.isLoading} className="text-sm font-semibold text-sky-400 hover:text-sky-300 disabled:opacity-50">{explanations[topic]?.isLoading ? t('generating_explanation') + "..." : t('explain_more')}</button>
                                     <button onClick={() => getDemystification(topic, detail)} disabled={demystified[topic]?.isLoading} className="text-sm font-semibold text-amber-400 hover:text-amber-300 disabled:opacity-50">{demystified[topic]?.isLoading ? t('generating_explanation') + "..." : t('demystify_spec')}</button>
-                                    <button onClick={() => getDiagram(topic)} disabled={diagrams[topic]?.isLoading} className="text-sm font-semibold text-teal-400 hover:text-teal-300 disabled:opacity-50">{diagrams[topic]?.isLoading ? t('generating_diagram') + "..." : t('generate_diagram')}</button>
+                                    <button onClick={() => getDiagram(topic)} disabled={diagrams[topic]?.isLoading || topic.includes('GMEL-CLG')} className="text-sm font-semibold text-teal-400 hover:text-teal-300 disabled:opacity-50 disabled:cursor-not-allowed">{diagrams[topic]?.isLoading ? t('generating_diagram') + "..." : t('generate_diagram')}</button>
                                 </div>
 
                                 {demystified[topic] && (
@@ -235,6 +288,8 @@ export const Technical: React.FC = () => {
                                         {diagrams[topic].error && <p className="text-red-400">{diagrams[topic].error}</p>}
                                         {diagrams[topic].url === 'component:DesalSystemDiagram' ? (
                                             <DesalSystemDiagram />
+                                        ) : diagrams[topic].url === 'component:NanoStabSystemDiagram' ? (
+                                            <NanoStabSystemDiagram />
                                         ) : diagrams[topic].url ? (
                                             <img src={diagrams[topic].url} alt={`Diagram of ${topic}`} className="w-full max-w-sm mx-auto rounded-lg" />
                                         ) : null}
