@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { generateJsonWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import { AppContext } from '../contexts/AppContext';
+import ExportButtons from './shared/ExportButtons';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -45,10 +47,16 @@ interface ComparisonResult {
 }
 
 export const TechComparison: React.FC = () => {
+    const { lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setComparisonResult(null);
+        setError(null);
+    }, [lang]);
 
     const handleCompare = async () => {
         setIsLoading(true);
@@ -124,7 +132,10 @@ export const TechComparison: React.FC = () => {
 
             {comparisonResult ? (
                 <div className="space-y-8">
-                    <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1: 'GMEL-DrillX', region2: 'Conventional RSS' })}</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1: 'GMEL-DrillX', region2: 'Conventional RSS' })}</h2>
+                        <ExportButtons content={JSON.stringify(comparisonResult, null, 2)} title="Drilling_Tech_Comparison" />
+                    </div>
                     <div className="bg-slate-800 rounded-lg border border-slate-700">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-slate-700">

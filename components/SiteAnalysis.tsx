@@ -5,6 +5,7 @@ import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 import { Region } from '../types';
+import ExportButtons from './shared/ExportButtons';
 
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
@@ -143,6 +144,14 @@ export const SiteAnalysis: React.FC = () => {
 
     // Map updates when region changes
     useEffect(() => {
+        setAnalysis({text: '', sources: []});
+        setHeatmapData([]);
+        setShowHeatmap(false);
+        if (heatmapLayerRef.current && mapRef.current) {
+            mapRef.current.removeLayer(heatmapLayerRef.current);
+            heatmapLayerRef.current = null;
+        }
+
         if (mapRef.current && regionCoordinates[region]) {
             mapRef.current.setView(regionCoordinates[region], 10);
 
@@ -317,10 +326,13 @@ export const SiteAnalysis: React.FC = () => {
 
                         {analysis.text && (
                              <div>
-                                <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                                    {t('geographical_analysis')}
-                                    <SpeakerIcon text={analysis.text} />
-                                </h2>
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+                                        {t('geographical_analysis')}
+                                        <SpeakerIcon text={analysis.text} />
+                                    </h2>
+                                    <ExportButtons content={analysis.text} title={`Site_Analysis_${region}`} />
+                                </div>
                                  <p className="text-slate-300 whitespace-pre-wrap">{analysis.text}</p>
                                 {analysis.sources.length > 0 && (
                                     <div className="mt-4">

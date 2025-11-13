@@ -7,6 +7,7 @@ import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import ExportButtons from './shared/ExportButtons';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
@@ -166,11 +167,17 @@ const ImpactCard: React.FC<{ title: string; data: ImpactCategory; icon: React.Re
 
 
 const ImpactCalculator: React.FC = () => {
+    const { region } = useContext(AppContext)!;
     const { t } = useI18n();
     const [scale, setScale] = useState<number>(5);
     const [results, setResults] = useState<ImpactResults | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setResults(null);
+        setError(null);
+    }, [region]);
     
     const handleCalculate = async () => {
         setIsLoading(true);
@@ -241,7 +248,10 @@ const ImpactCalculator: React.FC = () => {
             
             {results && (
                 <div className="space-y-6">
-                    <h3 className="text-2xl font-semibold text-white">{t('impact_results_for', { scale })}</h3>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-2xl font-semibold text-white">{t('impact_results_for', { scale })}</h3>
+                        <ExportButtons content={JSON.stringify(results, null, 2)} title={`GMEL_Impact_Analysis_${scale}MW`} />
+                    </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <ImpactCard 
                             title={t('economic_impact')} 
@@ -304,6 +314,11 @@ const SWOTAnalysis: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        setSwot(null);
+        setError(null);
+    }, [region]);
+
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
@@ -343,12 +358,15 @@ const SWOTAnalysis: React.FC = () => {
             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
             {error && <p className="mt-4 text-red-400">{error}</p>}
             {swot && (
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <SWOTCard title={t('strengths')} items={swot.strengths} color="border-green-500" />
-                    <SWOTCard title={t('weaknesses')} items={swot.weaknesses} color="border-yellow-500" />
-                    <SWOTCard title={t('opportunities')} items={swot.opportunities} color="border-sky-500" />
-                    <SWOTCard title={t('threats')} items={swot.threats} color="border-red-500" />
-                    <div className="md:col-span-2"><Feedback sectionId={`swot-analysis-${region}`} /></div>
+                <div className="mt-6">
+                    <ExportButtons content={JSON.stringify(swot, null, 2)} title={`SWOT_Analysis_${region}`} />
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SWOTCard title={t('strengths')} items={swot.strengths} color="border-green-500" />
+                        <SWOTCard title={t('weaknesses')} items={swot.weaknesses} color="border-yellow-500" />
+                        <SWOTCard title={t('opportunities')} items={swot.opportunities} color="border-sky-500" />
+                        <SWOTCard title={t('threats')} items={swot.threats} color="border-red-500" />
+                        <div className="md:col-span-2"><Feedback sectionId={`swot-analysis-${region}`} /></div>
+                    </div>
                 </div>
             )}
         </div>
@@ -361,6 +379,11 @@ const ESGImpactAnalysis: React.FC = () => {
     const [esg, setEsg] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setEsg(null);
+        setError(null);
+    }, [region]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -393,6 +416,7 @@ const ESGImpactAnalysis: React.FC = () => {
             {error && <p className="mt-4 text-red-400">{error}</p>}
             {esg && (
                 <div className="mt-6 space-y-6">
+                     <ExportButtons content={JSON.stringify(esg, null, 2)} title={`ESG_Impact_Analysis`} />
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div>
                             <h4 className="font-bold text-green-400 mb-2">{t('environmental')}</h4>
@@ -452,7 +476,6 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         setSummary('');
         setStrategicAnalysis('');
-        // This effect runs when the region changes, resetting the generated content.
     }, [region]);
 
     const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
@@ -520,10 +543,13 @@ export const Dashboard: React.FC = () => {
 
                 {strategicAnalysis && (
                     <div className="mt-6 p-4 bg-slate-900 rounded-lg border border-sky-500/30">
-                         <h3 className="font-semibold text-sky-400 mb-2 flex items-center">
-                            {t('generated_strategic_analysis')}
-                            <SpeakerIcon text={strategicAnalysis} />
-                         </h3>
+                         <div className="flex justify-between items-start">
+                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">
+                                {t('generated_strategic_analysis')}
+                                <SpeakerIcon text={strategicAnalysis} />
+                            </h3>
+                            <ExportButtons content={strategicAnalysis} title={`Strategic_Analysis_${region}`} />
+                         </div>
                          <p className="text-slate-300 text-sm whitespace-pre-wrap">{strategicAnalysis}</p>
                          <Feedback sectionId={`strategic-analysis-${region}`} />
                     </div>

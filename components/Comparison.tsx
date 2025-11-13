@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { generateTextWithThinking, generateJsonWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import { AppContext } from '../contexts/AppContext';
+import ExportButtons from './shared/ExportButtons';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -53,6 +55,7 @@ const renderCellContent = (content: any): string => {
 };
 
 export const Comparison: React.FC = () => {
+    const { lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
@@ -60,6 +63,13 @@ export const Comparison: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [strategicInsights, setStrategicInsights] = useState<string>('');
     const [isInsightsLoading, setIsInsightsLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        setComparisonData([]);
+        setNarrative('');
+        setStrategicInsights('');
+        setError(null);
+    }, [lang]);
 
 
     const fetchComparison = async () => {
@@ -140,6 +150,9 @@ export const Comparison: React.FC = () => {
                 </div>
             ) : comparisonData.length > 0 && (
                 <div className="bg-slate-800 rounded-lg border border-slate-700">
+                    <div className="p-4 flex justify-end">
+                       <ExportButtons content={`Comparison Table:\n${JSON.stringify(comparisonData, null, 2)}\n\nNarrative:\n${narrative}`} title="Qeshm_vs_Makoo_Comparison" />
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-slate-700">
                             <thead className="bg-slate-700/50">

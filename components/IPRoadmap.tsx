@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { generateGroundedText } from '../services/geminiService';
 import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
@@ -6,6 +6,8 @@ import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 import { Patent } from '../types';
 import { PatentInfographic } from './PatentInfographic';
+import ExportButtons from './shared/ExportButtons';
+import { AppContext } from '../contexts/AppContext';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -67,10 +69,16 @@ interface AnalysisResult {
 }
 
 const CompetitiveAnalysis: React.FC = () => {
+    const { lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setAnalysis(null);
+        setError(null);
+    }, [lang]);
 
     const handleRunAnalysis = async () => {
         setIsLoading(true);
@@ -125,6 +133,7 @@ const CompetitiveAnalysis: React.FC = () => {
             
             {analysis && (
                 <div className="mt-6 space-y-6">
+                    <ExportButtons content={JSON.stringify(analysis, null, 2)} title="Competitive_Patent_Analysis" />
                     {analysis.potential_overlaps.length > 0 && (
                         <div>
                             <h3 className="text-xl font-semibold text-white mb-4">{t('potential_overlaps_title')}</h3>

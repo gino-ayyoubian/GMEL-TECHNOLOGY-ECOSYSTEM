@@ -4,6 +4,7 @@ import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import ExportButtons from './shared/ExportButtons';
 
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
@@ -102,6 +103,11 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
     const [isTechLoading, setIsTechLoading] = useState(false);
     const [techError, setTechError] = useState<string | null>(null);
 
+    useEffect(() => {
+        setTechComparison(null);
+        setTechError(null);
+    }, [benchmarkRegion]);
+
     const handleTechCompare = async () => {
         setIsTechLoading(true);
         setTechError(null);
@@ -160,7 +166,10 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
 
             {techComparison && (
                  <div className="space-y-6 mt-6">
-                    <h3 className="text-lg font-semibold text-white">{t('comparison_between', { region1: 'GMEL-DrillX', region2: `${benchmarkRegion} Tech` })}</h3>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-white">{t('comparison_between', { region1: 'GMEL-DrillX', region2: `${benchmarkRegion} Tech` })}</h3>
+                        <ExportButtons content={JSON.stringify(techComparison, null, 2)} title={`Tech_Comparison_DrillX_vs_${benchmarkRegion}`} />
+                    </div>
                     <div className="overflow-hidden border border-slate-700 rounded-lg">
                          <table className="min-w-full divide-y divide-slate-700">
                             <thead className="bg-slate-700/50">
@@ -232,6 +241,7 @@ const CompetitorAnalysis: React.FC = () => {
             {error && <p className="mt-4 text-red-400">{error}</p>}
             {data && (
                 <div className="mt-6 space-y-6">
+                    <ExportButtons content={JSON.stringify(data, null, 2)} title="Competitor_Analysis" />
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-slate-700">
                             <thead className="bg-slate-700/50">
@@ -324,6 +334,11 @@ export const Benchmark: React.FC = () => {
         }
     }, [region1, region2]);
 
+    useEffect(() => {
+        setComparisonResult(null);
+        setError(null);
+    }, [region1, region2]);
+
     const handleCompare = async (r1: string, r2: string) => {
         if (r1 === r2) {
             setError(t('error_select_different_regions'));
@@ -414,7 +429,10 @@ export const Benchmark: React.FC = () => {
                         </div>
                     ) : comparisonResult ? (
                         <div className="space-y-8">
-                            <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1, region2 })}</h2>
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1, region2 })}</h2>
+                                <ExportButtons content={JSON.stringify(comparisonResult, null, 2)} title={`Benchmark_${region1}_vs_${region2}`} />
+                            </div>
                             <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
                                  <table className="min-w-full divide-y divide-slate-700 table-fixed">
                                     <thead className="bg-slate-700/50">

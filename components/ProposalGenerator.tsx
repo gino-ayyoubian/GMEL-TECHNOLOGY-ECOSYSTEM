@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { generateJsonWithThinking, generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -6,6 +6,7 @@ import { useI18n } from '../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
+import ExportButtons from './shared/ExportButtons';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -81,6 +82,11 @@ export const ProposalGenerator: React.FC = () => {
     const [proposalData, setProposalData] = useState<ProposalData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setProposalData(null);
+        setError(null);
+    }, [targetRegion]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -173,93 +179,8 @@ export const ProposalGenerator: React.FC = () => {
         return html;
     }
 
-    const handleExportPdf = async () => {
-        if (!proposalData) return;
-    
-        await document.fonts.ready;
-    
-        const doc = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4'
-        });
-        
-        const reportElement = document.createElement('div');
-        reportElement.style.width = '210mm';
-        reportElement.style.boxSizing = 'border-box';
-        reportElement.style.padding = '15mm';
-        reportElement.style.color = '#333';
-        reportElement.style.backgroundColor = '#fff';
-        reportElement.style.fontSize = '10pt';
-        reportElement.innerHTML = getProposalAsHtml();
-    
-        reportElement.style.position = 'absolute';
-        reportElement.style.left = '-2999px'; // Move off-screen
-        document.body.appendChild(reportElement);
-    
-        await new Promise(resolve => setTimeout(resolve, 200));
-    
-        await doc.html(reportElement, {
-            margin: [15, 15, 15, 15],
-            autoPaging: 'slice',
-            html2canvas: {
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-            },
-            callback: (doc) => {
-                document.body.removeChild(reportElement);
-        
-                const totalPages = (doc as any).internal.getNumberOfPages();
-                for (let i = 1; i <= totalPages; i++) {
-                    doc.setPage(i);
-                    
-                    if (userRole !== 'admin') {
-                        doc.saveGraphicsState();
-                        doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
-                        doc.setFontSize(45);
-                        doc.setTextColor(150);
-                        const watermarkText = "GeoMeta Energy Layer – KKM Int'l Group";
-                        doc.text(watermarkText, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() / 2, { align: 'center', angle: 45 });
-                        doc.restoreGraphicsState();
-                
-                        doc.setFontSize(8);
-                        doc.setTextColor(100);
-                        doc.text(`Page ${i} of ${totalPages} | Confidential | Inventor: Seyed Gino Ayyoubian`, 15, doc.internal.pageSize.getHeight() - 10);
-                    } else {
-                        doc.setFontSize(8);
-                        doc.setTextColor(100);
-                        doc.text(`Page ${i} of ${totalPages}`, 15, doc.internal.pageSize.getHeight() - 10);
-                    }
-                }
-                doc.save(`GMEL_Proposal_${proposalData.gmel_proposal.region.replace(/\s/g, '_')}.pdf`);
-            }
-        });
-    };
-
-    const handleExportWord = () => {
-        if (!proposalData) return;
-        const htmlContent = getProposalAsHtml();
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-            "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-            "xmlns='http://www.w3.org/TR/REC-html40'>" +
-            "<head><meta charset='utf-8'><title>GMEL Proposal</title></head><body>";
-        const footer = "</body></html>";
-        const sourceHTML = header + htmlContent + footer;
-
-        const blob = new Blob([sourceHTML], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `GMEL_Proposal_${proposalData.gmel_proposal.region.replace(/\s/g, '_')}.doc`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
-    const handleExportTxt = () => {
-        if (!proposalData) return;
+    const getProposalAsText = () => {
+        if (!proposalData) return '';
         const data = proposalData.gmel_proposal;
 
         let textContent = `GeoMeta Energy Layer - Intelligent Project Proposal\n`;
@@ -285,17 +206,10 @@ export const ProposalGenerator: React.FC = () => {
         textContent += createTextSection(t('risk_and_roadmap'), data.risk_and_roadmap);
         textContent += createTextSection(t('gmel_patent_reference'), data.gmel_patent_reference);
         textContent += createTextSection(t('ownership_statement'), data.ownership_statement);
-
-        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `GMEL_Proposal_${data.region.replace(/\s/g, '_')}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        
+        return textContent;
     };
+    
 
     return (
         <div className="space-y-8">
@@ -330,18 +244,13 @@ export const ProposalGenerator: React.FC = () => {
                 <div className="space-y-6">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-white">{t('generated_proposal_title', { region: proposalData.gmel_proposal.region })}</h2>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-300">Export as:</span>
-                            <button onClick={handleExportPdf} className="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as PDF">
-                                PDF
-                            </button>
-                            <button onClick={handleExportWord} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as Word">
-                                Word
-                            </button>
-                            <button onClick={handleExportTxt} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as Text">
-                                Text
-                            </button>
-                        </div>
+                        {userRole === 'admin' && (
+                            <ExportButtons 
+                                content={getProposalAsText()}
+                                title={`GMEL_Proposal_${proposalData.gmel_proposal.region}`}
+                                htmlContent={getProposalAsHtml()}
+                            />
+                        )}
                     </div>
                     <ProposalSection title={t('executive_summary')} content={proposalData.gmel_proposal.executive_summary} />
                     <ProposalSection title={t('regional_analysis')} content={proposalData.gmel_proposal.regional_analysis} />

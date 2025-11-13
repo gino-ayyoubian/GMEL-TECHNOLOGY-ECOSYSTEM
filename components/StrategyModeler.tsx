@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { generateJsonWithThinking } from '../services/geminiService';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import ExportButtons from './shared/ExportButtons';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -50,6 +51,11 @@ export const StrategyModeler: React.FC = () => {
     const [strategy, setStrategy] = useState<StrategyResult | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setStrategy(null);
+        setError(null);
+    }, [targetRegion]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -137,7 +143,10 @@ export const StrategyModeler: React.FC = () => {
 
             {strategy && (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-semibold text-white">{t('jv_strategy_for', { region: targetRegion })}</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-semibold text-white">{t('jv_strategy_for', { region: targetRegion })}</h2>
+                        <ExportButtons content={JSON.stringify(strategy, null, 2)} title={`JV_Strategy_${targetRegion}`} />
+                    </div>
                     <StrategySection title={t('optimal_patent_package')} content={strategy.optimal_patent_package} sectionId="patent-package" />
                     <StrategySection title={t('local_value_proposition')} content={strategy.local_value_proposition} sectionId="value-prop" />
                     <StrategySection title={t('tech_transfer_plan')} content={strategy.tech_transfer_plan} sectionId="tech-transfer" />

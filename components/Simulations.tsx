@@ -1,10 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { generateJsonWithThinking, generateGroundedText, generateTextWithThinking } from '../services/geminiService';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { AppContext } from '../contexts/AppContext';
 import { Region } from '../types';
 import { Feedback } from './shared/Feedback';
+import ExportButtons from './shared/ExportButtons';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -84,6 +85,16 @@ export const Simulations: React.FC = () => {
     const [visionaryProjectPlan, setVisionaryProjectPlan] = useState<string | null>(null);
     const [isVisionaryPlanLoading, setIsVisionaryPlanLoading] = useState<boolean>(false);
 
+    useEffect(() => {
+        setGmelPackage(null);
+        setGmelError(null);
+        setIdealProjectPlan(null);
+        setVisionaryProposal(null);
+        setVisionaryError(null);
+        setVisionarySources([]);
+        setVisionaryProjectPlan(null);
+    }, [targetRegion]);
+
 
     const simulationRegions: Region[] = [
         'Kurdistan Region, Iraq',
@@ -97,19 +108,6 @@ export const Simulations: React.FC = () => {
         'United Arab Emirates',
         'Qatar'
     ];
-
-    const exportTxt = (content: string, filename: string) => {
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
 
     const handleGenerateGmelPackage = async () => {
         setIsGmelLoading(true);
@@ -242,6 +240,9 @@ export const Simulations: React.FC = () => {
                 
                 {gmelPackage && (
                     <div className="space-y-4 pt-4 border-t border-slate-700">
+                        <div className="flex justify-end">
+                            <ExportButtons content={JSON.stringify(gmelPackage, null, 2)} title={`Ideal_GMEL_Package_${targetRegion}`} />
+                        </div>
                         <div className="p-4 bg-slate-900 rounded-lg">
                             <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('recommended_patents')} <SpeakerIcon text={gmelPackage.recommendedPatents.join(', ')} /></h3>
                             <ul className="list-disc list-inside text-slate-300">
@@ -271,9 +272,7 @@ export const Simulations: React.FC = () => {
                                 <div className="mt-4 p-4 bg-slate-900 rounded-lg">
                                     <div className="flex justify-between items-center mb-2">
                                         <h3 className="font-semibold text-teal-400">{t('generated_business_plan')}</h3>
-                                        <button onClick={() => exportTxt(idealProjectPlan, `Business_Plan_Ideal_${targetRegion.replace(/ /g, '_')}.txt`)} className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-md">
-                                            {t('export_txt')}
-                                        </button>
+                                        <ExportButtons content={idealProjectPlan} title={`Business_Plan_Ideal_${targetRegion}`} />
                                     </div>
                                     <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm">{idealProjectPlan}</pre>
                                 </div>
@@ -300,7 +299,10 @@ export const Simulations: React.FC = () => {
 
                 {visionaryProposal && (
                     <div className="space-y-4 pt-4 border-t border-slate-700">
-                        <h3 className="text-xl font-bold text-amber-400">{t('visionary_proposal_for', {region: visionaryProposal.proposalTitle})}</h3>
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-amber-400">{t('visionary_proposal_for', {region: visionaryProposal.proposalTitle})}</h3>
+                            <ExportButtons content={JSON.stringify(visionaryProposal, null, 2)} title={`Visionary_Proposal_${targetRegion}`} />
+                        </div>
                         
                         <div className="p-4 bg-slate-900 rounded-lg">
                             <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('core_concept')} <SpeakerIcon text={visionaryProposal.coreConcept} /></h4>
@@ -348,9 +350,7 @@ export const Simulations: React.FC = () => {
                                 <div className="mt-4 p-4 bg-slate-900 rounded-lg">
                                      <div className="flex justify-between items-center mb-2">
                                         <h3 className="font-semibold text-teal-400">{t('generated_business_plan')}</h3>
-                                         <button onClick={() => exportTxt(visionaryProjectPlan, `Business_Plan_Visionary_${targetRegion.replace(/ /g, '_')}.txt`)} className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-md">
-                                            {t('export_txt')}
-                                        </button>
+                                        <ExportButtons content={visionaryProjectPlan} title={`Business_Plan_Visionary_${targetRegion}`} />
                                     </div>
                                     <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm">{visionaryProjectPlan}</pre>
                                 </div>

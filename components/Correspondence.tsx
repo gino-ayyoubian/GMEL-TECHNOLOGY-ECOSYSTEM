@@ -5,6 +5,7 @@ import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
+import ExportButtons from './shared/ExportButtons';
 
 export const Correspondence: React.FC = () => {
     const { region, lang, userRole } = useContext(AppContext)!;
@@ -37,75 +38,13 @@ export const Correspondence: React.FC = () => {
         }
     };
 
-    const handleExportPdf = () => {
-        if (!letterRef.current) return;
-        const doc = new jsPDF();
-        
-        doc.html(letterRef.current, {
-            callback: function (doc) {
-                const totalPages = (doc as any).internal.getNumberOfPages();
-                for (let i = 1; i <= totalPages; i++) {
-                    doc.setPage(i);
-                    
-                    if (userRole !== 'admin') {
-                        // WATERMARK
-                        doc.saveGraphicsState();
-                        doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
-                        doc.setFontSize(45);
-                        doc.setTextColor(150);
-                        const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.org";
-                        const textRotationAngle = 45;
-                        const centerX = doc.internal.pageSize.getWidth() / 2;
-                        const centerY = doc.internal.pageSize.getHeight() / 2;
-                        doc.text(text, centerX, centerY, { align: 'center', angle: textRotationAngle });
-                        if (KKM_LOGO_DATA_URL) {
-                             doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
-                        }
-                        doc.restoreGraphicsState();
-                    }
-
-                    // FOOTER
-                    doc.setFontSize(8);
-                    doc.setTextColor(100);
-                    const footerText = `Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`;
-                    doc.text(footerText, 14, doc.internal.pageSize.getHeight() - 10);
-                }
-                doc.save(`KKM_Correspondence_${letterNumber}.pdf`);
-            },
-            x: 15,
-            y: 15,
-            width: 180,
-            windowWidth: letterRef.current.scrollWidth,
-            html2canvas: {
-                scale: 0.5,
-                useCORS: true,
-            }
-        });
+    const getLetterAsHtml = () => {
+        if (!letterRef.current) return '';
+        return letterRef.current.innerHTML;
     };
 
-    const handleExportWord = () => {
-        if (!letterRef.current) return;
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
-            "xmlns='http://www.w3.org/TR/REC-html40'>"+
-            "<head><meta charset='utf-8'><title>Export HTML to Word</title></head><body>";
-        const footer = "</body></html>";
-        const sourceHTML = header + letterRef.current.innerHTML + footer;
-    
-        const blob = new Blob([sourceHTML], { type: 'application/vnd.ms-word' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `KKM_Correspondence_${letterNumber}.doc`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
-    const handleExportTxt = () => {
-        if (!generatedLetter) return;
-    
+    const getLetterAsText = () => {
+        if (!generatedLetter) return '';
         let textContent = `
 Date: ${new Date().toLocaleDateString('en-CA')}
 Letter No.: ${letterNumber}
@@ -123,20 +62,10 @@ Sincerely,
 Seyed Gino Ayyoubian, Inventor
 KKM International Group
 `;
-    
         if (attachments) {
             textContent += `\nAttachments: ${attachments}`;
         }
-    
-        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `KKM_Correspondence_${letterNumber}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        return textContent;
     };
 
     return (
@@ -177,18 +106,12 @@ KKM International Group
                             {t('generated_letter_title')}
                             {generatedLetter && <SpeakerIcon text={generatedLetter} />}
                         </h2>
-                        {generatedLetter && (
-                            <div className="flex items-center gap-2">
-                                <button onClick={handleExportPdf} className="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as PDF">
-                                    PDF
-                                </button>
-                                <button onClick={handleExportWord} className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as Word">
-                                    Word
-                                </button>
-                                <button onClick={handleExportTxt} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors" title="Export as Text">
-                                    Text
-                                </button>
-                            </div>
+                        {generatedLetter && userRole === 'admin' && (
+                           <ExportButtons
+                                content={getLetterAsText()}
+                                htmlContent={getLetterAsHtml()}
+                                title={`KKM_Correspondence_${letterNumber}`}
+                           />
                         )}
                     </div>
 
@@ -200,7 +123,7 @@ KKM International Group
                             <div className="h-4 bg-slate-700 rounded w-1/2"></div>
                         </div>
                     ) : (
-                        <div ref={letterRef} className="p-8 bg-white text-slate-800 rounded-md font-serif text-sm" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
+                        <div ref={letterRef} className="p-8 bg-white text-slate-800 rounded-md font-serif text-sm" dir={lang === 'fa' || lang === 'ar' || lang === 'ku' ? 'rtl' : 'ltr'}>
                             <div className="flex justify-between items-start mb-8">
                                 <img src={KKM_LOGO_DATA_URL} alt="KKM Logo" className="h-16 w-auto" />
                                 <div className="text-xs" style={{textAlign: lang === 'fa' ? 'left' : 'right'}}>

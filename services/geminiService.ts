@@ -1,6 +1,31 @@
 import { GoogleGenAI, GenerateContentResponse, Type, Chat, Content } from "@google/genai";
 import { ChatMessage, FinancialData } from '../types';
 
+const withRetries = async <T>(fn: () => Promise<T>, retries = 3, initialDelay = 1000): Promise<T> => {
+    let lastError: Error | unknown;
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            const errorMessage = (error instanceof Error) ? error.message.toLowerCase() : '';
+            
+            // Retry on 5xx server errors, rate limiting, or network errors like the XHR error.
+            if (errorMessage.includes('500') || errorMessage.includes('503') || errorMessage.includes('rate limit') || errorMessage.includes('xhr error')) {
+                const delay = initialDelay * Math.pow(2, i) + Math.random() * 100; // Add jitter
+                console.warn(`API call failed (attempt ${i + 1}/${retries}). Retrying in ${delay.toFixed(0)}ms...`, error);
+                await new Promise(res => setTimeout(res, delay));
+            } else {
+                // Not a retryable error, throw immediately
+                throw error;
+            }
+        }
+    }
+    console.error("API call failed after multiple retries.", lastError);
+    throw lastError;
+};
+
+
 const getAiClient = () => {
   if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
@@ -11,12 +36,14 @@ const getAiClient = () => {
 // @ts-ignore
 export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash' | 'gemini-flash-lite-latest' = 'gemini-2.5-flash'): Promise<string> => {
   try {
-    const ai = getAiClient();
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
+    return await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+        });
+        return response.text;
     });
-    return response.text;
   } catch (error) {
     console.error("Error generating text:", error);
     throw new Error("An error occurred while generating the text. The service may be temporarily unavailable.");
@@ -25,27 +52,29 @@ export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash'
 
 export const generateTextWithThinking = async (prompt: string): Promise<string> => {
   try {
-    const ai = getAiClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: prompt,
-      config: {
-        thinkingConfig: { thinkingBudget: 32768 }
-      }
-    });
+    return await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-pro',
+          contents: prompt,
+          config: {
+            thinkingConfig: { thinkingBudget: 32768 }
+          }
+        });
 
-    if (!response.text) {
-        const finishReason = response.candidates?.[0]?.finishReason;
-        if (finishReason === 'SAFETY') {
-            throw new Error("The analysis was blocked due to safety concerns. Please modify your request.");
+        if (!response.text) {
+            const finishReason = response.candidates?.[0]?.finishReason;
+            if (finishReason === 'SAFETY') {
+                throw new Error("The analysis was blocked due to safety concerns. Please modify your request.");
+            }
+            if (finishReason && finishReason !== 'STOP') {
+                throw new Error(`The analysis could not be completed. Reason: ${finishReason}.`);
+            }
+            throw new Error("The model returned an empty response. Please try rephrasing your request.");
         }
-        if (finishReason && finishReason !== 'STOP') {
-            throw new Error(`The analysis could not be completed. Reason: ${finishReason}.`);
-        }
-        throw new Error("The model returned an empty response. Please try rephrasing your request.");
-    }
-    
-    return response.text;
+        
+        return response.text;
+    });
   } catch (error) {
     console.error("Error generating text with thinking:", error);
     if (error instanceof Error && (error.message.includes("safety concerns") || error.message.includes("could not be completed") || error.message.includes("empty response"))) {
@@ -58,15 +87,17 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
 
 export const generateJsonWithThinking = async (prompt: string): Promise<string> => {
   try {
-    const ai = getAiClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      }
+    return await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-pro',
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          }
+        });
+        return response.text;
     });
-    return response.text;
   } catch (error) {
     console.error("Error generating structured data with thinking:", error);
     throw new Error("An error occurred during complex JSON analysis. The service may be temporarily unavailable.");
@@ -76,31 +107,32 @@ export const generateJsonWithThinking = async (prompt: string): Promise<string> 
 
 export const generateGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
-    const ai = getAiClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
+    return await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            tools: [{ googleSearch: {} }],
+          },
+        });
+        
+        if (!response.text) {
+            const finishReason = response.candidates?.[0]?.finishReason;
+            if (finishReason === 'SAFETY') {
+                throw new Error("The request was blocked for safety reasons. Please adjust your prompt.");
+            }
+            if (finishReason && finishReason !== 'STOP') {
+                throw new Error(`The model failed to generate a response. Reason: ${finishReason}.`);
+            }
+            throw new Error("Received an empty response from the model. Please try again.");
+        }
+        
+        const text = response.text;
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+        return { text, sources };
     });
-    
-    if (!response.text) {
-        const finishReason = response.candidates?.[0]?.finishReason;
-        if (finishReason === 'SAFETY') {
-            throw new Error("The request was blocked for safety reasons. Please adjust your prompt.");
-        }
-        if (finishReason && finishReason !== 'STOP') {
-            throw new Error(`The model failed to generate a response. Reason: ${finishReason}.`);
-        }
-        throw new Error("Received an empty response from the model. Please try again.");
-    }
-    
-    const text = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-
-    return { text, sources };
-
   } catch (error) {
     console.error("Error generating grounded text:", error);
     if (error instanceof Error && (error.message.includes("safety reasons") || error.message.includes("failed to generate") || error.message.includes("empty response"))) {
@@ -112,8 +144,6 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
 
 export const generateMapsGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
-    const ai = getAiClient();
-
     const getPosition = (): Promise<GeolocationPosition> => {
         return new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -139,20 +169,22 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
         console.warn("Could not get user location for grounding, proceeding without it.", geoError);
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        tools: [{ googleMaps: {} }],
-        toolConfig: toolConfig,
-      },
+    return await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            tools: [{ googleMaps: {} }],
+            toolConfig: toolConfig,
+          },
+        });
+        
+        const text = response.text;
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+        return { text, sources };
     });
-    
-    const text = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-
-    return { text, sources };
-
   } catch (error) {
     console.error("Error generating maps grounded text:", error);
     throw new Error("An error occurred while fetching up-to-date geographical information. The service may be temporarily unavailable.");
@@ -161,27 +193,28 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
 
 export const generateJsonData = async (prompt: string): Promise<[number, number, number][]> => {
     try {
-        const ai = getAiClient();
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
+        const jsonStr = await withRetries(async () => {
+            const ai = getAiClient();
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
                         type: Type.ARRAY,
                         items: {
-                            type: Type.NUMBER,
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.NUMBER,
+                            },
+                            minItems: 3,
+                            maxItems: 3,
                         },
-                        minItems: 3,
-                        maxItems: 3,
                     },
                 },
-            },
+            });
+            return response.text.trim();
         });
-
-        const jsonStr = response.text.trim();
         return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Error generating JSON data for heatmap:", error);
@@ -191,31 +224,33 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
 
 export const generateFinancialData = async (region: string, lang: string): Promise<FinancialData[]> => {
   try {
-    const ai = getAiClient();
     const prompt = `As a financial analyst, generate key financial projections for a 5MW GMEL geothermal pilot project in '${region}'. Use up-to-date economic data for the region. The output MUST be a valid JSON array. The baseline for a similar project in an Iranian Free Zone is: 575B Toman CAPEX, 390B Toman Annual Revenue, 2-year Payback, 42% ROI, 2750B Toman 10-Year NPV. Adjust these figures based on the specific economic conditions, labor costs, and energy market of '${region}'. All descriptions must be in the language with this code: ${lang}.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              component: { type: Type.STRING },
-              value: { type: Type.NUMBER },
-              unit: { type: Type.STRING },
-              description: { type: Type.STRING },
-            },
-            required: ['component', 'value', 'unit', 'description']
-          }
-        }
-      },
+    const jsonStr = await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-pro',
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  component: { type: Type.STRING },
+                  value: { type: Type.NUMBER },
+                  unit: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                },
+                required: ['component', 'value', 'unit', 'description']
+              }
+            }
+          },
+        });
+        return response.text.trim();
     });
-
-    const jsonStr = response.text.trim();
+    
     const data = JSON.parse(jsonStr);
     
     const requiredComponents = ['CAPEX', 'Revenue', 'Payback', 'ROI', 'NPV'];
@@ -233,22 +268,24 @@ export const generateFinancialData = async (region: string, lang: string): Promi
 
 export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '16:9'): Promise<string> => {
   try {
-    const ai = getAiClient();
-    const response = await ai.models.generateImages({
-      model: 'imagen-4.0-generate-001',
-      prompt: prompt,
-      config: {
-        numberOfImages: 1,
-        outputMimeType: 'image/jpeg',
-        aspectRatio: aspectRatio,
-      },
-    });
+    return await withRetries(async () => {
+        const ai = getAiClient();
+        const response = await ai.models.generateImages({
+          model: 'imagen-4.0-generate-001',
+          prompt: prompt,
+          config: {
+            numberOfImages: 1,
+            outputMimeType: 'image/jpeg',
+            aspectRatio: aspectRatio,
+          },
+        });
 
-    if (response.generatedImages && response.generatedImages.length > 0) {
-      const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
-      return `data:image/jpeg;base64,${base64ImageBytes}`;
-    }
-    throw new Error("Model did not return an image.");
+        if (response.generatedImages && response.generatedImages.length > 0) {
+          const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
+          return `data:image/jpeg;base64,${base64ImageBytes}`;
+        }
+        throw new Error("Model did not return an image.");
+    });
   } catch (error) {
     console.error("Error generating image:", error);
     throw new Error("Failed to generate the image. The prompt may be unsafe or the service is unavailable.");
@@ -257,13 +294,15 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
 
 export const generateVideo = async (prompt: string, config: any): Promise<any> => {
     try {
-        const ai = getAiClient();
-        const operation = await ai.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
-            prompt,
-            config
+        return await withRetries(async () => {
+            const ai = getAiClient();
+            const operation = await ai.models.generateVideos({
+                model: 'veo-3.1-fast-generate-preview',
+                prompt,
+                config
+            });
+            return operation;
         });
-        return operation;
     } catch (error) {
         console.error("Error generating video:", error);
         if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
@@ -275,9 +314,11 @@ export const generateVideo = async (prompt: string, config: any): Promise<any> =
 
 export const getVideoOperation = async (operation: any): Promise<any> => {
     try {
-        const ai = getAiClient();
-        const result = await ai.operations.getVideosOperation({ operation });
-        return result;
+        return await withRetries(async () => {
+            const ai = getAiClient();
+            const result = await ai.operations.getVideosOperation({ operation });
+            return result;
+        });
     } catch (error) {
         console.error("Error getting video operation status:", error);
         if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
@@ -293,20 +334,21 @@ export const continueChat = async (history: ChatMessage[]): Promise<string> => {
         parts: [{ text: msg.text }],
     }));
 
-    const ai = getAiClient();
-    const chat: Chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        history: geminiHistory,
-    });
-
     const lastMessage = history[history.length - 1];
     if (!lastMessage) {
         return "No message to send.";
     }
 
     try {
-        const response: GenerateContentResponse = await chat.sendMessage({ message: lastMessage.text });
-        return response.text;
+        return await withRetries(async () => {
+            const ai = getAiClient();
+            const chat: Chat = ai.chats.create({
+                model: 'gemini-2.5-flash',
+                history: geminiHistory,
+            });
+            const response: GenerateContentResponse = await chat.sendMessage({ message: lastMessage.text });
+            return response.text;
+        });
     } catch (error) {
         console.error("Error in chat:", error);
         throw new Error("Sorry, I encountered an error. Please try again.");

@@ -9,6 +9,7 @@ import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
 import { SpeakerIcon } from './shared/SpeakerIcon';
+import ExportButtons from './shared/ExportButtons';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6', '#10b981', '#6366f1'];
 
@@ -82,6 +83,11 @@ const IPOAnalysis: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        setIpoData(null);
+        setError(null);
+    }, [region]);
+
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
@@ -121,6 +127,7 @@ const IPOAnalysis: React.FC = () => {
             {error && <p className="mt-4 text-red-400">{error}</p>}
             {ipoData && (
                  <div className="mt-6 space-y-6 animate-fade-in">
+                    <ExportButtons content={JSON.stringify(ipoData, null, 2)} title={`IPO_Forecast_${region}`} />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-slate-900 p-4 rounded-lg">
                             <h4 className="text-sm font-medium text-sky-400">{t('projected_ipo_date')}</h4>
@@ -166,6 +173,11 @@ const RevenueStreamsAnalysis: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        setData(null);
+        setError(null);
+    }, [region]);
+
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
@@ -203,6 +215,7 @@ const RevenueStreamsAnalysis: React.FC = () => {
 
             {data && (
                 <div className="mt-6 space-y-6 animate-fade-in">
+                    <ExportButtons content={JSON.stringify(data, null, 2)} title={`Revenue_Streams_${region}`} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                         <div>
                             <h3 className="text-lg font-semibold text-white mb-4">{t('revenue_stream_chart_title')}</h3>
@@ -261,6 +274,11 @@ const FundingSourcesAnalysis: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        setFundingData(null);
+        setError(null);
+    }, [region]);
+
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
@@ -308,6 +326,7 @@ const FundingSourcesAnalysis: React.FC = () => {
             {error && <p className="mt-4 text-red-400">{error}</p>}
             {fundingData && (
                 <div className="mt-6 space-y-6">
+                    <ExportButtons content={JSON.stringify(fundingData, null, 2)} title={`Funding_Sources_${region}`} />
                     <FundingCategory title={t('venture_capital')} sources={fundingData.venture_capital} color="text-teal-400" />
                     <FundingCategory title={t('government_grants')} sources={fundingData.government_grants} color="text-sky-400" />
                     <FundingCategory title={t('international_funds')} sources={fundingData.international_funds} color="text-amber-400" />
@@ -333,9 +352,9 @@ export const Financials: React.FC = () => {
     const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
     
     useEffect(() => {
+        setAnalysis({text: '', sources: []});
         const staticData = getFinancialData(region);
         setFinancialData(staticData);
-        setAnalysis({text: '', sources: []});
 
         const newBaseInitialInvestment = staticData.find(d => d.component.includes('CAPEX'))?.value || 575;
         const newBaseAnnualRevenue = staticData.find(d => d.component.includes('Revenue'))?.value || 390;
@@ -410,75 +429,15 @@ export const Financials: React.FC = () => {
         setIsLoading(false);
     }
 
-    const handleExport = async () => {
-        const doc = new jsPDF();
-        
-        if (lang === 'fa') {
-            doc.setFont('Amiri', 'normal');
-            doc.setR2L(true);
-        }
-
-        const tableData = financialData.map(row => [row.component, row.value, row.unit, row.description]);
-        const tableHeaders = ["Component", "Value", "Unit", "Description"];
-
-        autoTable(doc, {
-            head: [tableHeaders],
-            body: tableData,
-            startY: 20,
-            styles: { font: lang === 'fa' ? 'Amiri' : 'helvetica' },
-            headStyles: { halign: 'center' },
-            didDrawPage: (data) => {
-                doc.setFontSize(18);
-                doc.setTextColor(40);
-                doc.text("GMEL Geothermal Vision - Financial Data", data.settings.margin.left, 15);
-            },
-            didParseCell: function (data) {
-                if (lang === 'fa' && data.section === 'body') {
-                    data.cell.styles.halign = 'right';
-                }
-            }
-        });
-
-        const totalPages = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            
-            if (userRole !== 'admin') {
-                doc.saveGraphicsState();
-                doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
-                doc.setFontSize(45);
-                doc.setTextColor(150);
-                const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.org";
-                const centerX = doc.internal.pageSize.getWidth() / 2;
-                const centerY = doc.internal.pageSize.getHeight() / 2;
-                doc.text(text, centerX, centerY, { align: 'center', angle: 45 });
-                if (KKM_LOGO_DATA_URL) {
-                    doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
-                }
-                doc.restoreGraphicsState();
-            }
-
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.text(`Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`, 14, doc.internal.pageSize.getHeight() - 10);
-        }
-        doc.setProperties({
-            title: 'GMEL Financial Data (Confidential)',
-            creator: 'KKM International Group',
-        });
-        doc.save(`KKM_GMEL_Financials_${new Date().toISOString().split('T')[0]}.pdf`);
-    };
-
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">{t('financial_analysis_title')}</h1>
-                <button onClick={handleExport} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2 transition-colors">
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    {t('export_secure_pdf')}
-                </button>
+                {userRole === 'admin' && (
+                    <div className="flex items-center gap-2">
+                         <ExportButtons content={JSON.stringify(financialData, null, 2)} title={`Financial_Data_${region}`} isJson={true} />
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -552,7 +511,8 @@ export const Financials: React.FC = () => {
                  </button>
                  {analysis.text && (
                      <div className="mt-6 p-4 bg-slate-900 rounded-lg">
-                         <p className="text-slate-300 whitespace-pre-wrap">{analysis.text}</p>
+                         <ExportButtons content={analysis.text} title={`Market_Analysis_${region}`} />
+                         <p className="text-slate-300 whitespace-pre-wrap mt-4">{analysis.text}</p>
                          {analysis.sources.length > 0 && (
                             <div className="mt-4">
                                 <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
