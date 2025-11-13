@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { generateJsonWithThinking } from '../services/geminiService';
+import { generateJsonWithThinking, generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
@@ -10,6 +10,15 @@ declare var L: any;
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
+    // First, try to find a JSON markdown block
+    const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match && match[1]) {
+        try {
+            return JSON.parse(match[1]);
+        } catch (error) {
+            console.error("Failed to parse JSON from markdown block:", match[1], error);
+        }
+    }
     const firstBrace = text.indexOf('{');
     const firstBracket = text.indexOf('[');
     let start = -1;
@@ -181,6 +190,76 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
                          <Feedback sectionId={`benchmark-tech-comparison-${benchmarkRegion}`} />
                     </div>
                  </div>
+            )}
+        </div>
+    );
+};
+
+const CompetitorAnalysis: React.FC = () => {
+    const { t } = useI18n();
+    const [data, setData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        setData(null);
+        try {
+            const prompt = t('competitor_prompt');
+            const result = await generateGroundedText(prompt);
+            const parsed = extractJson(result.text);
+            if (parsed && parsed.competitors) {
+                setData(parsed);
+            } else {
+                throw new Error("Invalid competitor data format received.");
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to analyze competitors.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-2xl font-bold text-white">{t('competitor_analysis_title')}</h2>
+            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('competitor_analysis_desc')}</p>
+            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800">
+                {isLoading ? t('analyzing') : t('analyze_competitors')}
+            </button>
+            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            {error && <p className="mt-4 text-red-400">{error}</p>}
+            {data && (
+                <div className="mt-6 space-y-6">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-700">
+                            <thead className="bg-slate-700/50">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('company_name')}</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('technology_focus')}</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('market_position')}</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('key_differentiator')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                {data.competitors.map((row: any, i: number) => (
+                                    <tr key={i}>
+                                        <td className="px-4 py-3 font-medium text-white">{row.company_name}</td>
+                                        <td className="px-4 py-3 text-slate-300">{row.technology_focus}</td>
+                                        <td className="px-4 py-3 text-slate-300">{row.market_position}</td>
+                                        <td className="px-4 py-3 text-slate-400">{row.key_differentiator}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold text-white mb-2 flex items-center">{t('narrative_summary')} <SpeakerIcon text={data.summary_narrative} /></h3>
+                        <p className="text-slate-300 whitespace-pre-wrap">{data.summary_narrative}</p>
+                    </div>
+                    <Feedback sectionId="competitor-analysis" />
+                </div>
             )}
         </div>
     );
@@ -385,6 +464,7 @@ export const Benchmark: React.FC = () => {
                     </div>
                 )}
             </div>
+            <CompetitorAnalysis />
         </div>
     );
 };

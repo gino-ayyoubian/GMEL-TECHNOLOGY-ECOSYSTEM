@@ -30,8 +30,8 @@ import { KKM_LOGO_DATA_URL } from './constants';
 import * as en from './i18n/en';
 import { GlobalSearch } from './components/shared/GlobalSearch';
 
-// --- CONTACT US COMPONENT ---
-const ContactUs: React.FC = () => {
+// --- INQUIRIES & CONTRIBUTIONS COMPONENT ---
+const InquiriesAndContributions: React.FC = () => {
     const { t } = useI18n();
 
     const ContactCard: React.FC<{ href: string; icon: React.ReactNode; title: string; detail: string }> = ({ href, icon, title, detail }) => (
@@ -86,6 +86,12 @@ const ContactUs: React.FC = () => {
                         href="mailto:g.ayyoubian@kkm-intl.org" 
                         icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>}
                         title={t('contact_direct_email')}
+                        detail="g.ayyoubian@kkm-intl.org"
+                    />
+                    <ContactCard 
+                        href="mailto:g.ayyoubian@kkm-intl.org?subject=Technical/IP Inquiry regarding GMEL Project" 
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V7.618a1 1 0 01.553-.894L9 4l5.447 2.724A1 1 0 0115 7.618v8.764a1 1 0 01-.553.894L9 20z" /><path d="M9 12l6-3" /></svg>}
+                        title={t('contact_technical_ip')}
                         detail="g.ayyoubian@kkm-intl.org"
                     />
                 </div>
@@ -164,7 +170,7 @@ const MainAppLayout: React.FC = () => {
             case 'simulations': return <Simulations />;
             case 'strategy_modeler': return <StrategyModeler />;
             case 'correspondence': return <Correspondence />;
-            case 'contact': return <ContactUs />;
+            case 'contact': return <InquiriesAndContributions />;
             case 'proposal_generator': return <ProposalGenerator />;
             case 'image': return <ImageGenerator />;
             case 'video': return <VideoGenerator />;

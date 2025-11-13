@@ -57,6 +57,8 @@ interface PatentOverlap {
     summary: string;
     potential_overlap_with_gmel: string;
     overlap_description: string;
+    publication_date?: string;
+    link_to_source?: string;
 }
 
 interface AnalysisResult {
@@ -131,8 +133,16 @@ const CompetitiveAnalysis: React.FC = () => {
                                     <div key={index} className="bg-slate-900/70 p-4 rounded-lg border border-slate-700">
                                         <h4 className="font-bold text-sky-400">{overlap.title}</h4>
                                         <p className="text-sm text-slate-400">
-                                            <span className="font-semibold">Assignee:</span> {overlap.assignee} | <span className="font-semibold">Identifier:</span> {overlap.patent_identifier}
+                                            <span className="font-semibold">Assignee:</span> {overlap.assignee} | <span className="font-semibold">Date:</span> {overlap.publication_date || 'N/A'}
                                         </p>
+                                        <p className="text-sm text-slate-500 mt-1">
+                                            <span className="font-semibold">Identifier:</span> {overlap.patent_identifier}
+                                        </p>
+                                        {overlap.link_to_source && overlap.link_to_source !== 'N/A' && (
+                                            <a href={overlap.link_to_source} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:underline mt-1 inline-block">
+                                                View Source Document &rarr;
+                                            </a>
+                                        )}
                                         <p className="text-sm mt-2 text-slate-300">{overlap.summary}</p>
                                         <p className="text-sm mt-2 p-2 bg-amber-900/50 rounded border border-amber-700/50">
                                             <span className="font-semibold text-amber-300">Potential Overlap with {overlap.potential_overlap_with_gmel}:</span> {overlap.overlap_description}

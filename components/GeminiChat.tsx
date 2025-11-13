@@ -97,7 +97,7 @@ export const GeminiChat: React.FC<GeminiChatProps> = ({ activeView, onClose }) =
 
         return `
 System context:
-You are the GMEL Project Assistant. Your knowledge base includes the following information. Answer user questions based on this context. Be helpful and concise. ALWAYS RESPOND IN THE CURRENTLY SELECTED LANGUAGE CODE: ${lang}.
+You are the GMEL Project Assistant. Your knowledge base includes the following information. Answer user questions based on this context. Be helpful and concise.
 - Current Proposal Focus: ${region}
 - ${regionSpecificContexts[region] || ''}
 - Current User View: ${activeView} (${viewContexts[activeView] || ''})

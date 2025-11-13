@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
-import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
+import { generateTextWithThinking, generateGroundedText, generateJsonWithThinking } from '../services/geminiService';
 import { Milestone } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
@@ -297,6 +297,140 @@ const GMELStatementBanner = () => {
     );
 };
 
+const SWOTAnalysis: React.FC = () => {
+    const { region } = useContext(AppContext)!;
+    const { t } = useI18n();
+    const [swot, setSwot] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        setSwot(null);
+        try {
+            const prompt = t('swot_prompt', { region });
+            const result = await generateJsonWithThinking(prompt);
+            const parsed = extractJson(result);
+            if (parsed && parsed.strengths) {
+                setSwot(parsed);
+            } else {
+                throw new Error("Invalid SWOT format received from AI.");
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to generate SWOT analysis.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const SWOTCard: React.FC<{ title: string; items: string[]; color: string }> = ({ title, items, color }) => (
+        <div className={`bg-slate-900/50 p-4 rounded-lg border-t-4 ${color}`}>
+            <h4 className="font-bold text-white mb-2">{title}</h4>
+            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                {items.map((item, index) => <li key={index}>{item}</li>)}
+            </ul>
+        </div>
+    );
+
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-2xl font-bold text-white">{t('swot_analysis_title')}</h2>
+            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('swot_analysis_desc', { region })}</p>
+            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed">
+                {isLoading ? t('analyzing') : t('generate_swot')}
+            </button>
+            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            {error && <p className="mt-4 text-red-400">{error}</p>}
+            {swot && (
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <SWOTCard title={t('strengths')} items={swot.strengths} color="border-green-500" />
+                    <SWOTCard title={t('weaknesses')} items={swot.weaknesses} color="border-yellow-500" />
+                    <SWOTCard title={t('opportunities')} items={swot.opportunities} color="border-sky-500" />
+                    <SWOTCard title={t('threats')} items={swot.threats} color="border-red-500" />
+                    <div className="md:col-span-2"><Feedback sectionId={`swot-analysis-${region}`} /></div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const ESGImpactAnalysis: React.FC = () => {
+    const { region } = useContext(AppContext)!;
+    const { t } = useI18n();
+    const [esg, setEsg] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        setEsg(null);
+        try {
+            const prompt = t('esg_prompt');
+            const result = await generateJsonWithThinking(prompt);
+            const parsed = extractJson(result);
+            if (parsed && parsed.environmental) {
+                setEsg(parsed);
+            } else {
+                throw new Error("Invalid ESG format received from AI.");
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to generate ESG summary.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-2xl font-bold text-white">{t('esg_impact_title')}</h2>
+            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('esg_impact_desc')}</p>
+            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed">
+                {isLoading ? t('analyzing') : t('generate_esg')}
+            </button>
+            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            {error && <p className="mt-4 text-red-400">{error}</p>}
+            {esg && (
+                <div className="mt-6 space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div>
+                            <h4 className="font-bold text-green-400 mb-2">{t('environmental')}</h4>
+                            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                                {esg.environmental.map((item: string, i: number) => <li key={i}>{item}</li>)}
+                            </ul>
+                        </div>
+                         <div>
+                            <h4 className="font-bold text-sky-400 mb-2">{t('social')}</h4>
+                            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                                {esg.social.map((item: string, i: number) => <li key={i}>{item}</li>)}
+                            </ul>
+                        </div>
+                         <div>
+                            <h4 className="font-bold text-amber-400 mb-2">{t('governance')}</h4>
+                            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                                {esg.governance.map((item: string, i: number) => <li key={i}>{item}</li>)}
+                            </ul>
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className="font-bold text-purple-400 mb-2">{t('sdg_alignment')}</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {esg.sdg_alignment.map((item: any, i: number) => (
+                                <div key={i} className="bg-slate-900/50 p-3 rounded-lg">
+                                    <p className="font-semibold text-sm text-white">{item.goal}</p>
+                                    <p className="text-xs text-slate-400 mt-1">{item.contribution}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <Feedback sectionId={`esg-analysis-${region}`} />
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 export const Dashboard: React.FC = () => {
     const { region, lang } = useContext(AppContext)!;
@@ -427,6 +561,8 @@ export const Dashboard: React.FC = () => {
       </div>
 
       <ImpactCalculator />
+      <SWOTAnalysis />
+      <ESGImpactAnalysis />
     </div>
   );
 };

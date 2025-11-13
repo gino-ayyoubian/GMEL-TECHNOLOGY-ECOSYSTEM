@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getFinancialData, WATERMARK_TEXT, KKM_LOGO_DATA_URL } from '../constants';
@@ -29,6 +29,15 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
+    // First, try to find a JSON markdown block
+    const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match && match[1]) {
+        try {
+            return JSON.parse(match[1]);
+        } catch (error) {
+            console.error("Failed to parse JSON from markdown block:", match[1], error);
+        }
+    }
     const firstBrace = text.indexOf('{');
     const firstBracket = text.indexOf('[');
     let start = -1;
@@ -162,7 +171,7 @@ const RevenueStreamsAnalysis: React.FC = () => {
         setError(null);
         setData(null);
 
-        const annualRevenue = financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 390;
+        const annualRevenue = financialData.find(d => d.component.includes('Revenue'))?.value || 390;
         const prompt = t('revenue_streams_prompt', { region, revenue: annualRevenue });
         
         try {
@@ -245,68 +254,134 @@ const RevenueStreamsAnalysis: React.FC = () => {
     );
 }
 
+const FundingSourcesAnalysis: React.FC = () => {
+    const { region } = useContext(AppContext)!;
+    const { t } = useI18n();
+    const [fundingData, setFundingData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        setFundingData(null);
+        try {
+            const prompt = t('funding_prompt', { region });
+            // Use grounded text generation for up-to-date research
+            const result = await generateGroundedText(prompt);
+            const parsed = extractJson(result.text);
+            if (parsed && parsed.venture_capital) {
+                setFundingData(parsed);
+            } else {
+                throw new Error("Invalid funding data format received from AI.");
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to research funding sources.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const FundingCategory: React.FC<{ title: string; sources: any[]; color: string }> = ({ title, sources, color }) => (
+        <div>
+            <h3 className={`text-xl font-semibold mb-3 ${color}`}>{title}</h3>
+            <div className="space-y-4">
+                {sources.map((source, index) => (
+                    <div key={index} className="bg-slate-900/50 p-4 rounded-lg">
+                        <h4 className="font-bold text-white">{source.name}</h4>
+                        <p className="text-sm text-slate-300 mt-1"><span className="font-semibold">{t('focus')}:</span> {source.focus}</p>
+                        <p className="text-sm text-slate-400 mt-1"><span className="font-semibold">{t('potential_fit')}:</span> {source.potential_fit}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <h2 className="text-2xl font-bold text-white">{t('funding_sources_title')}</h2>
+            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('funding_sources_desc')}</p>
+            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed">
+                {isLoading ? t('analyzing') : t('research_funding')}
+            </button>
+            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            {error && <p className="mt-4 text-red-400">{error}</p>}
+            {fundingData && (
+                <div className="mt-6 space-y-6">
+                    <FundingCategory title={t('venture_capital')} sources={fundingData.venture_capital} color="text-teal-400" />
+                    <FundingCategory title={t('government_grants')} sources={fundingData.government_grants} color="text-sky-400" />
+                    <FundingCategory title={t('international_funds')} sources={fundingData.international_funds} color="text-amber-400" />
+                    <Feedback sectionId={`funding-analysis-${region}`} />
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 export const Financials: React.FC = () => {
-    const { region, lang } = useContext(AppContext)!;
+    const { region, lang, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
     const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
     
-    const [energyPriceModifier, setEnergyPriceModifier] = useState(0); // in percent
-    const [opExModifier, setOpExModifier] = useState(0); // in percent
+    const baseInitialInvestment = useMemo(() => financialData.find(d => d.component.includes('CAPEX'))?.value || 575, [financialData]);
+    const baseAnnualRevenue = useMemo(() => financialData.find(d => d.component.includes('Revenue'))?.value || 390, [financialData]);
+
+    const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
+    const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
     
     useEffect(() => {
-        // Reset component state when region changes to ensure data consistency
         const staticData = getFinancialData(region);
         setFinancialData(staticData);
-        setEnergyPriceModifier(0);
-        setOpExModifier(0);
-        setAnalysis({text: '', sources: []}); // Clear previous analysis
+        setAnalysis({text: '', sources: []});
+
+        const newBaseInitialInvestment = staticData.find(d => d.component.includes('CAPEX'))?.value || 575;
+        const newBaseAnnualRevenue = staticData.find(d => d.component.includes('Revenue'))?.value || 390;
+        setCustomInitialInvestment(newBaseInitialInvestment);
+        setCustomAnnualRevenue(newBaseAnnualRevenue);
 
         if (lang !== 'en') {
             generateFinancialData(region, lang)
                 .then(data => setFinancialData(data))
                 .catch(err => {
                     console.error("Failed to fetch translated financial data, falling back to English.", err);
-                    setFinancialData(staticData); // Fallback to static data on error
+                    setFinancialData(staticData);
                 });
         }
     }, [region, lang]);
-
-
-    const baseInitialInvestment = useMemo(() => financialData.find(d => d.component.includes('CAPEX'))?.value || 575, [financialData]);
-    const baseAnnualRevenue = useMemo(() => financialData.find(d => d.component.includes('Revenue'))?.value || 390, [financialData]);
     
-    const modifiedCapex = useMemo(() => baseInitialInvestment * (1 + opExModifier / 100), [baseInitialInvestment, opExModifier]);
-    const modifiedRevenue = useMemo(() => baseAnnualRevenue * (1 + energyPriceModifier / 100), [baseAnnualRevenue, energyPriceModifier]);
+    const calculatedPayback = useMemo(() => (customAnnualRevenue > 0 ? (customInitialInvestment / customAnnualRevenue) : Infinity), [customInitialInvestment, customAnnualRevenue]);
+    const calculatedROI = useMemo(() => (customInitialInvestment > 0 ? (customAnnualRevenue / customInitialInvestment) * 100 : Infinity), [customInitialInvestment, customAnnualRevenue]);
     
-    const calculatedPayback = useMemo(() => (modifiedRevenue > 0 ? (modifiedCapex / modifiedRevenue) : Infinity), [modifiedCapex, modifiedRevenue]);
-    const calculatedROI = useMemo(() => (modifiedCapex > 0 ? (modifiedRevenue / modifiedCapex) * 100 : Infinity), [modifiedCapex, modifiedRevenue]);
-    
+    const barChartData = useMemo(() => financialData.filter(d => 
+        d.component.includes('CAPEX') ||
+        d.component.includes('Revenue') ||
+        d.component.includes('NPV')
+    ).map(d => ({
+        name: d.component.split('(')[0].trim(),
+        value: d.value,
+    })), [financialData]);
 
-    const costData = financialData.filter(d => d.component.includes('Cost') || d.component.includes('CAPEX')).map(d => ({ name: d.component, value: d.value }));
-    const revenueData = financialData.filter(d => d.component.includes('Revenue')).map(d => ({ name: d.component, value: d.value }));
-
-    const pieData = [...costData, ...revenueData].map(d => ({ name: d.name, value: d.value }));
     
     const projectionData = useMemo(() => {
         const data = [];
-        const optimisticRevenue = modifiedRevenue * 1.2;
-        const pessimisticRevenue = modifiedRevenue * 0.8;
-        const optimisticInvestment = modifiedCapex * 0.9;
-        const pessimisticInvestment = modifiedCapex * 1.1;
+        const optimisticRevenue = customAnnualRevenue * 1.2;
+        const pessimisticRevenue = customAnnualRevenue * 0.8;
+        const optimisticInvestment = customInitialInvestment * 0.9;
+        const pessimisticInvestment = customInitialInvestment * 1.1;
 
         for (let i = 0; i < 11; i++) { // From year 0 to 10
             data.push({ 
                 year: i,
-                baseline: (modifiedRevenue * i) - modifiedCapex,
+                baseline: (customAnnualRevenue * i) - customInitialInvestment,
                 optimistic: (optimisticRevenue * i) - optimisticInvestment,
                 pessimistic: (pessimisticRevenue * i) - pessimisticInvestment,
             });
         }
         return data;
-    }, [modifiedRevenue, modifiedCapex]);
+    }, [customAnnualRevenue, customInitialInvestment]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -367,18 +442,22 @@ export const Financials: React.FC = () => {
         const totalPages = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
-            doc.saveGraphicsState();
-            doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
-            doc.setFontSize(45);
-            doc.setTextColor(150);
-            const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.xyz";
-            const centerX = doc.internal.pageSize.getWidth() / 2;
-            const centerY = doc.internal.pageSize.getHeight() / 2;
-            doc.text(text, centerX, centerY, { align: 'center', angle: 45 });
-            if (KKM_LOGO_DATA_URL) {
-                doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
+            
+            if (userRole !== 'admin') {
+                doc.saveGraphicsState();
+                doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+                doc.setFontSize(45);
+                doc.setTextColor(150);
+                const text = "KKM Int'l | Seyed Gino Ayyoubian | info@kkm-intl.org";
+                const centerX = doc.internal.pageSize.getWidth() / 2;
+                const centerY = doc.internal.pageSize.getHeight() / 2;
+                doc.text(text, centerX, centerY, { align: 'center', angle: 45 });
+                if (KKM_LOGO_DATA_URL) {
+                    doc.addImage(KKM_LOGO_DATA_URL, 'JPEG', centerX - 50, centerY - 90, 100, 100, undefined, 'FAST');
+                }
+                doc.restoreGraphicsState();
             }
-            doc.restoreGraphicsState();
+
             doc.setFontSize(8);
             doc.setTextColor(100);
             doc.text(`Generated on: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`, 14, doc.internal.pageSize.getHeight() - 10);
@@ -404,41 +483,34 @@ export const Financials: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                    <h2 className="text-xl font-semibold mb-4 text-white">{t('cost_revenue_breakdown')}</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-white">Key Financial Metrics</h2>
                     <div style={{ width: '100%', height: 350 }}>
                         <ResponsiveContainer>
-                            <PieChart>
-                                <Pie 
-                                    data={pieData} 
-                                    dataKey="value" 
-                                    nameKey="name" 
-                                    cx="50%" 
-                                    cy="50%" 
-                                    outerRadius="80%" 
-                                    labelLine={false}
-                                    label={renderCustomizedLabel}
-                                >
-                                    {pieData.map((entry, index) => (
+                            <BarChart data={barChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                                <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} angle={-15} textAnchor="end" height={50} />
+                                <YAxis tick={{ fill: '#94a3b8' }} unit={financialData[0]?.unit.includes('Toman') ? " B" : " M"} />
+                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} cursor={{fill: 'rgba(148, 163, 184, 0.1)'}}/>
+                                <Bar dataKey="value" name={financialData[0]?.unit}>
+                                    {barChartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                                <Legend wrapperStyle={{fontSize: '12px'}}/>
-                            </PieChart>
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
                     <h2 className="text-xl font-semibold text-white">{t('interactive_financial_model_title')}</h2>
                     <p className="text-sm text-slate-400 -mt-2">{t('interactive_financial_model_desc')}</p>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300">{t('energy_price_modifier')}: <span className="font-bold text-sky-400">{energyPriceModifier.toFixed(0)}%</span></label>
-                            <input type="range" min="-50" max="50" value={energyPriceModifier} onChange={(e) => setEnergyPriceModifier(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
-                            <label className="block text-sm font-medium text-slate-300">{t('opex_modifier')}: <span className="font-bold text-amber-400">{opExModifier.toFixed(0)}%</span></label>
-                            <input type="range" min="-20" max="20" value={opExModifier} onChange={(e) => setOpExModifier(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
+                            <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300">{t('custom_initial_investment')}</label>
+                            <input type="number" id="customInitialInvestment" value={customInitialInvestment} onChange={(e) => setCustomInitialInvestment(Number(e.target.value) || 0)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white" />
+                        </div>
+                        <div>
+                            <label htmlFor="customAnnualRevenue" className="block text-sm font-medium text-slate-300">{t('custom_annual_revenue')}</label>
+                            <input type="number" id="customAnnualRevenue" value={customAnnualRevenue} onChange={(e) => setCustomAnnualRevenue(Number(e.target.value) || 0)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-2">
@@ -499,6 +571,8 @@ export const Financials: React.FC = () => {
                      </div>
                  )}
             </div>
+
+            <FundingSourcesAnalysis />
         </div>
     );
 };
