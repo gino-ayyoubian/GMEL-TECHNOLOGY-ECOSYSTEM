@@ -69,7 +69,7 @@ export const GlobalSearch: React.FC = () => {
         }));
 
         return [...ipResults, ...financialResults, ...technicalResults, ...milestoneResults];
-    }, [lang, setActiveView, setTechnicalTopic, techDetails, financialData]);
+    }, [lang, setActiveView, setTechnicalTopic, techDetails, financialData, region]);
 
     const filteredResults = useMemo(() => {
         if (!query.trim()) return [];

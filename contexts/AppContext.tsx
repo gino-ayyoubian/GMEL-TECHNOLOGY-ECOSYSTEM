@@ -80,7 +80,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const supportedLangs = [
         { code: 'en' as Language, name: 'English' },
         { code: 'fa' as Language, name: 'فارسی (Persian)' },
-        { code: 'ku' as Language, name: 'کوردی (سۆرانی)' },
+        { code: 'ku' as Language, name: 'کوردی (Sorani)' },
         { code: 'ar' as Language, name: 'العربية (Arabic)' },
     ];
     
