@@ -2,7 +2,7 @@ import React, { useState, createContext, useEffect } from 'react';
 import { Region, View, UserRole } from '../types';
 import { Language, locales } from '../hooks/useI18n';
 
-export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted';
+export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted' | 'resetPassword';
 
 interface AppContextType {
   authStep: AuthStep;
@@ -26,6 +26,8 @@ interface AppContextType {
   setTechnicalTopic: (topic: string | null) => void;
   allowedRegions: Region[] | null;
   setAllowedRegions: (regions: Region[] | null) => void;
+  error: string | null;
+  setError: (message: string | null) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -51,6 +53,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [activeView, setActiveView] = useState<View>('dashboard');
     const [technicalTopic, setTechnicalTopic] = useState<string | null>(null);
     const [allowedRegions, setAllowedRegionsState] = useState<Region[] | null>(getInitialState('gmel_allowed_regions', null));
+    const [error, setError] = useState<string | null>(null);
 
     const setAuthStep = (step: AuthStep) => {
         sessionStorage.setItem('gmel_auth_step', JSON.stringify(step));
@@ -206,6 +209,8 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setTechnicalTopic,
         allowedRegions,
         setAllowedRegions,
+        error,
+        setError,
     };
 
     return (

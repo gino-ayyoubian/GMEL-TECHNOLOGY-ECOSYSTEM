@@ -1,7 +1,7 @@
 import { GoogleGenAI, GenerateContentResponse, Type, Chat, Content } from "@google/genai";
 import { ChatMessage, FinancialData } from '../types';
 
-const withRetries = async <T>(fn: () => Promise<T>, retries = 3, initialDelay = 1000): Promise<T> => {
+const withRetries = async <T,>(fn: () => Promise<T>, retries = 3, initialDelay = 1000): Promise<T> => {
     let lastError: Error | unknown;
     for (let i = 0; i < retries; i++) {
         try {
@@ -10,18 +10,22 @@ const withRetries = async <T>(fn: () => Promise<T>, retries = 3, initialDelay = 
             lastError = error;
             const errorMessage = (error instanceof Error) ? error.message.toLowerCase() : '';
             
-            // Retry on 5xx server errors, rate limiting, or network errors like the XHR error.
             if (errorMessage.includes('500') || errorMessage.includes('503') || errorMessage.includes('rate limit') || errorMessage.includes('xhr error')) {
-                const delay = initialDelay * Math.pow(2, i) + Math.random() * 100; // Add jitter
+                const delay = initialDelay * Math.pow(2, i) + Math.random() * 100;
                 console.warn(`API call failed (attempt ${i + 1}/${retries}). Retrying in ${delay.toFixed(0)}ms...`, error);
                 await new Promise(res => setTimeout(res, delay));
             } else {
-                // Not a retryable error, throw immediately
                 throw error;
             }
         }
     }
     console.error("API call failed after multiple retries.", lastError);
+    if (lastError instanceof Error) {
+        const lowerMessage = lastError.message.toLowerCase();
+        if (lowerMessage.includes('xhr error') || lowerMessage.includes('500') || lowerMessage.includes('503')) {
+             throw new Error("A network error occurred while communicating with the AI service. This may be a temporary disruption. Please try again in a moment.");
+        }
+    }
     throw lastError;
 };
 
@@ -46,13 +50,13 @@ export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash'
     });
   } catch (error) {
     console.error("Error generating text:", error);
-    throw new Error("An error occurred while generating the text. The service may be temporarily unavailable.");
+    throw error;
   }
 };
 
 export const generateTextWithThinking = async (prompt: string): Promise<string> => {
   try {
-    return await withRetries(async () => {
+    const responseText = await withRetries(async () => {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-pro',
@@ -75,32 +79,43 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
         
         return response.text;
     });
+    return responseText;
   } catch (error) {
     console.error("Error generating text with thinking:", error);
-    if (error instanceof Error && (error.message.includes("safety concerns") || error.message.includes("could not be completed") || error.message.includes("empty response"))) {
-        throw error; // Re-throw our custom, more specific errors.
-    }
-    // Generic catch-all for network errors, API key issues, etc.
-    throw new Error("An error occurred during complex analysis. The service may be temporarily unavailable or the API key may be invalid.");
+    throw error;
   }
 };
 
 export const generateJsonWithThinking = async (prompt: string): Promise<string> => {
   try {
-    return await withRetries(async () => {
+    const jsonText = await withRetries(async () => {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-pro',
           contents: prompt,
           config: {
             responseMimeType: "application/json",
+            thinkingConfig: { thinkingBudget: 32768 }
           }
         });
+        
+        if (!response.text) {
+            const finishReason = response.candidates?.[0]?.finishReason;
+            if (finishReason === 'SAFETY') {
+                throw new Error("The JSON request was blocked for safety reasons. Please adjust your prompt.");
+            }
+            if (finishReason && finishReason !== 'STOP') {
+                throw new Error(`The model failed to generate a JSON response. Reason: ${finishReason}.`);
+            }
+            throw new Error("Received an empty JSON response from the model. Please try again.");
+        }
+
         return response.text;
     });
+    return jsonText;
   } catch (error) {
     console.error("Error generating structured data with thinking:", error);
-    throw new Error("An error occurred during complex JSON analysis. The service may be temporarily unavailable.");
+    throw error;
   }
 };
 
@@ -135,10 +150,10 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
     });
   } catch (error) {
     console.error("Error generating grounded text:", error);
-    if (error instanceof Error && (error.message.includes("safety reasons") || error.message.includes("failed to generate") || error.message.includes("empty response"))) {
-        throw error; // Re-throw our custom, more specific errors.
+    if (error instanceof Error) {
+        throw new Error(`Error fetching up-to-date information: ${error.message}`);
     }
-    throw new Error("An error occurred while fetching up-to-date information. The service may be unavailable or there might be an issue with your API key.");
+    throw new Error("An unknown error occurred while fetching up-to-date information.");
   }
 };
 
@@ -187,7 +202,10 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
     });
   } catch (error) {
     console.error("Error generating maps grounded text:", error);
-    throw new Error("An error occurred while fetching up-to-date geographical information. The service may be temporarily unavailable.");
+    if (error instanceof Error) {
+        throw new Error(`Error fetching geographical data: ${error.message}`);
+    }
+    throw new Error("An unknown error occurred while fetching geographical information.");
   }
 };
 
@@ -218,7 +236,10 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
         return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Error generating JSON data for heatmap:", error);
-        throw new Error("Failed to generate structured data. The model's response may have been invalid.");
+        if (error instanceof Error) {
+            throw new Error(`Failed to generate heatmap data: ${error.message}`);
+        }
+        throw new Error("Failed to generate structured data for heatmap.");
     }
 };
 
@@ -261,7 +282,10 @@ export const generateFinancialData = async (region: string, lang: string): Promi
     return data;
   } catch (error) {
     console.error("Error generating financial data:", error);
-    throw new Error(`An error occurred while generating financial data for ${region}. The service may be unavailable.`);
+    if (error instanceof Error) {
+        throw new Error(`Error generating financial data for ${region}: ${error.message}`);
+    }
+    throw new Error(`An unknown error occurred while generating financial data for ${region}.`);
   }
 };
 
@@ -288,7 +312,7 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
     });
   } catch (error) {
     console.error("Error generating image:", error);
-    throw new Error("Failed to generate the image. The prompt may be unsafe or the service is unavailable.");
+    throw error;
   }
 };
 
@@ -351,6 +375,9 @@ export const continueChat = async (history: ChatMessage[]): Promise<string> => {
         });
     } catch (error) {
         console.error("Error in chat:", error);
-        throw new Error("Sorry, I encountered an error. Please try again.");
+        if (error instanceof Error) {
+            throw new Error(`Chat failed: ${error.message}`);
+        }
+        throw new Error("An unknown error occurred in the chat.");
     }
 };

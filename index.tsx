@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppWrapper from './App';
+// FIX: Changed to named import
+import { AppWrapper } from './App';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

@@ -99,18 +99,18 @@ const renderCellContent = (content: any): string => {
 
 const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRegion }) => {
     const { t } = useI18n();
+    const { setError } = useContext(AppContext)!;
     const [techComparison, setTechComparison] = useState<TechComparisonResult | null>(null);
     const [isTechLoading, setIsTechLoading] = useState(false);
-    const [techError, setTechError] = useState<string | null>(null);
 
     useEffect(() => {
         setTechComparison(null);
-        setTechError(null);
-    }, [benchmarkRegion]);
+        setError(null);
+    }, [benchmarkRegion, setError]);
 
     const handleTechCompare = async () => {
         setIsTechLoading(true);
-        setTechError(null);
+        setError(null);
         setTechComparison(null);
 
         const prompt = t('benchmark_tech_comparison_prompt', {
@@ -118,9 +118,8 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
             benchmark_region: benchmarkRegion
         });
         
-        let result: string | undefined;
         try {
-            result = await generateJsonWithThinking(prompt);
+            const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
 
             if (parsed && parsed.table && parsed.narrative) {
@@ -129,8 +128,8 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
                 throw new Error("Invalid format received from API for tech comparison.");
             }
         } catch (e: any) {
-            setTechError(e.message || t('error_generating_comparison'));
-            console.error("Failed to parse tech comparison JSON:", e, "Raw result:", result);
+            setError(e.message || t('error_generating_comparison'));
+            console.error("Failed to parse tech comparison JSON:", e);
         } finally {
             setIsTechLoading(false);
         }
@@ -161,8 +160,6 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
                     </div>
                 </div>
             )}
-
-            {techError && <p className="text-red-400 text-center mt-4">{techError}</p>}
 
             {techComparison && (
                  <div className="space-y-6 mt-6">
@@ -206,9 +203,9 @@ const TechSpecComparison: React.FC<{ benchmarkRegion: string }> = ({ benchmarkRe
 
 const CompetitorAnalysis: React.FC = () => {
     const { t } = useI18n();
+    const { setError } = useContext(AppContext)!;
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -238,7 +235,6 @@ const CompetitorAnalysis: React.FC = () => {
                 {isLoading ? t('analyzing') : t('analyze_competitors')}
             </button>
             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
-            {error && <p className="mt-4 text-red-400">{error}</p>}
             {data && (
                 <div className="mt-6 space-y-6">
                     <ExportButtons content={JSON.stringify(data, null, 2)} title="Competitor_Analysis" />
@@ -278,6 +274,7 @@ const CompetitorAnalysis: React.FC = () => {
 
 export const Benchmark: React.FC = () => {
     const { t } = useI18n();
+    const { setError } = useContext(AppContext)!;
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
@@ -286,7 +283,6 @@ export const Benchmark: React.FC = () => {
     const [region2, setRegion2] = useState<string>('Iceland');
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
      // Map initialization
     useEffect(() => {
@@ -337,7 +333,7 @@ export const Benchmark: React.FC = () => {
     useEffect(() => {
         setComparisonResult(null);
         setError(null);
-    }, [region1, region2]);
+    }, [region1, region2, setError]);
 
     const handleCompare = async (r1: string, r2: string) => {
         if (r1 === r2) {
@@ -348,11 +344,9 @@ export const Benchmark: React.FC = () => {
         setError(null);
         setComparisonResult(null);
 
-        const prompt = t('benchmark_comparison_prompt', { region1: r1, region2: r2 });
-        
-        let result: string | undefined;
         try {
-            result = await generateJsonWithThinking(prompt);
+            const prompt = t('benchmark_comparison_prompt', { region1: r1, region2: r2 });
+            const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
 
             if (parsed && parsed.table && parsed.narrative) {
@@ -362,7 +356,7 @@ export const Benchmark: React.FC = () => {
             }
         } catch (e: any) {
             setError(e.message || t('error_generating_comparison'));
-            console.error("Failed to parse comparison JSON:", e, "Raw result:", result);
+            console.error("Failed to parse comparison JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -410,8 +404,6 @@ export const Benchmark: React.FC = () => {
                 </button>
             </div>
             
-            {error && <p className="text-red-400 text-center">{error}</p>}
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="lg:col-span-2">
                     {isLoading ? (

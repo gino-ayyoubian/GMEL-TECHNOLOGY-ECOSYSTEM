@@ -76,17 +76,16 @@ interface IPOData {
 }
 
 const IPOAnalysis: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const financialData = useMemo(() => getFinancialData(region), [region]);
     const [ipoData, setIpoData] = useState<IPOData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setIpoData(null);
         setError(null);
-    }, [region]);
+    }, [region, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -124,7 +123,6 @@ const IPOAnalysis: React.FC = () => {
                 </button>
             )}
             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
-            {error && <p className="mt-4 text-red-400">{error}</p>}
             {ipoData && (
                  <div className="mt-6 space-y-6 animate-fade-in">
                     <ExportButtons content={JSON.stringify(ipoData, null, 2)} title={`IPO_Forecast_${region}`} />
@@ -166,17 +164,16 @@ interface RevenueStreamsData {
 }
 
 const RevenueStreamsAnalysis: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const financialData = useMemo(() => getFinancialData(region), [region]);
     const [data, setData] = useState<RevenueStreamsData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setData(null);
         setError(null);
-    }, [region]);
+    }, [region, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -211,7 +208,6 @@ const RevenueStreamsAnalysis: React.FC = () => {
                 </button>
             )}
             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
-            {error && <p className="mt-4 text-red-400">{error}</p>}
 
             {data && (
                 <div className="mt-6 space-y-6 animate-fade-in">
@@ -268,16 +264,15 @@ const RevenueStreamsAnalysis: React.FC = () => {
 }
 
 const FundingSourcesAnalysis: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [fundingData, setFundingData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setFundingData(null);
         setError(null);
-    }, [region]);
+    }, [region, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -323,7 +318,6 @@ const FundingSourcesAnalysis: React.FC = () => {
                 {isLoading ? t('analyzing') : t('research_funding')}
             </button>
             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
-            {error && <p className="mt-4 text-red-400">{error}</p>}
             {fundingData && (
                 <div className="mt-6 space-y-6">
                     <ExportButtons content={JSON.stringify(fundingData, null, 2)} title={`Funding_Sources_${region}`} />
@@ -339,7 +333,7 @@ const FundingSourcesAnalysis: React.FC = () => {
 
 
 export const Financials: React.FC = () => {
-    const { region, lang, userRole } = useContext(AppContext)!;
+    const { region, lang, userRole, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
@@ -350,26 +344,71 @@ export const Financials: React.FC = () => {
 
     const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
     const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
+    const [inputErrors, setInputErrors] = useState({ investment: '', revenue: '' });
     
     useEffect(() => {
-        setAnalysis({text: '', sources: []});
         const staticData = getFinancialData(region);
-        setFinancialData(staticData);
+        setAnalysis({text: '', sources: []});
+        setError(null);
 
         const newBaseInitialInvestment = staticData.find(d => d.component.includes('CAPEX'))?.value || 575;
         const newBaseAnnualRevenue = staticData.find(d => d.component.includes('Revenue'))?.value || 390;
         setCustomInitialInvestment(newBaseInitialInvestment);
         setCustomAnnualRevenue(newBaseAnnualRevenue);
+        setInputErrors({ investment: '', revenue: '' });
 
         if (lang !== 'en') {
-            generateFinancialData(region, lang)
-                .then(data => setFinancialData(data))
-                .catch(err => {
+            const fetchTranslatedData = async () => {
+                try {
+                    const data = await generateFinancialData(region, lang);
+                    setFinancialData(data);
+                } catch (err: any) {
                     console.error("Failed to fetch translated financial data, falling back to English.", err);
-                    setFinancialData(staticData);
-                });
+                    setError(err.message || "Failed to load localized financial data.");
+                    setFinancialData(staticData); // Fallback
+                }
+            };
+            fetchTranslatedData();
+        } else {
+            setFinancialData(staticData);
         }
-    }, [region, lang]);
+    }, [region, lang, setError]);
+    
+    const handleInvestmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value === '') {
+            setCustomInitialInvestment(0);
+            setInputErrors(prev => ({ ...prev, investment: '' }));
+            return;
+        }
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+            if (numValue < 0) {
+                setInputErrors(prev => ({ ...prev, investment: t('error_negative_value') }));
+            } else {
+                setCustomInitialInvestment(numValue);
+                setInputErrors(prev => ({ ...prev, investment: '' }));
+            }
+        }
+    };
+
+    const handleRevenueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value === '') {
+            setCustomAnnualRevenue(0);
+            setInputErrors(prev => ({ ...prev, revenue: '' }));
+            return;
+        }
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+            if (numValue < 0) {
+                setInputErrors(prev => ({ ...prev, revenue: t('error_negative_value') }));
+            } else {
+                setCustomAnnualRevenue(numValue);
+                setInputErrors(prev => ({ ...prev, revenue: '' }));
+            }
+        }
+    };
     
     const calculatedPayback = useMemo(() => (customAnnualRevenue > 0 ? (customInitialInvestment / customAnnualRevenue) : Infinity), [customInitialInvestment, customAnnualRevenue]);
     const calculatedROI = useMemo(() => (customInitialInvestment > 0 ? (customAnnualRevenue / customInitialInvestment) * 100 : Infinity), [customInitialInvestment, customAnnualRevenue]);
@@ -420,13 +459,19 @@ export const Financials: React.FC = () => {
 
     const handleAnalysis = async () => {
         setIsLoading(true);
-        const prompt = t('market_analysis_prompt', { region });
-        const result = await generateGroundedText(prompt);
-        setAnalysis({
-            text: result.text ? `${result.text}` : t('error_no_analysis'),
-            sources: result.sources
-        });
-        setIsLoading(false);
+        setError(null);
+        try {
+            const prompt = t('market_analysis_prompt', { region });
+            const result = await generateGroundedText(prompt);
+            setAnalysis({
+                text: result.text ? `${result.text}` : t('error_no_analysis'),
+                sources: result.sources
+            });
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -465,11 +510,27 @@ export const Financials: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
                             <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300">{t('custom_initial_investment')}</label>
-                            <input type="number" id="customInitialInvestment" value={customInitialInvestment} onChange={(e) => setCustomInitialInvestment(Number(e.target.value) || 0)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white" />
+                            <input
+                                type="number"
+                                id="customInitialInvestment"
+                                value={customInitialInvestment}
+                                onChange={handleInvestmentChange}
+                                className={`mt-1 w-full bg-slate-700 border rounded-md py-2 px-3 text-white ${inputErrors.investment ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600 focus:ring-sky-500 focus:border-sky-500'}`}
+                                min="0"
+                            />
+                            {inputErrors.investment && <p className="mt-1 text-xs text-red-400">{inputErrors.investment}</p>}
                         </div>
                         <div>
                             <label htmlFor="customAnnualRevenue" className="block text-sm font-medium text-slate-300">{t('custom_annual_revenue')}</label>
-                            <input type="number" id="customAnnualRevenue" value={customAnnualRevenue} onChange={(e) => setCustomAnnualRevenue(Number(e.target.value) || 0)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md py-2 px-3 text-white" />
+                            <input
+                                type="number"
+                                id="customAnnualRevenue"
+                                value={customAnnualRevenue}
+                                onChange={handleRevenueChange}
+                                className={`mt-1 w-full bg-slate-700 border rounded-md py-2 px-3 text-white ${inputErrors.revenue ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600 focus:ring-sky-500 focus:border-sky-500'}`}
+                                min="0"
+                            />
+                             {inputErrors.revenue && <p className="mt-1 text-xs text-red-400">{inputErrors.revenue}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-2">

@@ -55,12 +55,11 @@ const renderCellContent = (content: any): string => {
 };
 
 export const Comparison: React.FC = () => {
-    const { lang } = useContext(AppContext)!;
+    const { lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
     const [strategicInsights, setStrategicInsights] = useState<string>('');
     const [isInsightsLoading, setIsInsightsLoading] = useState<boolean>(false);
 
@@ -69,7 +68,7 @@ export const Comparison: React.FC = () => {
         setNarrative('');
         setStrategicInsights('');
         setError(null);
-    }, [lang]);
+    }, [lang, setError]);
 
 
     const fetchComparison = async () => {
@@ -132,8 +131,6 @@ export const Comparison: React.FC = () => {
                     </button>
                 </div>
             )}
-
-            {error && <p className="text-red-400 text-center">{error}</p>}
 
             {isLoading ? (
                 <div className="w-full bg-slate-800 rounded-lg p-6 border border-slate-700 animate-pulse">

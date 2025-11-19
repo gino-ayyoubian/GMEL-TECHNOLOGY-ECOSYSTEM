@@ -72,6 +72,7 @@ export const compare_selected = "مقارنة المختار";
 export const clear_comparison = "مسح";
 export const patent_comparison_title = "مقارنة براءات الاختراع";
 export const close = "إغلاق";
+export const metric = "المقياس";
 export const financial_analysis_title = "تحليل مالي";
 export const financial_analysis = "تحليل مالي";
 export const export_secure_pdf = "تصدير PDF آمن";
@@ -188,7 +189,6 @@ export const comparison_prompt = `
     - التأثير المجتمعي
 `;
 export const error_comparison_generation = "حدث خطأ أثناء إنشاء المقارنة. قد لا يكون رد الذكاء الاصطناعي بالتنسيق المتوقع.";
-export const metric = "المقياس";
 export const narrative_summary = "ملخص سردي";
 export const generate_deep_analysis = "إنشاء تحليل استراتيجي أعمق";
 export const strategic_implications_title = "الآثار الاستراتيجية";
@@ -202,7 +202,7 @@ export const compare_regions = "مقارنة";
 export const benchmark_comparison_prompt = `
     أنشئ تحليلاً مقارناً لمشاريع الطاقة الحرارية الأرضية بين {region1} و {region2}.
     قدم المخرجات ككائن JSON واحد. يجب أن يحتوي كائن JSON على مفتاحين: "table" و "narrative".
-    يجب أن تكون قيمة "table" مصفوفة من الكائنات، حيث يحتوي كل كائن على ثلاثة مفاتيح: "metric" و "region1" و "region2".
+    يجب أن تكون قيمة "table" مصفوفة من الكائنات، حيث يحتوي כל كائن على ثلاثة مفاتيح: "metric" و "region1" و "region2".
     يجب أن تتوافق قيمة "region1" مع {region1}، و "region2" مع {region2}.
     يجب أن تكون قيمة "narrative" سلسلة نصية تلخص الاختلافات الاستراتيجية الرئيسية في 2-3 فقرات.
     غطِ هذه المقاييس:
@@ -450,16 +450,7 @@ export const proposal_generator_description = "أنشئ عرض مشروع شام
 export const select_proposal_region = "اختر المنطقة المستهدفة للاقتراح";
 export const generate_proposal = "إنشاء اقتراح";
 export const generating_proposal = "جارٍ إنشاء الاقتراح...";
-export const regional_analysis_prompt = "أنشئ تحليلاً إقليمياً مفصلاً لمشروع طاقة حرارية أرضية في {region}. يجب أن يستند هذا التحليل إلى معلومات محدثة من بحث Google. غطِ الجوانب التالية بالتفصيل: المشهد الحالي للطاقة (المزيج، التكاليف، الاستقرار)، الاحتياجات الاقتصادية الملحة (مثل خلق فرص العمل، التنويع الصناعي)، حالة الأمن المائي، الأولويات الاستراتيجية بناءً على المبادرات الحكومية، والبنية التحتية الرئيسية (الموانئ، الشبكات، النقل). يجب أن تكون النبرة رسمية ومناسبة لاقتراح مشروع رفيع المستوى.";
-export const proposal_generation_prompt = `أنت نظام ذكاء اصطناعي مكلف بإنشاء عرض مشروع شامل لمشروع الطاقة الحرارية الأرضية GMEL، مصمم خصيصًا لـ {region} باللغة {language}. سيتم تزويدك بقسم "تحليل إقليمي" تم إنشاؤه مسبقًا ومستند إلى الواقع. مهمتك هي إنشاء جميع الأقسام الأخرى من الاقتراح حوله.
-
-يجب أن يكون كل النص باللغة {language}.
-
-إليك التحليل الإقليمي الذي تم إنشاؤه مسبقًا لتضمينه:
----
-{regional_analysis_content}
----
-`;
+export const regional_analysis_prompt = `أنشئ تحليلاً إقليمياً مفصلاً لمشروع طاقة حرارية أرضية في {region}. يجب أن يستند هذا التحليل إلى معلومات محدثة من بحث Google. غطِ الجوانب التالية بالتفصيل: المشهد الحالي للطاقة (المزيج، التكاليف، الاستقرار)، الاحتياجات الاقتصادية الملحة (مثل خلق فرص العمل، التنويع الصناعي)، حالة الأمن المائي، الأولويات الاستراتيجية بناءً على المبادرات الحكومية، والبنية التحتية الرئيسية (الموانئ، الشبكات، النقل). يجب أن تكون النبرة رسمية ومناسبة لاقتراح مشروع رفيع المستوى.`;
 export const strategy_modeler_title = "مصمم استراتيجية المشاريع المشتركة";
 export const strategy_modeler_description = "صمم استراتيجية مخصصة للمشاريع المشتركة (JV) ونقل التكنولوجيا لمنطقة مستهدفة محددة. تنمذج هذه الأداة النهج الأمثل للشراكات المحلية، مع الموازنة بين حماية الملكية الفكرية لـ KKM والأهداف الاستراتيجية للدولة المضيفة.";
 export const select_target_region = "اختر المنطقة المستهدفة";
@@ -525,3 +516,21 @@ export const technology_focus = "التركيز التكنولوجي";
 export const market_position = "الوضع في السوق";
 export const key_differentiator = "عامل التمايز الرئيسي";
 export const competitor_prompt = `قم بإجراء تحليل تنافسي لسوق تكنولوجيا الطاقة الحرارية الأرضية المتقدمة العالمية. حدد 3-4 شركات/مشاريع رئيسية تتنافس مع نهج GMEL ذي الحلقة المغلقة والصخور شديدة الحرارة والتطبيقات المتكاملة. استخدم بحث Google للتأكد من أن البيانات حديثة. يجب أن يكون الإخراج كائن JSON داخل كتلة تعليمة برمجية ماركداون. يجب أن يحتوي JSON على مفتاح "competitors"، يحتوي على مصفوفة من الكائنات، حيث يحتوي كل كائن على مفاتيح: "company_name" و "technology_focus" و "market_position" و "key_differentiator". قم أيضًا بتضمين مفتاح "summary_narrative" مع فقرة تلخص المشهد التنافسي وموقع GMEL الاستراتيجي فيه.`;
+export const error_negative_value = "لا يمكن أن تكون القيمة سالبة.";
+export const error_occurred = "حدث خطأ";
+export const error_dismiss = "إغلاق";
+export const error_boundary_message = "حدث خطأ فادح في التطبيق. يرجى تحديث الصفحة.";
+export const password_reset_title = "إعادة تعيين كلمة المرور";
+export const forgot_password = "هل نسيت كلمة المرور؟";
+export const password_reset_prompt_step2 = "تم إرسال رمز إعادة التعيين إلى جهازك المسجل. للعرض، يرجى استخدام '654321'.";
+export const error_user_not_found = "معرف المستخدم غير موجود.";
+export const error_password_mismatch = "كلمات المرور غير متطابقة.";
+export const error_invalid_reset_code = "رمز إعادة التعيين غير صالح.";
+export const password_reset_success = "تمت إعادة تعيين كلمة المرور بنجاح. جارٍ إعادة التوجيه إلى تسجيل الدخول...";
+export const password_reset_prompt_step1 = "أدخل معرف المستخدم الخاص بك لتلقي رمز إعادة تعيين كلمة المرور.";
+export const send_reset_code = "إرسال رمز إعادة التعيين";
+export const reset_code = "رمز إعادة التعيين";
+export const new_password = "كلمة المرور الجديدة";
+export const confirm_new_password = "تأكيد كلمة المرور الجديدة";
+export const reset_password_button = "إعادة تعيين كلمة المرور";
+export const back_to_login = "العودة إلى تسجيل الدخول";

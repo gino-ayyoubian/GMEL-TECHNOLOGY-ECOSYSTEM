@@ -2,13 +2,13 @@ import React, { useState, useContext, useRef } from 'react';
 import { jsPDF } from 'jspdf';
 import { generateText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
-import { useI18n } from '../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
 
 export const Correspondence: React.FC = () => {
-    const { region, lang, userRole } = useContext(AppContext)!;
+    const { region, lang, userRole, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [recipient, setRecipient] = useState('');
     const [subject, setSubject] = useState('');
@@ -16,7 +16,6 @@ export const Correspondence: React.FC = () => {
     const [attachments, setAttachments] = useState('');
     const [generatedLetter, setGeneratedLetter] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [letterNumber, setLetterNumber] = useState(`KKM-GMEL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);
     const letterRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +96,6 @@ KKM International Group
                     <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
                         {isLoading ? t('generating') : t('generate_letter')}
                     </button>
-                    {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
                 </div>
 
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">

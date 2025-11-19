@@ -33,12 +33,11 @@ const PromptGuide = () => {
 };
 
 export const ImageGenerator: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [prompt, setPrompt] = useState<string>("");
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
     const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:3' | '3:4'>('16:9');
 
     useEffect(() => {
@@ -121,8 +120,6 @@ export const ImageGenerator: React.FC = () => {
                 </div>
             )}
             
-            {error && <p className="text-red-400">{error}</p>}
-
             {imageUrl && (
                 <div className="mt-8">
                     <h2 className="text-xl font-semibold text-white mb-4">{t('generated_concept')}</h2>

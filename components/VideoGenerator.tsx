@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { generateVideo, getVideoOperation } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
+import { AppContext } from '../contexts/AppContext';
 
 export const VideoGenerator: React.FC = () => {
     const { t } = useI18n();
+    const { setError } = useContext(AppContext)!;
     const [prompt, setPrompt] = useState('A cinematic, photorealistic 4k video. Start with a wide drone shot over a beautiful coastline at sunset. The camera smoothly flies towards a futuristic, sleek GMEL geothermal power plant seamlessly integrated into the landscape. Show a cutaway animation of the closed-loop system: a cool blue fluid descends deep underground, warms up to a glowing orange, and rises back to the surface to power turbines. The camera then pans across to show the clean energy powering an adjacent advanced desalination facility where fresh water is being produced, and then to glowing geothermal greenhouses (AgriCells) nearby, lush with crops. End on a wide, inspiring shot of the entire sustainable ecosystem humming with clean energy as the sun sets.');
     const [operation, setOperation] = useState<any>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [hasApiKey, setHasApiKey] = useState(false);
     const pollingInterval = useRef<number | null>(null);
 
@@ -151,8 +152,6 @@ export const VideoGenerator: React.FC = () => {
                 </div>
             )}
             
-            {error && <p className="text-red-400 text-center p-4 bg-red-900/50 rounded-lg">{error}</p>}
-
             {videoUrl && (
                 <div className="mt-8">
                     <h2 className="text-xl font-semibold text-white mb-4">Generated Video Concept</h2>

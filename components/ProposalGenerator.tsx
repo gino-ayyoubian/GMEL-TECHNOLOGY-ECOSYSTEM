@@ -1,43 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { jsPDF } from 'jspdf';
-import { generateJsonWithThinking, generateGroundedText } from '../services/geminiService';
+import { generateGroundedText, generateTextWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    let start = -1;
-
-    if (firstBrace === -1 && firstBracket === -1) return null;
-    if (firstBrace === -1) start = firstBracket;
-    else if (firstBracket === -1) start = firstBrace;
-    else start = Math.min(firstBrace, firstBracket);
-    
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
-    let end = -1;
-    
-    if (lastBrace === -1 && lastBracket === -1) return null;
-    if (lastBrace === -1) end = lastBracket;
-    else if (lastBracket === -1) end = lastBrace;
-    else end = Math.max(lastBrace, lastBracket);
-    
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON string:", jsonString, error);
-        return null;
-    }
-};
+import { canEdit } from '../utils/permissions';
 
 interface ProposalData {
     gmel_proposal: {
@@ -76,17 +45,18 @@ const ProposalSection: React.FC<{ title: string; content: string | string[]; }> 
 
 
 export const ProposalGenerator: React.FC = () => {
-    const { lang, userRole } = useContext(AppContext)!;
+    const { lang, userRole, setError } = useContext(AppContext)!;
     const { t } = useI18n();
+    const userCanEdit = canEdit(userRole, 'proposal_generator');
     const [targetRegion, setTargetRegion] = useState<Region>('Kurdistan Region, Iraq');
     const [proposalData, setProposalData] = useState<ProposalData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [generationProgress, setGenerationProgress] = useState<string | null>(null);
 
     useEffect(() => {
         setProposalData(null);
         setError(null);
-    }, [targetRegion]);
+    }, [targetRegion, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -95,37 +65,45 @@ export const ProposalGenerator: React.FC = () => {
         
         try {
             // Step 1: Generate the grounded regional analysis.
+            setGenerationProgress('Generating Regional Analysis...');
             const regionalAnalysisPrompt = t('regional_analysis_prompt', { region: targetRegion });
             const groundedResult = await generateGroundedText(regionalAnalysisPrompt);
-            
-            if (!groundedResult.text) {
-                throw new Error("Failed to generate the grounded regional analysis text.");
-            }
+            if (!groundedResult.text) throw new Error("Regional Analysis generation failed.");
             const regionalAnalysisContent = groundedResult.text;
 
-            // Step 2: Generate the full proposal, injecting the analysis.
-            const proposalPrompt = t('proposal_generation_prompt', { 
-                region: targetRegion, 
+            const baseProposal: ProposalData['gmel_proposal'] = {
+                region: targetRegion,
                 language: lang,
-                regional_analysis_content: regionalAnalysisContent
-            });
-            const result = await generateJsonWithThinking(proposalPrompt);
+                sector: "Renewable Energy & Sustainable Development",
+                regional_analysis: regionalAnalysisContent,
+                executive_summary: '', technical_modeling: '', financial_analysis: '',
+                innovation_and_patent_layer: '', strategy_model: '', risk_and_roadmap: '',
+                gmel_patent_reference: ["GMEL-CLG", "GMEL-Desal", "GMEL-LithiumLoop", "GMEL-H₂Cell"],
+                ownership_statement: 'All intellectual property rights for the GeoMeta Energy Layer (GMEL) and its associated technologies are retained by the inventor, Seyed Gino Ayyoubian, and the KKM International Group. Usage, reproduction, or commercial exploitation in any form is strictly prohibited without a formal written agreement.'
+            };
+            
+            const context = `Context: You are writing a section of a formal project proposal for the GMEL project, targeting ${targetRegion}. The language must be ${lang}. Use the following regional analysis to inform your writing:\n\n${regionalAnalysisContent}\n\n---\n\n`;
 
-            // Step 3: Parse and set the final data.
-            const parsed = extractJson(result);
-            if (parsed && parsed.gmel_proposal) {
-                // To ensure full fidelity of the grounded data, we re-inject it here,
-                // overriding any potential modifications by the second AI call.
-                parsed.gmel_proposal.regional_analysis = regionalAnalysisContent;
-                setProposalData(parsed);
-            } else {
-                throw new Error("Invalid format received from API for the final proposal.");
-            }
+            const generateSection = async (title: string, prompt: string) => {
+                setGenerationProgress(`Generating ${title}...`);
+                return await generateTextWithThinking(context + prompt);
+            };
+
+            baseProposal.executive_summary = await generateSection('Executive Summary', 'Write the "Executive Summary" section. It should be a concise, compelling summary of the entire proposal.');
+            baseProposal.technical_modeling = await generateSection('Technical Modeling', 'Write the "Technical Modeling" section. Describe the proposed GMEL technology package for this region, explaining why specific technologies were chosen.');
+            baseProposal.financial_analysis = await generateSection('Financial Analysis', 'Write the "Financial Analysis" section. Summarize the financial projections, ROI, and funding strategy based on pilot project data and regional context.');
+            baseProposal.innovation_and_patent_layer = await generateSection('Innovation Layer', 'Write the "Innovation & Patent Layer" section. Explain the core IP, its strategic value, and how it provides a competitive advantage.');
+            baseProposal.strategy_model = await generateSection('Strategy Model', 'Write the "Strategy Model" section. Describe the proposed business model or Joint Venture (JV) structure for implementing the project in this region.');
+            baseProposal.risk_and_roadmap = await generateSection('Risk & Roadmap', 'Write the "Risk & Roadmap" section. Analyze the key risks (political, economic, technical) and propose a high-level project implementation roadmap with major phases.');
+            
+            setProposalData({ gmel_proposal: baseProposal });
+
         } catch(e: any) {
-            setError(t('error_generating_proposal') + (e.message ? `: ${e.message}` : ''));
+            setError(e.message || t('error_generating_proposal'));
             console.error("Failed to generate proposal:", e);
         } finally {
             setIsLoading(false);
+            setGenerationProgress(null);
         }
     };
 
@@ -226,17 +204,21 @@ export const ProposalGenerator: React.FC = () => {
                         <option value="Makoo Free Zone">Makoo Free Zone</option>
                     </select>
                 </div>
-                 <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-800">
+                 <button 
+                    onClick={handleGenerate} 
+                    disabled={isLoading || !userCanEdit} 
+                    title={!userCanEdit ? "You have view-only access for this module." : ""}
+                    className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
+                >
                     {isLoading ? t('generating_proposal') : t('generate_proposal')}
                 </button>
             </div>
             
-            {error && <p className="text-red-400 text-center">{error}</p>}
-            
             {isLoading && (
                  <div className="text-center py-10">
                     <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <p className="mt-4 text-slate-400">{t('generating_proposal')}</p>
+                    <p className="mt-4 text-slate-400 font-semibold">{generationProgress || t('generating_proposal')}</p>
+                    <p className="mt-1 text-sm text-slate-500">This may take a minute as multiple AI models collaborate...</p>
                 </div>
             )}
             

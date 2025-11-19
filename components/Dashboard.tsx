@@ -67,12 +67,19 @@ const DataCard: React.FC<{ title: string; value: string; description: string; ic
 const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => void }> = ({ prompt, onResult }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useI18n();
+    const { setError } = useContext(AppContext)!;
 
     const handleClick = async () => {
         setIsLoading(true);
-        const result = await generateTextWithThinking(prompt);
-        onResult(result ? `${result}` : t('error_no_analysis'));
-        setIsLoading(false);
+        setError(null);
+        try {
+            const result = await generateTextWithThinking(prompt);
+            onResult(result ? `${result}` : t('error_no_analysis'));
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -167,36 +174,34 @@ const ImpactCard: React.FC<{ title: string; data: ImpactCategory; icon: React.Re
 
 
 const ImpactCalculator: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [scale, setScale] = useState<number>(5);
     const [results, setResults] = useState<ImpactResults | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setResults(null);
         setError(null);
-    }, [region]);
+    }, [region, setError]);
     
     const handleCalculate = async () => {
         setIsLoading(true);
         setError(null);
         setResults(null);
 
-        const prompt = t('impact_generation_prompt', { scale });
-        const result = await generateTextWithThinking(prompt);
-        
         try {
+            const prompt = t('impact_generation_prompt', { scale, language: lang });
+            const result = await generateTextWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
                 throw new Error("Invalid format received from API");
             }
-        } catch (e) {
-            setError(t('error_generating_impact_analysis'));
-            console.error("Failed to parse impact JSON:", e, "Raw result:", result);
+        } catch (e: any) {
+            setError(e.message || t('error_generating_impact_analysis'));
+            console.error("Failed to parse impact JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -234,8 +239,6 @@ const ImpactCalculator: React.FC = () => {
                  </button>
             </div>
             
-            {error && <p className="text-red-400 text-center">{error}</p>}
-
             {isLoading && (
                 <div className="text-center py-10">
                     <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -308,23 +311,22 @@ const GMELStatementBanner = () => {
 };
 
 const SWOTAnalysis: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+    const { region, lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [swot, setSwot] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setSwot(null);
         setError(null);
-    }, [region]);
+    }, [region, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setSwot(null);
         try {
-            const prompt = t('swot_prompt', { region });
+            const prompt = t('swot_prompt', { region, language: lang });
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.strengths) {
@@ -349,48 +351,43 @@ const SWOTAnalysis: React.FC = () => {
     );
 
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-            <h2 className="text-2xl font-bold text-white">{t('swot_analysis_title')}</h2>
-            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('swot_analysis_desc', { region })}</p>
-            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed">
+        <div className="space-y-8">
+            <h2 className="text-3xl font-bold text-white">{t('swot_analysis_title')}</h2>
+            <p className="text-slate-400 max-w-3xl">{t('swot_analysis_desc')}</p>
+            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800">
                 {isLoading ? t('analyzing') : t('generate_swot')}
             </button>
             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
-            {error && <p className="mt-4 text-red-400">{error}</p>}
             {swot && (
-                <div className="mt-6">
-                    <ExportButtons content={JSON.stringify(swot, null, 2)} title={`SWOT_Analysis_${region}`} />
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <SWOTCard title={t('strengths')} items={swot.strengths} color="border-green-500" />
-                        <SWOTCard title={t('weaknesses')} items={swot.weaknesses} color="border-yellow-500" />
-                        <SWOTCard title={t('opportunities')} items={swot.opportunities} color="border-sky-500" />
-                        <SWOTCard title={t('threats')} items={swot.threats} color="border-red-500" />
-                        <div className="md:col-span-2"><Feedback sectionId={`swot-analysis-${region}`} /></div>
+                <div className="space-y-6">
+                    <div className="flex justify-end">
+                        <ExportButtons content={JSON.stringify(swot, null, 2)} title={`SWOT_Analysis_${region}`} />
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <SWOTCard title={t('strengths')} items={swot.strengths} color="border-teal-400" />
+                        <SWOTCard title={t('weaknesses')} items={swot.weaknesses} color="border-amber-400" />
+                        <SWOTCard title={t('opportunities')} items={swot.opportunities} color="border-sky-400" />
+                        <SWOTCard title={t('threats')} items={swot.threats} color="border-red-400" />
+                    </div>
+                    <Feedback sectionId={`swot-analysis-${region}`} />
                 </div>
             )}
         </div>
     );
 };
 
-const ESGImpactAnalysis: React.FC = () => {
-    const { region } = useContext(AppContext)!;
+const ESGImpact: React.FC = () => {
+    const { lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [esg, setEsg] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        setEsg(null);
-        setError(null);
-    }, [region]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setEsg(null);
         try {
-            const prompt = t('esg_prompt');
+            const prompt = t('esg_prompt', { language: lang });
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.environmental) {
@@ -406,49 +403,43 @@ const ESGImpactAnalysis: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-            <h2 className="text-2xl font-bold text-white">{t('esg_impact_title')}</h2>
-            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('esg_impact_desc')}</p>
-            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed">
+        <div className="space-y-8">
+            <h2 className="text-3xl font-bold text-white">{t('esg_impact_title')}</h2>
+            <p className="text-slate-400 max-w-3xl">{t('esg_impact_desc')}</p>
+            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800">
                 {isLoading ? t('analyzing') : t('generate_esg')}
             </button>
-            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
-            {error && <p className="mt-4 text-red-400">{error}</p>}
+             {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
             {esg && (
-                <div className="mt-6 space-y-6">
-                     <ExportButtons content={JSON.stringify(esg, null, 2)} title={`ESG_Impact_Analysis`} />
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div>
-                            <h4 className="font-bold text-green-400 mb-2">{t('environmental')}</h4>
-                            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
-                                {esg.environmental.map((item: string, i: number) => <li key={i}>{item}</li>)}
-                            </ul>
-                        </div>
-                         <div>
-                            <h4 className="font-bold text-sky-400 mb-2">{t('social')}</h4>
-                            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
-                                {esg.social.map((item: string, i: number) => <li key={i}>{item}</li>)}
-                            </ul>
-                        </div>
-                         <div>
-                            <h4 className="font-bold text-amber-400 mb-2">{t('governance')}</h4>
-                            <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
-                                {esg.governance.map((item: string, i: number) => <li key={i}>{item}</li>)}
-                            </ul>
-                        </div>
+                <div className="space-y-6">
+                     <div className="flex justify-end">
+                        <ExportButtons content={JSON.stringify(esg, null, 2)} title="ESG_Impact_Summary" />
                     </div>
-                     <div>
+                    <div className="p-4 bg-slate-800 rounded-lg">
+                        <h4 className="font-bold text-teal-400 mb-2">{t('environmental')}</h4>
+                        <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                            {esg.environmental.map((item: string, i: number) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                    <div className="p-4 bg-slate-800 rounded-lg">
+                        <h4 className="font-bold text-sky-400 mb-2">{t('social')}</h4>
+                        <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                            {esg.social.map((item: string, i: number) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                     <div className="p-4 bg-slate-800 rounded-lg">
+                        <h4 className="font-bold text-amber-400 mb-2">{t('governance')}</h4>
+                        <ul className="list-disc list-inside text-sm text-slate-300 space-y-1">
+                            {esg.governance.map((item: string, i: number) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                     <div className="p-4 bg-slate-800 rounded-lg">
                         <h4 className="font-bold text-purple-400 mb-2">{t('sdg_alignment')}</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {esg.sdg_alignment.map((item: any, i: number) => (
-                                <div key={i} className="bg-slate-900/50 p-3 rounded-lg">
-                                    <p className="font-semibold text-sm text-white">{item.goal}</p>
-                                    <p className="text-xs text-slate-400 mt-1">{item.contribution}</p>
-                                </div>
-                            ))}
-                        </div>
+                        <ul className="list-disc list-inside text-sm text-slate-300 space-y-2">
+                            {esg.sdg_alignment.map((item: any, i: number) => <li key={i}><span className="font-semibold">{item.goal}:</span> {item.contribution}</li>)}
+                        </ul>
                     </div>
-                    <Feedback sectionId={`esg-analysis-${region}`} />
+                    <Feedback sectionId="esg-impact-summary" />
                 </div>
             )}
         </div>
@@ -457,42 +448,42 @@ const ESGImpactAnalysis: React.FC = () => {
 
 
 export const Dashboard: React.FC = () => {
-    const { region, lang } = useContext(AppContext)!;
+    const { region, lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
-    const [summary, setSummary] = useState('');
+    const [summary, setSummary] = useState<{text: string, sources: any[]}>({text: '', sources: []});
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
     const financialData = useMemo(() => getFinancialData(region), [region]);
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        const prompt = getProjectSummaryPrompt(region, lang);
-        const result = await generateGroundedText(prompt);
-        setSummary(result.text);
-        setIsSummaryLoading(false);
+        setError(null);
+        setStrategicAnalysis('');
+        try {
+            const prompt = getProjectSummaryPrompt(region, lang);
+            const result = await generateGroundedText(prompt);
+            setSummary(result);
+        } catch (e: any) {
+            setError(e.message || "Failed to generate summary.");
+        } finally {
+            setIsSummaryLoading(false);
+        }
     };
     
     useEffect(() => {
-        setSummary('');
+        setSummary({text: '', sources: []});
         setStrategicAnalysis('');
-    }, [region]);
+    }, [region, lang]);
 
-    const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
-        name: d.component.split(' ')[0],
+    const chartData = financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Percent').map(d => ({
+        name: d.component.replace('(5MW)', '').trim(),
         value: d.value,
+        unit: d.unit
     }));
-
-    const cardIcons: { [key: string]: React.ReactNode } = {
-        'Pilot CAPEX (5MW)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
-        'Annual Revenue (5MW)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
-        'Payback Period': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-        'Return on Investment (ROI)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14v-4" /></svg>,
-        '10-Year NPV': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-    };
   
     return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <GMELStatementBanner />
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
@@ -500,10 +491,10 @@ export const Dashboard: React.FC = () => {
         {financialData.map((item, index) => (
           <DataCard 
             key={index}
-            title={item.component}
-            value={`${item.value}${item.unit === 'Billion Toman' ? ' B' : ''}${item.unit === 'Years' ? ' Yrs' : ''}`}
+            title={item.component.replace('(5MW)', '').trim()}
+            value={`${item.value.toLocaleString()} ${item.unit.replace('Billion Toman', 'B Toman').replace('Million USD', 'M USD').replace('Years', 'Yrs').replace('Percent', '%')}`}
             description={item.description}
-            icon={cardIcons[item.component] || <div />}
+            icon={<div />}
           />
         ))}
       </div>
@@ -511,45 +502,58 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         <div className="lg:col-span-3 space-y-8">
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                <h2 className="text-xl font-semibold mb-4 text-white flex items-center">
-                    {t('project_summary')}
-                    <SpeakerIcon text={summary} />
-                </h2>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-white flex items-center">{t('project_summary')}</h2>
+                    {summary.text && <SpeakerIcon text={summary.text} />}
+                </div>
                 {isSummaryLoading ? (
                     <div className="space-y-2">
                         <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
                         <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
                         <div className="h-4 bg-slate-700 rounded w-3/4 animate-pulse"></div>
                     </div>
-                ) : summary ? (
-                    <p className="text-slate-400 text-sm mb-6 whitespace-pre-wrap">{summary}</p>
+                ) : summary.text ? (
+                    <div className="space-y-4">
+                        <p className="text-slate-300 text-sm whitespace-pre-wrap">{summary.text}</p>
+                        {summary.sources.length > 0 && (
+                            <div>
+                                <h4 className="text-xs font-semibold text-slate-400">{t('sources')}:</h4>
+                                <ul className="list-disc list-inside text-xs text-slate-500 space-y-1">
+                                {summary.sources.map((source, i) => (
+                                    <li key={i}>
+                                        <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                            {source.web?.title || source.web?.uri}
+                                        </a>
+                                    </li>
+                                ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 ) : (
                      <div className="text-center py-4">
-                        <p className="text-slate-500 mb-4">Click the button to generate a project summary for {region}.</p>
+                        <p className="text-slate-500 mb-4">Click to generate an AI-powered, up-to-date summary for {region}.</p>
                         <button onClick={fetchSummary} className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg transition-colors">{t('generate_summary')}</button>
                     </div>
                 )}
 
-                {summary && !isSummaryLoading && (
-                    <>
+                {summary.text && !isSummaryLoading && (
+                    <div className="mt-6 pt-4 border-t border-slate-700/50">
                         <ThinkingButton 
-                            prompt={t('strategic_analysis_prompt', { region, summary: summary })}
+                            prompt={t('strategic_analysis_prompt', { region, summary: summary.text, language: lang })}
                             onResult={setStrategicAnalysis}
                         />
                         <Feedback sectionId={`summary-${region}`} />
-                    </>
+                    </div>
                 )}
 
 
                 {strategicAnalysis && (
                     <div className="mt-6 p-4 bg-slate-900 rounded-lg border border-sky-500/30">
-                         <div className="flex justify-between items-start">
-                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">
-                                {t('generated_strategic_analysis')}
-                                <SpeakerIcon text={strategicAnalysis} />
-                            </h3>
-                            <ExportButtons content={strategicAnalysis} title={`Strategic_Analysis_${region}`} />
-                         </div>
+                         <h3 className="font-semibold text-sky-400 mb-2 flex items-center">
+                            {t('generated_strategic_analysis')}
+                            <SpeakerIcon text={strategicAnalysis} />
+                         </h3>
                          <p className="text-slate-300 text-sm whitespace-pre-wrap">{strategicAnalysis}</p>
                          <Feedback sectionId={`strategic-analysis-${region}`} />
                     </div>
@@ -572,10 +576,9 @@ export const Dashboard: React.FC = () => {
                     <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                         <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
-                        <YAxis tick={{ fill: '#94a3b8' }} unit=" B" />
-                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                        <Legend wrapperStyle={{ color: '#94a3b8' }}/>
-                        <Bar dataKey="value" name={t('financial_chart_legend')}>
+                        <YAxis tick={{ fill: '#94a3b8' }} unit={chartData[0]?.unit.includes('Toman') ? " B" : " M"} />
+                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} cursor={{fill: 'rgba(148, 163, 184, 0.1)'}}/>
+                        <Bar dataKey="value" name={chartData[0]?.unit}>
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
@@ -588,7 +591,7 @@ export const Dashboard: React.FC = () => {
 
       <ImpactCalculator />
       <SWOTAnalysis />
-      <ESGImpactAnalysis />
+      <ESGImpact />
     </div>
   );
 };

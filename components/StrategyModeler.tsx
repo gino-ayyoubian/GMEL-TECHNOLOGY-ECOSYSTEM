@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { generateJsonWithThinking } from '../services/geminiService';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
 import ExportButtons from './shared/ExportButtons';
+import { AppContext } from '../contexts/AppContext';
+import { canEdit } from '../utils/permissions';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -47,25 +49,25 @@ interface StrategyResult {
 
 export const StrategyModeler: React.FC = () => {
     const { t } = useI18n();
+    const { setError, userRole } = useContext(AppContext)!;
+    const userCanEdit = canEdit(userRole, 'strategy_modeler');
     const [targetRegion, setTargetRegion] = useState<Region>('Iranian Kurdistan');
     const [strategy, setStrategy] = useState<StrategyResult | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setStrategy(null);
         setError(null);
-    }, [targetRegion]);
+    }, [targetRegion, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setStrategy(null);
 
-        const prompt = t('strategy_modeler_prompt', { region: targetRegion });
-        const result = await generateJsonWithThinking(prompt);
-
         try {
+            const prompt = t('strategy_modeler_prompt', { region: targetRegion });
+            const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.optimal_patent_package) {
                 setStrategy(parsed);
@@ -74,7 +76,7 @@ export const StrategyModeler: React.FC = () => {
             }
         } catch (e) {
             setError(t('error_generating_strategy'));
-            console.error("Failed to parse strategy JSON:", e, "Raw result:", result);
+            console.error("Failed to parse strategy JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -122,14 +124,13 @@ export const StrategyModeler: React.FC = () => {
                 </div>
                 <button
                     onClick={handleGenerate}
-                    disabled={isLoading}
+                    disabled={isLoading || !userCanEdit}
+                    title={!userCanEdit ? "You have view-only access for this module." : ""}
                     className="w-full md:w-auto flex-shrink-0 px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
                 >
                     {isLoading ? t('generating_strategy') : t('generate_jv_strategy')}
                 </button>
             </div>
-
-            {error && <p className="text-red-400 text-center">{error}</p>}
 
             {isLoading && (
                 <div className="text-center py-10">

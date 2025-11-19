@@ -6,6 +6,7 @@ import { AppContext } from '../contexts/AppContext';
 import { Region } from '../types';
 import { Feedback } from './shared/Feedback';
 import ExportButtons from './shared/ExportButtons';
+import { canEdit } from '../utils/permissions';
 
 // Helper to extract a JSON object from a string that might contain markdown or other text.
 const extractJson = (text: string): any | null => {
@@ -66,19 +67,18 @@ const LoadingSpinner: React.FC<{text: string}> = ({ text }) => (
 
 
 export const Simulations: React.FC = () => {
-    const { region: globalRegion } = useContext(AppContext)!;
+    const { region: globalRegion, setError, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
+    const userCanEdit = canEdit(userRole, 'simulations');
 
     const [targetRegion, setTargetRegion] = useState<Region>(globalRegion);
 
     const [gmelPackage, setGmelPackage] = useState<GmelPackage | null>(null);
     const [isGmelLoading, setIsGmelLoading] = useState<boolean>(false);
-    const [gmelError, setGmelError] = useState<string | null>(null);
 
     const [visionaryProposal, setVisionaryProposal] = useState<VisionaryProposal | null>(null);
     const [visionarySources, setVisionarySources] = useState<any[]>([]);
     const [isVisionaryLoading, setIsVisionaryLoading] = useState<boolean>(false);
-    const [visionaryError, setVisionaryError] = useState<string | null>(null);
     
     const [idealProjectPlan, setIdealProjectPlan] = useState<string | null>(null);
     const [isIdealPlanLoading, setIsIdealPlanLoading] = useState<boolean>(false);
@@ -87,13 +87,12 @@ export const Simulations: React.FC = () => {
 
     useEffect(() => {
         setGmelPackage(null);
-        setGmelError(null);
+        setError(null);
         setIdealProjectPlan(null);
         setVisionaryProposal(null);
-        setVisionaryError(null);
         setVisionarySources([]);
         setVisionaryProjectPlan(null);
-    }, [targetRegion]);
+    }, [targetRegion, setError]);
 
 
     const simulationRegions: Region[] = [
@@ -111,7 +110,7 @@ export const Simulations: React.FC = () => {
 
     const handleGenerateGmelPackage = async () => {
         setIsGmelLoading(true);
-        setGmelError(null);
+        setError(null);
         setGmelPackage(null);
         setIdealProjectPlan(null); // Reset plan on new generation
 
@@ -125,7 +124,7 @@ export const Simulations: React.FC = () => {
                 throw new Error("Invalid format received from AI.");
             }
         } catch (e: any) {
-            setGmelError(e.message || "Failed to generate GMEL package.");
+            setError(e.message || "Failed to generate GMEL package.");
         } finally {
             setIsGmelLoading(false);
         }
@@ -133,7 +132,7 @@ export const Simulations: React.FC = () => {
     
     const handleGenerateVisionaryProposal = async () => {
         setIsVisionaryLoading(true);
-        setVisionaryError(null);
+        setError(null);
         setVisionaryProposal(null);
         setVisionarySources([]);
         setVisionaryProjectPlan(null); // Reset plan on new generation
@@ -150,7 +149,7 @@ export const Simulations: React.FC = () => {
                 throw new Error("Invalid format received from AI for visionary proposal.");
             }
         } catch (e: any) {
-            setVisionaryError(e.message || "Failed to generate visionary proposal.");
+            setError(e.message || "Failed to generate visionary proposal.");
         } finally {
             setIsVisionaryLoading(false);
         }
@@ -171,7 +170,7 @@ export const Simulations: React.FC = () => {
             const result = await generateTextWithThinking(prompt);
             setIdealProjectPlan(result);
         } catch (e: any) {
-            setGmelError(e.message || "Failed to generate business plan.");
+            setError(e.message || "Failed to generate business plan.");
         } finally {
             setIsIdealPlanLoading(false);
         }
@@ -193,7 +192,7 @@ export const Simulations: React.FC = () => {
             const result = await generateTextWithThinking(prompt);
             setVisionaryProjectPlan(result);
         } catch (e: any) {
-            setVisionaryError(e.message || "Failed to generate business plan.");
+            setError(e.message || "Failed to generate business plan.");
         } finally {
             setIsVisionaryPlanLoading(false);
         }
@@ -229,14 +228,14 @@ export const Simulations: React.FC = () => {
                 <p className="text-slate-400 -mt-4">{t('gmel_modeler_description')}</p>
                 <button
                     onClick={handleGenerateGmelPackage}
-                    disabled={isGmelLoading}
+                    disabled={isGmelLoading || !userCanEdit}
+                    title={!userCanEdit ? "You have view-only access for this module." : ""}
                     className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
                 >
                     {isGmelLoading ? t('generating') : t('generate_gmel_package')}
                 </button>
 
                 {isGmelLoading && <LoadingSpinner text={t('generating_gmel_package')} />}
-                {gmelError && <p className="text-red-400">{gmelError}</p>}
                 
                 {gmelPackage && (
                     <div className="space-y-4 pt-4 border-t border-slate-700">
@@ -264,7 +263,7 @@ export const Simulations: React.FC = () => {
                         <Feedback sectionId={`gmel-package-modeler-${targetRegion}`} />
 
                         <div className="pt-4 border-t border-slate-700">
-                            <button onClick={handleGenerateIdealPlan} disabled={isIdealPlanLoading} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800">
+                            <button onClick={handleGenerateIdealPlan} disabled={isIdealPlanLoading || !userCanEdit} title={!userCanEdit ? "You have view-only access for this module." : ""} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800 disabled:cursor-not-allowed">
                                 {isIdealPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
                             </button>
                             {isIdealPlanLoading && <LoadingSpinner text={t('generating_business_plan')} />}
@@ -288,14 +287,14 @@ export const Simulations: React.FC = () => {
                 <p className="text-slate-400 -mt-4">{t('visionary_engine_description')}</p>
                 <button
                     onClick={handleGenerateVisionaryProposal}
-                    disabled={isVisionaryLoading}
+                    disabled={isVisionaryLoading || !userCanEdit}
+                    title={!userCanEdit ? "You have view-only access for this module." : ""}
                     className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors disabled:bg-amber-800 disabled:cursor-not-allowed"
                 >
                     {isVisionaryLoading ? t('generating') : t('generate_visionary_proposal')}
                 </button>
 
                 {isVisionaryLoading && <LoadingSpinner text={t('generating_visionary_proposal')} />}
-                {visionaryError && <p className="text-red-400">{visionaryError}</p>}
 
                 {visionaryProposal && (
                     <div className="space-y-4 pt-4 border-t border-slate-700">
@@ -342,7 +341,7 @@ export const Simulations: React.FC = () => {
                         <Feedback sectionId={`visionary-proposal-${targetRegion}`} />
 
                         <div className="pt-4 border-t border-slate-700">
-                             <button onClick={handleGenerateVisionaryPlan} disabled={isVisionaryPlanLoading} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800">
+                             <button onClick={handleGenerateVisionaryPlan} disabled={isVisionaryPlanLoading || !userCanEdit} title={!userCanEdit ? "You have view-only access for this module." : ""} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800 disabled:cursor-not-allowed">
                                 {isVisionaryPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
                             </button>
                              {isVisionaryPlanLoading && <LoadingSpinner text={t('generating_business_plan')} />}

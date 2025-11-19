@@ -154,10 +154,10 @@ const NanoStabSystemDiagram = () => (
 );
 
 export const Technical: React.FC = () => {
-    const { technicalTopic, setTechnicalTopic } = useContext(AppContext)!;
-    const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
-    const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
-    const [diagrams, setDiagrams] = useState<Record<string, {isLoading: boolean, url: string | null, error: string | null}>>({});
+    const { technicalTopic, setTechnicalTopic, setError } = useContext(AppContext)!;
+    const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
+    const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null}>>({});
+    const [diagrams, setDiagrams] = useState<Record<string, {isLoading: boolean, url: string | null}>>({});
     const [activeTopic, setActiveTopic] = useState<string | null>(null);
     const { t } = useI18n();
 
@@ -183,25 +183,27 @@ export const Technical: React.FC = () => {
     const getExplanation = async (topic: string, detail: string) => {
         if (explanations[topic]?.text) return;
 
-        setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
-        const prompt = t('technical_explanation_prompt', { topic, detail });
+        setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
         try {
+            const prompt = t('technical_explanation_prompt', { topic, detail });
             const result = await generateTextWithThinking(prompt);
-            setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));
+            setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result} }));
         } catch (e: any) {
-            setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: null, error: e.message || t('error_no_explanation')}}));
+            setError(e.message || t('error_no_explanation'));
+            setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: null}}));
         }
     };
 
     const getDemystification = async (topic: string, detail: string) => {
         if (demystified[topic]?.text) return;
-        setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
-        const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}`;
+        setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null} }));
         try {
+            const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}`;
             const result = await generateText(prompt, 'gemini-flash-lite-latest');
-            setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));
+            setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result} }));
         } catch (e: any) {
-             setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: null, error: e.message || t('error_no_explanation')}}));
+            setError(e.message || t('error_no_explanation'));
+            setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: null}}));
         }
     };
 
@@ -209,24 +211,25 @@ export const Technical: React.FC = () => {
         if (diagrams[topic]?.url) return;
         
         if (topic.includes('GMEL-Desal')) {
-            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: 'component:DesalSystemDiagram', error: null }}));
+            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: 'component:DesalSystemDiagram' }}));
             return;
         }
         if (topic.includes('GMEL-NanoStab')) {
-            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: 'component:NanoStabSystemDiagram', error: null }}));
+            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: 'component:NanoStabSystemDiagram' }}));
             return;
         }
          if (topic.includes('GMEL-CLG')) {
             return; 
         }
 
-        setDiagrams(prev => ({ ...prev, [topic]: { isLoading: true, url: null, error: null }}));
-        const prompt = t('technical_diagram_prompt', { topic });
+        setDiagrams(prev => ({ ...prev, [topic]: { isLoading: true, url: null }}));
         try {
+            const prompt = t('technical_diagram_prompt', { topic });
             const result = await generateImage(prompt, '1:1');
-            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: result, error: null }}));
+            setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: result }}));
         } catch (e: any) {
-             setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: null, error: e.message || t('error_failed_diagram') }}));
+             setError(e.message || t('error_failed_diagram'));
+             setDiagrams(prev => ({ ...prev, [topic]: { isLoading: false, url: null }}));
         }
     };
 
@@ -264,7 +267,6 @@ export const Technical: React.FC = () => {
                                 {demystified[topic] && (
                                      <div className="p-4 bg-slate-900/70 rounded-lg">
                                         {demystified[topic].isLoading && <p className="text-slate-400 italic">Generating simple explanation...</p>}
-                                        {demystified[topic].error && <p className="text-red-400">{demystified[topic].error}</p>}
                                         {demystified[topic].text && (
                                             <p className="text-slate-300 flex items-start"><span className="flex-grow">{demystified[topic].text}</span> <SpeakerIcon text={demystified[topic].text || ''} /></p>
                                         )}
@@ -275,7 +277,6 @@ export const Technical: React.FC = () => {
                                     <div className="p-4 bg-slate-900/70 rounded-lg">
                                         <h3 className="font-semibold text-white mb-2">{t('detailed_explanation')}</h3>
                                         {explanations[topic].isLoading && <p className="text-slate-400 italic">Generating detailed explanation...</p>}
-                                        {explanations[topic].error && <p className="text-red-400">{explanations[topic].error}</p>}
                                         {explanations[topic].text && (
                                              <p className="text-slate-300 whitespace-pre-wrap flex items-start"><span className="flex-grow">{explanations[topic].text}</span> <SpeakerIcon text={explanations[topic].text || ''} /></p>
                                         )}
@@ -285,7 +286,6 @@ export const Technical: React.FC = () => {
                                 {diagrams[topic] && (
                                      <div className="p-4 bg-slate-900/70 rounded-lg">
                                         {diagrams[topic].isLoading && <p className="text-slate-400 italic">Generating diagram...</p>}
-                                        {diagrams[topic].error && <p className="text-red-400">{diagrams[topic].error}</p>}
                                         {diagrams[topic].url === 'component:DesalSystemDiagram' ? (
                                             <DesalSystemDiagram />
                                         ) : diagrams[topic].url === 'component:NanoStabSystemDiagram' ? (

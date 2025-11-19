@@ -47,16 +47,15 @@ interface ComparisonResult {
 }
 
 export const TechComparison: React.FC = () => {
-    const { lang } = useContext(AppContext)!;
+    const { lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setComparisonResult(null);
         setError(null);
-    }, [lang]);
+    }, [lang, setError]);
 
     const handleCompare = async () => {
         setIsLoading(true);
@@ -82,9 +81,8 @@ export const TechComparison: React.FC = () => {
             - Safety Features
         `;
 
-        let result: string | undefined;
         try {
-            result = await generateJsonWithThinking(prompt);
+            const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
 
             if (parsed && parsed.table && parsed.narrative) {
@@ -94,7 +92,7 @@ export const TechComparison: React.FC = () => {
             }
         } catch (e: any) {
             setError(e.message || t('error_generating_comparison'));
-            console.error("Failed to parse comparison JSON:", e, "Raw result:", result);
+            console.error("Failed to parse comparison JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -112,8 +110,6 @@ export const TechComparison: React.FC = () => {
                     {isLoading ? t('analyzing') : t('compare_technologies')}
                 </button>
             </div>
-
-            {error && <p className="text-red-400 text-center">{error}</p>}
 
             {isLoading && (
                  <div className="w-full bg-slate-800 rounded-lg p-6 border border-slate-700 animate-pulse">

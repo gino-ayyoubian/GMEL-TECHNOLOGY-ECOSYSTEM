@@ -41,7 +41,7 @@ export const generate_summary = "Generate Summary";
 export const error_no_analysis = "No analysis could be generated.";
 export const thinking = "Thinking...";
 export const generate_strategic_analysis = "Generate Strategic Analysis";
-export const strategic_analysis_prompt = "Based on the following project summary for {region} and your knowledge of baseline financial data, generate a concise strategic analysis (3-4 paragraphs) covering potential market impact, key risks, and strategic recommendations for the board of directors. Ensure the analysis references the GMEL patent portfolio's advantages, especially the synergy between the core loop, the nanofluid, and the new AI-controlled stabilization system.\n\nProject Summary:\n{summary}";
+export const strategic_analysis_prompt = "Based on the following project summary for {region} and your knowledge of baseline financial data, generate a concise strategic analysis (3-4 paragraphs) covering potential market impact, key risks, and strategic recommendations for the board of directors. Ensure the analysis references the GMEL patent portfolio's advantages, especially the synergy between the core loop, the nanofluid, and the new AI-controlled stabilization system. The entire response must be in the language with this code: {language}.\n\nProject Summary:\n{summary}";
 export const generated_strategic_analysis = "Generated Strategic Analysis";
 export const project_milestones = "Project Milestones";
 export const financial_overview = "Financial Overview (Baseline)";
@@ -72,6 +72,7 @@ export const compare_selected = "Compare Selected";
 export const clear_comparison = "Clear";
 export const patent_comparison_title = "Patent Comparison";
 export const close = "Close";
+export const metric = "Metric";
 export const financial_analysis_title = "Financial Analysis";
 export const financial_analysis = "Financial Analysis";
 export const export_secure_pdf = "Export Secure PDF";
@@ -103,7 +104,7 @@ export const tech_detail_desal = "Low-energy thermal desalination with a Gain Ou
 export const tech_detail_hydrogen = "High-efficiency green hydrogen production through thermal electrolysis. By leveraging direct geothermal heat, this process achieves over 60% efficiency and targets production costs below $1/kg, making it highly competitive.";
 export const tech_detail_agriculture = "Advanced geothermal greenhouses (AgriCells) designed for sustainable, year-round agriculture. This system utilizes waste heat to control climate, increasing crop yields by over 200% and ensuring food security.";
 export const tech_detail_lithium = "Direct Lithium Extraction (DLE) from geothermal brines with a 90% recovery rate. This closed-loop process efficiently produces battery-grade lithium carbonate, creating a valuable secondary revenue stream from the same geothermal resource.";
-export const technical_explanation_prompt = "Explain the following technical concept in more detail for a semi-technical audience (e.g., an investor). Focus on the innovation and business advantage. Concept: {topic}. Details: {detail}";
+export const technical_explanation_prompt = "Explain the following technical concept in more detail for a semi-technical audience (e.g., an investor). Focus on the innovation and business advantage. The entire response must be in the language with this code: {language}. Concept: {topic}. Details: {detail}";
 export const error_no_explanation = "No explanation could be generated.";
 export const technical_diagram_prompt = "A simple, clear, technical diagram of a '{topic}'. Use clean lines, a white background, and minimalist icons. The diagram should be suitable for a presentation.";
 export const error_failed_diagram = "Failed to generate diagram.";
@@ -186,9 +187,9 @@ export const comparison_prompt = `
     - Infrastructure Focus
     - Regulatory Environment
     - Community Impact
+    The entire response, including all keys and string values, must be in the language with this code: {language}.
 `;
 export const error_comparison_generation = "An error occurred while generating the comparison. The AI's response may not have been in the expected format.";
-export const metric = "Metric";
 export const narrative_summary = "Narrative Summary";
 export const generate_deep_analysis = "Generate Deeper Strategic Insights";
 export const strategic_implications_title = "Strategic Implications";
@@ -214,6 +215,7 @@ export const benchmark_comparison_prompt = `
     - Government Subsidies/Incentives
     - Grid Integration Maturity
     - Major Operational Challenges
+    The entire response, including all keys and string values, must be in the language with this code: {language}.
 `;
 export const error_generating_comparison = "Error generating comparison. The AI response might be in an unexpected format. Please try again.";
 export const error_select_different_regions = "Please select two different regions to compare.";
@@ -313,6 +315,7 @@ export const impact_generation_prompt = `
       - 'Local Skill Development': This is a qualitative metric, provide a string value like "High" or "Significant". Unit: ''.
 
     Scale the metric values linearly from the provided base data. Ensure the 'value' key is a number where applicable.
+    The entire response, including all keys and string values, must be in the language with this code: {language}.
 `;
 export const gmel_statement_title = "A Statement from the Inventor";
 export const gmel_statement_body = `As the inventor of the GeoMeta Energy Layer (GMEL) technology, my vision extends beyond mere energy production. GMEL is designed as a foundational ecosystem for sustainable national development, particularly for Iran and the surrounding region. It is an instrument of economic independence, a tool for environmental stewardship, and a catalyst for technological sovereignty. Every patent in this portfolio is a building block towards a future where our nations control their own energy destiny, secure their water resources, and lead in the global transition to clean technology. This project is offered as a strategic asset for national empowerment.`;
@@ -349,7 +352,9 @@ Based on your search, provide a structured analysis. Format your response as a J
     - "overlap_description": A short explanation of why it's a potential overlap.
     If no overlaps are found, this should be an empty array.
 
-2. "legal_strategy": A string containing a short, multi-paragraph summary of pre-emptive legal strategies KKM International should consider based on your findings. This should include recommendations for monitoring, defensive publications, and potential actions if significant overlaps are found.`;
+2. "legal_strategy": A string containing a short, multi-paragraph summary of pre-emptive legal strategies KKM International should consider based on your findings. This should include recommendations for monitoring, defensive publications, and potential actions if significant overlaps are found.
+
+The entire response, including all keys and string values in the JSON, must be in the language with this code: {language}.`;
 export const potential_overlaps_title = "Potential Overlaps Identified";
 export const legal_strategy_title = "Proposed Pre-emptive Legal Strategy";
 export const no_overlaps_found = "No significant potential overlaps were identified in recent global patent records. GMEL's current IP position appears strong.";
@@ -366,7 +371,7 @@ export const projected_ipo_date = "Projected IPO Date";
 export const pre_ipo_valuation = "Pre-IPO Valuation";
 export const expected_market_cap = "Expected Market Cap";
 export const analyst_narrative = "Analyst Narrative";
-export const ipo_analysis_prompt = `As a financial analyst specializing in energy sector IPOs, analyze the following project data for a potential Initial Public Offering. Project: GMEL in {region}. Financials (5MW Pilot): 10-Year NPV {npv}B Toman, Annual Revenue {revenue}B Toman, ROI {roi}%, and Payback Period {payback} years. The project has a strong, defensible patent portfolio covering multiple revenue streams (energy, DLE, desalination). Provide a forecast in JSON format with the following keys: "projected_date" (string, e.g. 'Q3 2028'), "pre_ipo_valuation" (string, e.g. '$150M - $200M'), "expected_market_cap" (string, e.g. '$250M - $300M'), and "narrative" (string, a paragraph justifying these figures based on market trends for renewable tech and project strengths).`;
+export const ipo_analysis_prompt = `As a financial analyst specializing in energy sector IPOs, analyze the following project data for a potential Initial Public Offering. Project: GMEL in {region}. Financials (5MW Pilot): 10-Year NPV {npv}B Toman, Annual Revenue {revenue}B Toman, ROI {roi}%, and Payback Period {payback} years. The project has a strong, defensible patent portfolio covering multiple revenue streams (energy, DLE, desalination). Provide a forecast in JSON format with the following keys: "projected_date" (string, e.g. 'Q3 2028'), "pre_ipo_valuation" (string, e.g. '$150M - $200M'), "expected_market_cap" (string, e.g. '$250M - $300M'), and "narrative" (string, a paragraph justifying these figures based on market trends for renewable tech and project strengths). The entire response must be in the language with this code: {language}.`;
 export const revenue_streams_title = "Projected Revenue Streams";
 export const revenue_streams_desc = "Generate a detailed breakdown of the annual revenue streams for the {region} pilot project based on its integrated applications. This analysis models each technology's contribution to the overall financial viability.";
 export const revenue_streams_prompt = `
@@ -375,6 +380,7 @@ export const revenue_streams_prompt = `
     Provide the output as a single JSON object. The object must have two keys: "table" and "narrative".
     - "table": An array of objects. Each object must have the following keys: "stream" (string, e.g. 'Electricity Sales'), "percentage" (number, 0-100), "value" (number, in Billion Toman), and "assumptions" (string, a brief justification for the percentage). The sum of all "percentage" values must be 100.
     - "narrative": A string (2-3 paragraphs) explaining the synergies between these revenue streams and the strategic importance for {region}.
+    The entire response must be in the language with this code: {language}.
 `;
 export const generate_revenue_breakdown = "Generate Revenue Breakdown";
 export const revenue_stream_chart_title = "Revenue Contribution by Stream";
@@ -401,6 +407,7 @@ export const benchmark_tech_comparison_prompt = `
     - Precision & Path Optimization (e.g., MWD/LWD capabilities)
     - Typical Downtime for Maintenance
     - Key Safety Features
+    The entire response must be in the language with this code: {language}.
 `;
 export const welcome_title = "Welcome to the GMEL Vision Portal";
 export const welcome_prompt = "This is a secure, interactive platform to explore the GeoMeta Energy Layer project. Please select your preferred language to proceed.";
@@ -424,7 +431,7 @@ export const recommended_patents = "Recommended Patent Package";
 export const package_synergies = "Package Synergies";
 export const primary_value_prop = "Primary Value Proposition";
 export const estimated_profitability = "Estimated Profitability Profile";
-export const gmel_package_prompt = `For the target region {region}, model an ideal GMEL project package. Analyze the region's known economic, geographic, and strategic needs. Recommend a specific package of GMEL patents (e.g., GMEL-CLG, GMEL-Desal, GMEL-LithiumLoop) that would deliver the highest value. Output a single JSON object with these keys: "recommendedPatents" (array of strings), "synergies" (string explaining how they work together), "primaryValueProposition" (string describing the key benefit to the region), and "estimatedProfitability" (string, e.g., "High, with accelerated ROI due to...").`;
+export const gmel_package_prompt = `For the target region {region}, model an ideal GMEL project package. Analyze the region's known economic, geographic, and strategic needs. Recommend a specific package of GMEL patents (e.g., GMEL-CLG, GMEL-Desal, GMEL-LithiumLoop) that would deliver the highest value. Output a single JSON object with these keys: "recommendedPatents" (array of strings), "synergies" (string explaining how they work together), "primaryValueProposition" (string describing the key benefit to the region), and "estimatedProfitability" (string, e.g., "High, with accelerated ROI due to..."). The entire response must be in the language with this code: {language}.`;
 export const visionary_engine_title = "Visionary Project Proposal Engine";
 export const visionary_engine_description = "Go beyond the current roadmap. Generate a futuristic, ambitious, yet plausible project proposal that leverages the GMEL ecosystem in novel ways to solve a major challenge for the selected region.";
 export const generate_visionary_proposal = "Generate Visionary Proposal";
@@ -434,7 +441,7 @@ export const core_concept = "Core Concept";
 export const enabling_tech = "Enabling Technologies";
 export const transformative_impact = "Potential Transformative Impact";
 export const new_patent_opportunities = "New Patent Opportunities";
-export const visionary_proposal_prompt = `Generate a visionary, long-term (15-20 year) project proposal for {region} using the GMEL ecosystem as a foundation. Use Google Search for futuristic trends. The proposal should be ambitious but grounded in plausible technological evolution. Identify a major future challenge for {region} (e.g., extreme water scarcity, post-oil economic transition, food security) and design a comprehensive GMEL-based solution. Format the output as a JSON object inside a markdown code block. The JSON object must have keys: "proposalTitle" (string), "coreConcept" (string), "enablingTechnologies" (array of strings, including existing GMEL patents and potential future tech), "potentialImpact" (string), and "newPatentIdeas" (array of strings for new conceptual patents needed to support the vision).`;
+export const visionary_proposal_prompt = `Generate a visionary, long-term (15-20 year) project proposal for {region} using the GMEL ecosystem as a foundation. Use Google Search for futuristic trends. The proposal should be ambitious but grounded in plausible technological evolution. Identify a major future challenge for {region} (e.g., extreme water scarcity, post-oil economic transition, food security) and design a comprehensive GMEL-based solution. Format the output as a JSON object inside a markdown code block. The JSON object must have keys: "proposalTitle" (string), "coreConcept" (string), "enablingTechnologies" (array of strings, including existing GMEL patents and potential future tech), "potentialImpact" (string), and "newPatentIdeas" (array of strings for new conceptual patents needed to support the vision). The entire response must be in the language with this code: {language}.`;
 export const error_generating_proposal = "Error generating proposal";
 export const generated_proposal_title = "Generated Proposal for {region}";
 export const executive_summary = "Executive Summary";
@@ -451,16 +458,7 @@ export const select_proposal_region = "Select Target Region for Proposal";
 export const generate_proposal = "Generate Proposal";
 export const generating_proposal = "Generating Proposal...";
 export const regional_analysis_prompt = `Generate a detailed regional analysis for a geothermal energy project in {region}. This analysis should be grounded with up-to-date information from Google Search. Cover the following aspects in detail: current energy landscape (mix, costs, stability), pressing economic needs (e.g., job creation, industrial diversification), water security status, strategic priorities based on government initiatives, and key infrastructure (ports, grids, transport). The tone should be formal and suitable for a high-level project proposal.`;
-export const proposal_generation_prompt = `You are an AI system tasked with generating a comprehensive project proposal for the GMEL geothermal project, tailored for {region} in {language}. You will be provided with a pre-generated, grounded "Regional Analysis" section. Your task is to generate all other sections of the proposal around it.
-
-All text must be in {language}.
-
-Here is the pre-generated Regional Analysis to include:
----
-{regional_analysis_content}
----
-`;
-export const strategy_modeler_title = "Joint Venture Strategy Modeler";
+export const strategy_modeler_title = "Strategy Modeler";
 export const strategy_modeler_description = "Design a custom Joint Venture (JV) and technology transfer strategy for a specific target region. This tool models the optimal approach for local partnerships, balancing KKM's IP protection with the host nation's strategic goals.";
 export const select_target_region = "Select Target Region";
 export const generate_jv_strategy = "Generate JV Strategy";
@@ -479,7 +477,8 @@ The output must be a single JSON object with the following keys, each containing
 - "local_value_proposition": A string that frames the JV's benefits specifically for the government and industry of {region}, focusing on their strategic priorities (e.g., economic diversification, job creation, energy independence).
 - "tech_transfer_plan": A string outlining a phased plan for transferring know-how, training local engineers, and establishing local manufacturing or assembly capabilities.
 - "risk_analysis": A string that identifies the top 3-4 political, economic, and operational risks of a JV in {region} and proposes a concise mitigation strategy for each.
-- "budget_justification": A string providing a high-level justification for a pilot project budget, explaining how the investment aligns with the long-term value and strategic importance of the partnership.`;
+- "budget_justification": A string providing a high-level justification for a pilot project budget, explaining how the investment aligns with the long-term value and strategic importance of the partnership.
+The entire response must be in the language with this code: {language}.`;
 export const market_analysis_prompt = `Generate a detailed market analysis for a geothermal energy project in {region}. Focus on current energy policies, grid stability, major industrial consumers, and potential government incentives. Use Google Search to ensure information is up-to-date.`;
 export const gmel_drillx_specs = "GMEL-DrillX Specifications";
 export const tech_comparison_drillx_title = "Drilling Tech Comparison: GMEL-DrillX vs. Conventional";
@@ -490,8 +489,8 @@ export const generate_business_plan = "Generate Business Plan";
 export const generating_business_plan = "Generating Business Plan...";
 export const generated_business_plan = "Generated Business Plan";
 export const export_txt = "Export as .txt";
-export const ideal_plan_prompt = `Based on the following modeled GMEL project package for {region}, generate a concise initial business plan. Structure it with clear headings for: 1. Executive Summary, 2. Technology Package, 3. Market Opportunity, 4. Strategic Value, and 5. Financial Outlook. The output should be plain text suitable for internal review.\n\nData:\nRecommended Patents: {patents}\nSynergies: {synergies}\nPrimary Value Proposition: {valueProp}\nEstimated Profitability: {profitability}`;
-export const visionary_plan_prompt = `Based on the following visionary project proposal for {region}, generate a concise initial business plan. Structure it with clear headings for: 1. Vision Statement, 2. Core Concept & Impact, 3. Foundational Technologies, 4. New IP Development (elaborate on proposed patent titles), and 5. Long-Term Strategic Goals. The output should be plain text for internal use.\n\nProposal Data:\nTitle: {title}\nCore Concept: {concept}\nEnabling Technologies: {tech}\nPotential Impact: {impact}\nNew Patent Opportunities (treat these as producible titles): {patentIdeas}`;
+export const ideal_plan_prompt = `Based on the following modeled GMEL project package for {region}, generate a concise initial business plan. Structure it with clear headings for: 1. Executive Summary, 2. Technology Package, 3. Market Opportunity, 4. Strategic Value, and 5. Financial Outlook. The output should be plain text suitable for internal review.\n\nData:\nRecommended Patents: {patents}\nSynergies: {synergies}\nPrimary Value Proposition: {valueProp}\nEstimated Profitability: {profitability}. The entire response must be in the language with this code: {language}.`;
+export const visionary_plan_prompt = `Based on the following visionary project proposal for {region}, generate a concise initial business plan. Structure it with clear headings for: 1. Vision Statement, 2. Core Concept & Impact, 3. Foundational Technologies, 4. New IP Development (elaborate on proposed patent titles), and 5. Long-Term Strategic Goals. The output should be plain text for internal use.\n\nProposal Data:\nTitle: {title}\nCore Concept: {concept}\nEnabling Technologies: {tech}\nPotential Impact: {impact}\nNew Patent Opportunities (treat these as producible titles): {patentIdeas}. The entire response must be in the language with this code: {language}.`;
 export const swot_analysis_title = "SWOT Analysis";
 export const swot_analysis_desc = "Generate an AI-powered SWOT analysis for the GMEL project in {region}, identifying key internal Strengths and Weaknesses, and external Opportunities and Threats.";
 export const generate_swot = "Generate SWOT";
@@ -499,7 +498,7 @@ export const strengths = "Strengths";
 export const weaknesses = "Weaknesses";
 export const opportunities = "Opportunities";
 export const threats = "Threats";
-export const swot_prompt = `Perform a SWOT analysis for the GMEL project targeting {region}. Consider internal factors (Strengths, Weaknesses) related to the GMEL technology portfolio and KKM's position, and external factors (Opportunities, Threats) in the {region} market. Provide the output as a JSON object with four keys: "strengths", "weaknesses", "opportunities", and "threats". Each key should have an array of strings as its value, with each string being a distinct point.`;
+export const swot_prompt = `Perform a SWOT analysis for the GMEL project targeting {region}. Consider internal factors (Strengths, Weaknesses) related to the GMEL technology portfolio and KKM's position, and external factors (Opportunities, Threats) in the {region} market. Provide the output as a JSON object with four keys: "strengths", "weaknesses", "opportunities", and "threats". Each key should have an array of strings as its value, with each string being a distinct point. The entire response must be in the language with this code: {language}.`;
 export const esg_impact_title = "ESG Impact Summary";
 export const esg_impact_desc = "Generate a summary of the Environmental, Social, and Governance (ESG) impact of the GMEL project, highlighting its contribution to UN Sustainable Development Goals (SDGs).";
 export const generate_esg = "Generate ESG Summary";
@@ -507,7 +506,7 @@ export const environmental = "Environmental";
 export const social = "Social";
 export const governance = "Governance";
 export const sdg_alignment = "SDG Alignment";
-export const esg_prompt = `Generate a summary of the Environmental, Social, and Governance (ESG) impact for the GMEL project. The output must be a JSON object with keys: "environmental", "social", "governance", and "sdg_alignment". The values for the first three keys should be an array of strings detailing key positive impacts. The "sdg_alignment" value should be an array of objects, each with "goal" (e.g., "SDG 7: Affordable and Clean Energy") and "contribution" (a string explaining how GMEL contributes).`;
+export const esg_prompt = `Generate a summary of the Environmental, Social, and Governance (ESG) impact for the GMEL project. The output must be a JSON object with keys: "environmental", "social", "governance", and "sdg_alignment". The values for the first three keys should be an array of strings detailing key positive impacts. The "sdg_alignment" value should be an array of objects, each with "goal" (e.g., "SDG 7: Affordable and Clean Energy") and "contribution" (a string explaining how GMEL contributes). The entire response must be in the language with this code: {language}.`;
 export const funding_sources_title = "Funding Sources Research";
 export const funding_sources_desc = "Use AI to research and identify potential funding sources for the GMEL project. The analysis will cover venture capital, government grants, and international development funds relevant to the region.";
 export const research_funding = "Research Funding Sources";
@@ -516,7 +515,7 @@ export const government_grants = "Government & National Funds";
 export const international_funds = "International Development Funds";
 export const focus = "Focus";
 export const potential_fit = "Potential Fit";
-export const funding_prompt = `Research and identify potential funding sources for a large-scale geothermal energy project like GMEL, with a focus on {region} and the broader Middle East. Use Google Search for up-to-date information. Your output must be a JSON object inside a markdown code block, with three keys: "venture_capital", "government_grants", and "international_funds". Each key's value should be an array of objects, where each object has "name", "focus" (a brief description of their investment thesis), and "potential_fit" (a short explanation of why they are relevant to GMEL) keys.`;
+export const funding_prompt = `Research and identify potential funding sources for a large-scale geothermal energy project like GMEL, with a focus on {region} and the broader Middle East. Use Google Search for up-to-date information. Your output must be a JSON object inside a markdown code block, with three keys: "venture_capital", "government_grants", and "international_funds". Each key's value should be an array of objects, where each object has "name", "focus" (a brief description of their investment thesis), and "potential_fit" (a short explanation of why they are relevant to GMEL). The entire response must be in the language with this code: {language}.`;
 export const competitor_analysis_title = "Global Competitor Analysis";
 export const competitor_analysis_desc = "Perform an AI-powered analysis of competing geothermal technologies and companies globally, focusing on their market position, technological advancements, and financial performance.";
 export const analyze_competitors = "Analyze Competitors";
@@ -524,4 +523,22 @@ export const company_name = "Company Name";
 export const technology_focus = "Technology Focus";
 export const market_position = "Market Position";
 export const key_differentiator = "Key Differentiator";
-export const competitor_prompt = `Perform a competitive analysis of the global advanced geothermal technology market. Identify 3-4 key companies/projects competing with GMEL's closed-loop, superhot rock, and integrated applications approach. Use Google Search to ensure data is current. The output must be a JSON object inside a markdown code block. The JSON must have a "competitors" key, containing an array of objects, where each object has keys: "company_name", "technology_focus", "market_position", and "key_differentiator". Also include a "summary_narrative" key with a paragraph summarizing the competitive landscape and GMEL's strategic position within it.`;
+export const competitor_prompt = `Perform a competitive analysis of the global advanced geothermal technology market. Identify 3-4 key companies/projects competing with GMEL's closed-loop, superhot rock, and integrated applications approach. Use Google Search to ensure data is current. The output must be a JSON object inside a markdown code block. The JSON must have a "competitors" key, containing an array of objects, where each object has keys: "company_name", "technology_focus", "market_position", and "key_differentiator". Also include a "summary_narrative" key with a paragraph summarizing the competitive landscape and GMEL's strategic position within it. The entire response must be in the language with this code: {language}.`;
+export const error_negative_value = "Value cannot be negative.";
+export const error_occurred = "حدث خطأ";
+export const error_dismiss = "إغلاق";
+export const error_boundary_message = "حدث خطأ فادح في التطبيق. يرجى تحديث الصفحة.";
+export const password_reset_title = "إعادة تعيين كلمة المرور";
+export const forgot_password = "هل نسيت كلمة المرور؟";
+export const password_reset_prompt_step2 = "تم إرسال رمز إعادة التعيين إلى جهازك المسجل. للعرض، يرجى استخدام '654321'.";
+export const error_user_not_found = "معرف المستخدم غير موجود.";
+export const error_password_mismatch = "كلمات المرور غير متطابقة.";
+export const error_invalid_reset_code = "رمز إعادة التعيين غير صالح.";
+export const password_reset_success = "تمت إعادة تعيين كلمة المرور بنجاح. جارٍ إعادة التوجيه إلى تسجيل الدخول...";
+export const password_reset_prompt_step1 = "أدخل معرف المستخدم الخاص بك لتلقي رمز إعادة تعيين كلمة المرور.";
+export const send_reset_code = "إرسال رمز إعادة التعيين";
+export const reset_code = "رمز إعادة التعيين";
+export const new_password = "كلمة المرور الجديدة";
+export const confirm_new_password = "تأكيد كلمة المرور الجديدة";
+export const reset_password_button = "إعادة تعيين كلمة المرور";
+export const back_to_login = "العودة إلى تسجيل الدخول";

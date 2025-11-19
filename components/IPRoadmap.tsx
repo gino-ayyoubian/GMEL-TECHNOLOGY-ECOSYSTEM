@@ -69,16 +69,15 @@ interface AnalysisResult {
 }
 
 const CompetitiveAnalysis: React.FC = () => {
-    const { lang } = useContext(AppContext)!;
+    const { lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setAnalysis(null);
         setError(null);
-    }, [lang]);
+    }, [lang, setError]);
 
     const handleRunAnalysis = async () => {
         setIsLoading(true);
@@ -90,7 +89,7 @@ const CompetitiveAnalysis: React.FC = () => {
             .map(p => `- ${p.code} (${p.title}): ${p.application}`)
             .join('\n');
         
-        const prompt = t('patent_analysis_prompt', { gmel_patents_context });
+        const prompt = t('patent_analysis_prompt', { gmel_patents_context, language: lang });
 
         try {
             const result = await generateGroundedText(prompt);
@@ -129,7 +128,6 @@ const CompetitiveAnalysis: React.FC = () => {
                     <p className="mt-4 text-slate-400">{t('analyzing_patents')}</p>
                 </div>
             )}
-            {error && <p className="text-red-400 mt-4">{error}</p>}
             
             {analysis && (
                 <div className="mt-6 space-y-6">

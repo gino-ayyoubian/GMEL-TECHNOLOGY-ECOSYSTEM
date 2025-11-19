@@ -69,7 +69,7 @@ interface GeminiChatProps {
 }
 
 export const GeminiChat: React.FC<GeminiChatProps> = ({ activeView, onClose }) => {
-    const { region, lang } = useContext(AppContext)!;
+    const { region, lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
@@ -98,6 +98,7 @@ export const GeminiChat: React.FC<GeminiChatProps> = ({ activeView, onClose }) =
         return `
 System context:
 You are the GMEL Project Assistant. Your knowledge base includes the following information. Answer user questions based on this context. Be helpful and concise.
+- IMPORTANT: You MUST respond in the language with this code: ${lang}.
 - Current Proposal Focus: ${region}
 - ${regionSpecificContexts[region] || ''}
 - Current User View: ${activeView} (${viewContexts[activeView] || ''})
@@ -116,6 +117,7 @@ You are the GMEL Project Assistant. Your knowledge base includes the following i
         setMessages(newMessages);
         setInput('');
         setIsLoading(true);
+        setError(null);
 
         try {
             const historyToSend = [...newMessages];
@@ -127,7 +129,7 @@ You are the GMEL Project Assistant. Your knowledge base includes the following i
             const response = await continueChat(historyToSend);
             setMessages(prev => [...prev, { role: 'model', text: response }]);
         } catch (error: any) {
-            setMessages(prev => [...prev, { role: 'model', text: t('error_process_request') }]);
+            setError(error.message || t('error_process_request'));
         } finally {
             setIsLoading(false);
         }

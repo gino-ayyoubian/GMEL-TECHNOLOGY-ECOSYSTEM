@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AppContextProvider, AppContext } from './contexts/AppContext';
 import { useI18n, Language } from './hooks/useI18n';
 import { hasPermission } from './utils/permissions';
@@ -8,6 +8,7 @@ import { LanguageSelection } from './components/auth/LanguageSelection';
 import { Login } from './components/auth/Login';
 import { TwoFactorAuth } from './components/auth/TwoFactorAuth';
 import { NDAScreen } from './components/auth/NDAScreen';
+import { PasswordReset } from './components/auth/PasswordReset';
 
 // Main App Components
 import { Dashboard } from './components/Dashboard';
@@ -29,6 +30,8 @@ import { Region, View } from './types';
 import { KKM_LOGO_DATA_URL } from './constants';
 import * as en from './i18n/en';
 import { GlobalSearch } from './components/shared/GlobalSearch';
+import { GlobalErrorDisplay } from './components/shared/GlobalErrorDisplay';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 // --- INQUIRIES & CONTRIBUTIONS COMPONENT ---
 const InquiriesAndContributions: React.FC = () => {
@@ -196,138 +199,180 @@ const MainAppLayout: React.FC = () => {
                 </NavGroup>
                 <NavGroup titleKey="nav_group_strategic">
                     {hasPermission(userRole, 'tech_comparison') && <NavItem view="tech_comparison" labelKey="nav_tech_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>} />}
-                    {hasPermission(userRole, 'benchmark') && <NavItem view="benchmark" labelKey="nav_benchmark" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.737 10.512l3.428-3.428a.5.5 0 01.707 0l3.429 3.428m-11.314 0l3.428 3.428a.5.5 0 00.707 0l3.429-3.428" /></svg>} />}
-                    {hasPermission(userRole, 'site') && <NavItem view="site" labelKey="nav_site" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />}
-                    {hasPermission(userRole, 'comparison') && <NavItem view="comparison" labelKey="nav_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>} />}
-                    {hasPermission(userRole, 'simulations') && <NavItem view="simulations" labelKey="nav_simulations" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>} />}
-                    {hasPermission(userRole, 'strategy_modeler') && <NavItem view="strategy_modeler" labelKey="nav_strategy_modeler" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2 1M4 7l2-1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>} />}
+                    {hasPermission(userRole, 'benchmark') && <NavItem view="benchmark" labelKey="nav_benchmark" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11.686a.5.5 0 01.69.043l3.25 3.5a.5.5 0 01-.345.871H3.5a.5.5 0 01-.5-.5v-3.5a.5.5 0 01.055-.228zM15 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zM4 15a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM15 15a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" /></svg>} />}
+                    {hasPermission(userRole, 'site') && <NavItem view="site" labelKey="nav_site" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />}
+                    {hasPermission(userRole, 'comparison') && <NavItem view="comparison" labelKey="nav_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>} />}
+                    {hasPermission(userRole, 'simulations') && <NavItem view="simulations" labelKey="nav_simulations" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2 1M4 7l2-1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>} />}
+                    {hasPermission(userRole, 'strategy_modeler') && <NavItem view="strategy_modeler" labelKey="nav_strategy_modeler" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V5a1 1 0 00-1.447-.894l-4 2A1 1 0 0011 7v10zM4 17a1 1 0 001.447.894l4-2A1 1 0 0010 15V5a1 1 0 00-1.447-.894l-4 2A1 1 0 004 7v10z" /></svg>} />}
                 </NavGroup>
                 <NavGroup titleKey="nav_group_generative">
                     {hasPermission(userRole, 'image') && <NavItem view="image" labelKey="nav_concept" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />}
-                    {hasPermission(userRole, 'video') && <NavItem view="video" labelKey="nav_video_generator" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>} />}
+                    {hasPermission(userRole, 'video') && <NavItem view="video" labelKey="nav_video_generator" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>} />}
+                    {hasPermission(userRole, 'chat') && <NavItem view="chat" labelKey="nav_assistant" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>} />}
                 </NavGroup>
-                <NavGroup titleKey="nav_group_official">
-                    {hasPermission(userRole, 'proposal_generator') && <NavItem view="proposal_generator" labelKey="nav_proposal_generator" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>} />}
-                    {hasPermission(userRole, 'correspondence') && <NavItem view="correspondence" labelKey="nav_correspondence" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} />}
+                 <NavGroup titleKey="nav_group_official">
+                     {hasPermission(userRole, 'correspondence') && <NavItem view="correspondence" labelKey="nav_correspondence" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} />}
+                     {hasPermission(userRole, 'proposal_generator') && <NavItem view="proposal_generator" labelKey="nav_proposal_generator" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>} />}
+                     {hasPermission(userRole, 'contact') && <NavItem view="contact" labelKey="contact_us" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} />}
                 </NavGroup>
             </nav>
-            <div className="mt-auto space-y-2">
-                <button
-                    onClick={() => {
-                        setActiveView('contact');
-                        setIsSidebarOpen(false);
-                    }}
-                    aria-label={t('contact_us')}
-                    className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg text-slate-400 hover:bg-slate-700/50 hover:text-white transition-colors`}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                    </svg>
-                    <span className={isRtl ? "mr-3" : "ml-3"}>{t('contact_us')}</span>
-                </button>
-            </div>
         </>
     );
 
-    const ALL_REGIONS: Region[] = ['Qeshm Free Zone', 'Makoo Free Zone', 'Chabahar Free Zone', 'Iranian Kurdistan', 'Mahabad', 'Kurdistan Region, Iraq', 'Oman', 'Saudi Arabia', 'United Arab Emirates', 'Qatar'];
-    const displayRegions = allowedRegions || ALL_REGIONS;
-
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100" dir={isRtl ? 'rtl' : 'ltr'}>
-            
-            {/* Overlay for mobile */}
-            {isSidebarOpen && <div onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black/60 z-30 lg:hidden"></div>}
+        <div className={`min-h-screen bg-slate-900 text-slate-100 font-sans ${isRtl ? 'rtl' : 'ltr'}`}>
+             <div className="flex">
+                {/* Desktop Sidebar */}
+                <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-slate-800 p-4 border-r border-slate-700 h-screen fixed">
+                    {sidebarContent}
+                </aside>
 
-            {/* Sidebar */}
-            <aside className={`fixed inset-y-0 ${isRtl ? 'right-0 border-l' : 'left-0 border-r'} z-40 w-64 bg-slate-800 p-4 border-slate-700 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : (isRtl ? 'translate-x-full' : '-translate-x-full')}`}>
-                {sidebarContent}
-            </aside>
-            
-            <main className={`flex-1 p-4 sm:p-8 flex flex-col min-h-screen ${isRtl ? 'lg:mr-64' : 'lg:ml-64'}`}>
-                <header className="flex-shrink-0 mb-4 sm:mb-8">
-                    <div className="flex justify-between items-center gap-6">
-                        <div className="flex items-center gap-2">
-                             <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 rounded-md text-slate-400 hover:bg-slate-700 lg:hidden">
-                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                             </button>
-                            <div className="p-1 bg-white rounded-lg hidden sm:block">
-                                <KkmLogo className="h-12 w-auto" />
-                            </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-white whitespace-nowrap hidden md:block">GeoMeta Energy Layer</h1>
-                        </div>
-                        <div className="flex-grow min-w-0 px-4">
-                            <GlobalSearch />
-                        </div>
-                        <div className="items-center hidden md:flex">
-                            <label htmlFor="region-select" className={`text-sm font-medium text-slate-400 ${isRtl ? 'ml-3' : 'mr-3'}`}>{t('proposal_for')}</label>
-                            <select
-                                id="region-select"
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value as Region)}
-                                className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold"
-                            >
-                                {displayRegions.map(r => (
-                                    <option key={r} value={r}>{r}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </header>
-                <div className="flex-grow">
-                    {renderView()}
+                {/* Mobile Sidebar */}
+                <div className={`fixed inset-0 z-40 flex lg:hidden ${isSidebarOpen ? '' : 'pointer-events-none'}`}>
+                     <div onClick={() => setIsSidebarOpen(false)} className={`absolute inset-0 bg-black/60 transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}></div>
+                     <aside className={`relative flex flex-col w-64 bg-slate-800 p-4 border-r border-slate-700 h-full transform transition-transform ${isSidebarOpen ? (isRtl ? 'translate-x-0' : 'translate-x-0') : (isRtl ? 'translate-x-full' : '-translate-x-full')}`}>
+                        {sidebarContent}
+                    </aside>
                 </div>
-                <Footer />
-            </main>
 
-            {/* Chat Feature */}
-            {hasPermission(userRole, 'chat') && (
-                <>
-                    {!isChatOpen && (
-                        <button
-                            onClick={() => setIsChatOpen(true)}
-                            className={`fixed bottom-8 ${isRtl ? 'left-8' : 'right-8'} bg-sky-600 hover:bg-sky-700 text-white p-4 rounded-full shadow-lg z-50 transition-transform hover:scale-110 animate-pop-in`}
-                            aria-label={t('nav_assistant')}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.837 8.837 0 01-4.43-1.232l-2.437.812a1 1 0 01-1.15-1.15l.812-2.437A8.837 8.837 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.706 14.706a.5.5 0 00.708 0l2.828-2.828a.5.5 0 000-.708l-2.828-2.828a.5.5 0 10-.708.708L6.293 11H4.5a.5.5 0 000 1h1.793l-1.587 1.586a.5.5 0 000 .708zM10.5 11.5a.5.5 0 000-1h-1.793l1.587-1.586a.5.5 0 000-.708l-2.828-2.828a.5.5 0 10-.708.708L8.207 9h-1.793a.5.5 0 000 1h1.793l-1.586 1.586a.5.5 0 00.707.707L10.5 11.5z" clipRule="evenodd" /></svg>
+                <div className={isRtl ? "lg:mr-64 flex-1" : "lg:ml-64 flex-1"}>
+                    <header className="sticky top-0 z-30 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50 p-4 flex items-center justify-between">
+                        <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
                         </button>
-                    )}
-                    
-                    {isChatOpen && <div className="fixed inset-0 bg-black/60 z-40 sm:hidden" onClick={() => setIsChatOpen(false)}></div>}
-
-                    <div className={`fixed bottom-0 ${isRtl ? 'left-0 sm:left-8' : 'right-0 sm:right-8'} z-50 transition-all duration-300 ease-in-out ${isChatOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'} sm:bottom-8`}>
-                        <div className="h-screen w-screen sm:h-[70vh] sm:max-h-[600px] sm:w-[400px] sm:max-w-[90vw] bg-slate-800 sm:rounded-lg shadow-2xl flex flex-col border border-slate-700">
-                           <GeminiChat activeView={activeView} onClose={() => setIsChatOpen(false)} />
+                        <GlobalSearch />
+                        <div className="flex items-center gap-4">
+                             <div className="relative">
+                                <label htmlFor="region-selector" className="sr-only">{t('proposal_for')}</label>
+                                 <select 
+                                    id="region-selector" 
+                                    value={region} 
+                                    onChange={e => setRegion(e.target.value as Region)}
+                                    className="bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold"
+                                >
+                                    {allowedRegions ? (
+                                        allowedRegions.map(r => <option key={r} value={r}>{r}</option>)
+                                    ) : (
+                                        <>
+                                            <option value="Qeshm Free Zone">Qeshm Free Zone</option>
+                                            <option value="Makoo Free Zone">Makoo Free Zone</option>
+                                            <option value="Chabahar Free Zone">Chabahar Free Zone</option>
+                                            <option value="Iranian Kurdistan">Iranian Kurdistan</option>
+                                            <option value="Mahabad">Mahabad</option>
+                                            <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
+                                            <option value="Oman">Oman</option>
+                                            <option value="Saudi Arabia">Saudi Arabia</option>
+                                            <option value="United Arab Emirates">United Arab Emirates</option>
+                                            <option value="Qatar">Qatar</option>
+                                        </>
+                                    )}
+                                </select>
+                            </div>
+                            <button onClick={() => setIsChatOpen(!isChatOpen)} className="p-2 rounded-full bg-slate-700 text-slate-300 hover:bg-sky-600 hover:text-white transition-colors" aria-label="Open Project Assistant Chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                            </button>
                         </div>
-                    </div>
-                </>
+                    </header>
+                    <main className="p-4 sm:p-6 lg:p-8">
+                        {renderView()}
+                    </main>
+                </div>
+            </div>
+
+            {/* Chat Overlay */}
+            {isChatOpen && (
+                <div className="fixed bottom-0 right-0 z-50 p-4 w-full max-w-lg h-full md:h-2/3">
+                    <GeminiChat activeView={activeView} onClose={() => setIsChatOpen(false)} />
+                </div>
             )}
         </div>
     );
 };
 
-// --- APP ---
-const App: React.FC = () => {
-    const { authStep, lang } = useContext(AppContext)!;
+// --- AUTH FLOW COMPONENTS ---
 
-    // Use a wrapper div for consistent styling across auth flow
-    const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-        <div className="flex items-center justify-center min-h-screen bg-slate-900 text-slate-100 p-4" dir={lang === 'fa' || lang === 'ar' || lang === 'ku' ? 'rtl' : 'ltr'}>
-            <div className="w-full max-w-5xl">
-                {children}
+const ProgressIndicator: React.FC<{ currentStep: number; totalSteps: number; stepNames: string[] }> = ({ currentStep, totalSteps, stepNames }) => {
+    return (
+        <div className="flex items-center justify-between mb-8 px-4">
+            {Array.from({ length: totalSteps }).map((_, index) => (
+                <React.Fragment key={index}>
+                    <div className="flex flex-col items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${index + 1 <= currentStep ? 'bg-sky-600 border-sky-600' : 'bg-slate-700 border-slate-600'}`}>
+                            <span className={`font-bold ${index + 1 <= currentStep ? 'text-white' : 'text-slate-400'}`}>{index + 1}</span>
+                        </div>
+                        <span className={`mt-2 text-xs font-semibold ${index + 1 <= currentStep ? 'text-white' : 'text-slate-400'}`}>{stepNames[index]}</span>
+                    </div>
+                    {index < totalSteps - 1 && <div className="flex-1 h-0.5 mx-4 bg-slate-600" />}
+                </React.Fragment>
+            ))}
+        </div>
+    );
+};
+
+const AuthScreen: React.FC = () => {
+    const { authStep, userRole } = useContext(AppContext)!;
+    const { t } = useI18n();
+
+    const isResetFlow = authStep === 'resetPassword';
+
+    const steps = ['login', '2fa', 'nda'];
+    const stepNames = [t('login_button'), t('two_factor_title'), t('nda_title')];
+    
+    // Admin and guest roles skip 2FA and NDA.
+    const relevantSteps = userRole === 'admin' || userRole === 'guest' ? ['login'] : steps;
+    const currentStepIndex = relevantSteps.indexOf(authStep);
+
+    const renderAuthStep = () => {
+        switch (authStep) {
+            case 'login': return <Login />;
+            case '2fa': return <TwoFactorAuth />;
+            case 'nda': return <NDAScreen />;
+            case 'resetPassword': return <PasswordReset />;
+            default: return <Login />;
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-slate-100 p-4">
+            <div className="auth-background"></div>
+            <div className="w-full max-w-md mx-auto relative">
+                 <div className="text-center mb-8">
+                    <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className="h-20 mx-auto mb-4 bg-white rounded-2xl p-2" />
+                    <h1 className="text-2xl font-bold text-white">{isResetFlow ? t('password_reset_title') : t('login_title')}</h1>
+                </div>
+                {!isResetFlow && currentStepIndex !== -1 && (
+                    <ProgressIndicator 
+                        currentStep={currentStepIndex + 1} 
+                        totalSteps={relevantSteps.length} 
+                        stepNames={stepNames}
+                    />
+                )}
+                <div key={authStep} className="auth-step-container">
+                    {renderAuthStep()}
+                </div>
             </div>
         </div>
     );
+};
+
+
+// --- APP ROUTER ---
+const App: React.FC = () => {
+    const { authStep, lang } = useContext(AppContext)!;
+
+    useEffect(() => {
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'fa' || lang === 'ar' || lang === 'ku' ? 'rtl' : 'ltr';
+    }, [lang]);
 
     switch (authStep) {
         case 'language':
             return <LanguageSelection />;
         case 'login':
-            return <AuthWrapper><Login /></AuthWrapper>;
         case '2fa':
-            return <AuthWrapper><TwoFactorAuth /></AuthWrapper>;
         case 'nda':
-            return <AuthWrapper><NDAScreen /></AuthWrapper>;
+        case 'resetPassword':
+            return <AuthScreen />;
         case 'granted':
             return <MainAppLayout />;
         default:
@@ -335,36 +380,15 @@ const App: React.FC = () => {
     }
 };
 
-const Footer = () => {
-    const { t } = useI18n();
-    const { isSpeaking, cancelNarration } = useContext(AppContext)!;
+// --- APP WRAPPER (provides context) ---
+// FIX: Changed to named export
+export const AppWrapper: React.FC = () => {
     return (
-        <footer className="w-full text-center py-4 px-2 sm:px-8 mt-auto flex flex-col sm:flex-row justify-between items-center border-t border-slate-800 pt-4 gap-4">
-            <p className="text-xs text-slate-600 max-w-lg text-center sm:text-left">
-                {t('footer_disclaimer')}
-            </p>
-            <div className="flex items-center justify-center gap-4">
-                <p className="text-xs text-slate-500">{t('narrator')}</p>
-                <button
-                    onClick={cancelNarration}
-                    disabled={!isSpeaking}
-                    className="disabled:opacity-50 text-slate-400 hover:text-white transition-colors"
-                    aria-label={t('stop_narration')}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z" />
-                    </svg>
-                </button>
-            </div>
-        </footer>
+        <AppContextProvider>
+            <ErrorBoundary>
+                <App />
+                <GlobalErrorDisplay />
+            </ErrorBoundary>
+        </AppContextProvider>
     );
-}
-
-
-const AppWrapper = () => (
-    <AppContextProvider>
-        <App />
-    </AppContextProvider>
-);
-
-export default AppWrapper;
+};
