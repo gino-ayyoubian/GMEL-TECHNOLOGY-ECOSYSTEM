@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect } from 'react';
 import { generateGroundedText, generateTextWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -82,7 +83,10 @@ export const ProposalGenerator: React.FC = () => {
                 ownership_statement: 'All intellectual property rights for the GeoMeta Energy Layer (GMEL) and its associated technologies are retained by the inventor, Seyed Gino Ayyoubian, and the KKM International Group. Usage, reproduction, or commercial exploitation in any form is strictly prohibited without a formal written agreement.'
             };
             
-            const context = `Context: You are writing a section of a formal project proposal for the GMEL project, targeting ${targetRegion}. The language must be ${lang}. Use the following regional analysis to inform your writing:\n\n${regionalAnalysisContent}\n\n---\n\n`;
+            // Enriched context with specific GMEL details to guide the AI
+            const context = `Context: You are writing a section of a formal project proposal for the GMEL (GeoMeta Energy Layer) project, targeting ${targetRegion}. 
+            GMEL is a cutting-edge closed-loop geothermal ecosystem featuring superhot rock drilling, proprietary nanofluids, and integrated solutions for desalination, hydrogen production, and lithium extraction.
+            The language must be ${lang}. Use the following regional analysis to inform your writing:\n\n${regionalAnalysisContent}\n\n---\n\n`;
 
             const generateSection = async (title: string, prompt: string) => {
                 setGenerationProgress(`Generating ${title}...`);

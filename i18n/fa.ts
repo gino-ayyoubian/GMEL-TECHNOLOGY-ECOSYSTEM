@@ -1,3 +1,4 @@
+
 export const app_title = "KKM | چشم انداز لایه انرژی ژئومتا";
 export const nav_dashboard = "داشبورد";
 export const nav_ip = "نقشه راه مالکیت معنوی";
@@ -527,7 +528,6 @@ export const error_negative_value = "مقدار نمی‌تواند منفی ب�
 export const error_occurred = "خطایی روی داد";
 export const error_dismiss = "بستن";
 export const error_boundary_message = "خطای حساسی در برنامه رخ داده است. لطفاً صفحه را تازه‌سازی کنید.";
-// FIX: Added missing translation keys for password reset functionality
 export const password_reset_title = "بازنشانی گذرواژه";
 export const forgot_password = "گذرواژه را فراموش کرده‌اید؟";
 export const password_reset_prompt_step2 = "یک کد بازنشانی به دستگاه ثبت شده شما ارسال شد. برای دمو، لطفاً از '654321' استفاده کنید.";
@@ -542,3 +542,9 @@ export const new_password = "گذرواژه جدید";
 export const confirm_new_password = "تایید گذرواژه جدید";
 export const reset_password_button = "بازنشانی گذرواژه";
 export const back_to_login = "بازگشت به ورود";
+// New keys for enhanced password reset flow
+export const re_enter_user_id = "ورود مجدد شناسه کاربری برای تأیید";
+export const error_user_id_mismatch = "شناسه کاربری با درخواست اولیه مطابقت ندارد.";
+export const verify_code_button = "تأیید کد";
+export const code_verified = "کد تأیید شد. لطفاً برای تنظیم گذرواژه جدید ادامه دهید.";
+export const secure_reset_instruction = "برای امنیت بیشتر، لطفاً شناسه کاربری خود را مجدداً تأیید کرده و گذرواژه جدید خود را تنظیم کنید.";

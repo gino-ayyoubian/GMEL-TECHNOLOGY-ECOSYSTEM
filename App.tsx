@@ -109,6 +109,30 @@ const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
     <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className={className} />
 );
 
+// --- LANGUAGE SWITCHER COMPONENT ---
+const LanguageSwitcher: React.FC = () => {
+    const { lang, setLang, supportedLangs } = useContext(AppContext)!;
+    const { t } = useI18n();
+
+    return (
+        <div className="relative">
+            <label htmlFor="language-switcher" className="sr-only">{t('language')}</label>
+            <select
+                id="language-switcher"
+                value={lang}
+                onChange={(e) => setLang(e.target.value as any)}
+                className="bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+            >
+                {supportedLangs.map((l) => (
+                    <option key={l.code} value={l.code}>
+                        {l.name}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+};
+
 // --- MAIN APP LAYOUT (shown after successful login) ---
 const MainAppLayout: React.FC = () => {
     const { activeView, setActiveView, region, setRegion, lang, userRole, allowedRegions } = useContext(AppContext)!;
@@ -242,6 +266,7 @@ const MainAppLayout: React.FC = () => {
                         </button>
                         <GlobalSearch />
                         <div className="flex items-center gap-4">
+                             <LanguageSwitcher />
                              <div className="relative">
                                 <label htmlFor="region-selector" className="sr-only">{t('proposal_for')}</label>
                                  <select 

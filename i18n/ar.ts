@@ -1,3 +1,4 @@
+
 export const app_title = "KKM | رؤية طبقة الطاقة جيو-ميتا";
 export const nav_dashboard = "لوحة التحكم";
 export const nav_ip = "خارطة طريق الملكية الفكرية";
@@ -534,3 +535,9 @@ export const new_password = "كلمة المرور الجديدة";
 export const confirm_new_password = "تأكيد كلمة المرور الجديدة";
 export const reset_password_button = "إعادة تعيين كلمة المرور";
 export const back_to_login = "العودة إلى تسجيل الدخول";
+// New keys for enhanced password reset flow
+export const re_enter_user_id = "أعد إدخال معرف المستخدم للتحقق";
+export const error_user_id_mismatch = "معرف المستخدم لا يطابق الطلب الأولي.";
+export const verify_code_button = "تحقق من الرمز";
+export const code_verified = "تم التحقق من الرمز. يرجى المتابعة لتعيين كلمة المرور الجديدة.";
+export const secure_reset_instruction = "للأمان، يرجى التحقق من معرف المستخدم الخاص بك مرة أخرى وتعيين كلمة المرور الجديدة.";
