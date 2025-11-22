@@ -1,4 +1,5 @@
 
+
 export const app_title = "KKM | چشم انداز لایه انرژی ژئومتا";
 export const nav_dashboard = "داشبورد";
 export const nav_ip = "نقشه راه مالکیت معنوی";

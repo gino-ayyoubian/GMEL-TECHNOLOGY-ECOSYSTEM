@@ -1,4 +1,5 @@
 
+
 export const app_title = "KKM | رؤية طبقة الطاقة جيو-ميتا";
 export const nav_dashboard = "لوحة التحكم";
 export const nav_ip = "خارطة طريق الملكية الفكرية";
@@ -203,7 +204,7 @@ export const compare_regions = "مقارنة";
 export const benchmark_comparison_prompt = `
     أنشئ تحليلاً مقارناً لمشاريع الطاقة الحرارية الأرضية بين {region1} و {region2}.
     قدم المخرجات ككائن JSON واحد. يجب أن يحتوي كائن JSON على مفتاحين: "table" و "narrative".
-    يجب أن تكون قيمة "table" مصفوفة من الكائنات، حيث يحتوي כל كائن على ثلاثة مفاتيح: "metric" و "region1" و "region2".
+    يجب أن تكون قيمة "table" مصفوفة من الكائنات، حيث يحتوي كل كائن على ثلاثة مفاتيح: "metric" و "region1" و "region2".
     يجب أن تتوافق قيمة "region1" مع {region1}، و "region2" مع {region2}.
     يجب أن تكون قيمة "narrative" سلسلة نصية تلخص الاختلافات الاستراتيجية الرئيسية في 2-3 فقرات.
     غطِ هذه المقاييس:

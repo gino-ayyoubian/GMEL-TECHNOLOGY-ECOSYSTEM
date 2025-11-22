@@ -1,5 +1,5 @@
 
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { AppContextProvider, AppContext } from './contexts/AppContext';
 import { useI18n } from './hooks/useI18n';
 import { hasPermission } from './utils/permissions';
@@ -115,22 +115,68 @@ const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
 const LanguageSwitcher: React.FC = () => {
     const { lang, setLang, supportedLangs, theme } = useContext(AppContext)!;
     const { t } = useI18n();
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    const currentLang = supportedLangs.find(l => l.code === lang);
 
     return (
-        <div className="relative">
-            <label htmlFor="language-switcher" className="sr-only">{t('language')}</label>
-            <select
-                id="language-switcher"
-                value={lang}
-                onChange={(e) => setLang(e.target.value as any)}
-                className={`bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold focus:outline-none focus:ring-2 focus:${theme.borderAccent}`}
+        <div className="relative" ref={containerRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center gap-2 bg-slate-800/50 border border-slate-700 hover:border-slate-500 rounded-lg py-2 px-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:${theme.borderAccent}`}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                aria-label={t('language')}
             >
-                {supportedLangs.map((l) => (
-                    <option key={l.code} value={l.code}>
-                        {l.name}
-                    </option>
-                ))}
-            </select>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                <span>{currentLang?.name}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+            </button>
+
+            {isOpen && (
+                <ul 
+                    className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 max-h-60 overflow-auto py-1 animate-fade-in-down"
+                    role="listbox"
+                >
+                    {supportedLangs.map((l) => (
+                        <li 
+                            key={l.code}
+                            onClick={() => {
+                                setLang(l.code);
+                                setIsOpen(false);
+                            }}
+                            className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-slate-700 transition-colors ${lang === l.code ? 'text-white bg-slate-700/50' : 'text-slate-400'}`}
+                            role="option"
+                            aria-selected={lang === l.code}
+                        >
+                            <span>{l.name}</span>
+                            {lang === l.code && (
+                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${theme.textAccent}`} viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 };
@@ -411,7 +457,6 @@ const App: React.FC = () => {
 };
 
 // --- APP WRAPPER (provides context) ---
-// FIX: Changed to named export
 export const AppWrapper: React.FC = () => {
     return (
         <AppContextProvider>

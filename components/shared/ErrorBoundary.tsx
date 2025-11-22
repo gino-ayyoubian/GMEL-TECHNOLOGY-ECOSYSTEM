@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode, ContextType } from 'react';
+import React, { ErrorInfo, ReactNode, ContextType } from 'react';
 import { AppContext } from '../../contexts/AppContext';
 
 interface Props {
@@ -9,7 +9,7 @@ interface State {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
   };

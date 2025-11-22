@@ -44,13 +44,21 @@ const extractJson = (text: string): any | null => {
 const DataCard: React.FC<{ title: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, value, description, icon }) => {
   const { theme } = useContext(AppContext)!;
   return (
-    <div className={`bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:${theme.borderAccent} cursor-pointer`}>
+    <div className={`group relative bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:${theme.borderAccent} cursor-pointer`}>
       <div className="flex justify-between items-start">
           <h3 className={`text-sm font-medium ${theme.textAccent} uppercase tracking-wider`}>{title}</h3>
-          <span className="text-slate-600">{icon}</span>
+          <span className="text-slate-600 group-hover:text-white transition-colors">{icon}</span>
       </div>
       <p className="mt-2 text-4xl font-bold text-white tracking-tight">{value}</p>
-      <p className="mt-2 text-xs text-slate-500">{description}</p>
+      <p className="mt-2 text-xs text-slate-500 truncate">{description}</p>
+      
+      {/* Interactive Tooltip on Hover */}
+      <div className={`opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-64 bg-slate-900 border ${theme.borderAccent} p-3 rounded-lg shadow-2xl z-50 pointer-events-none`}>
+        <p className={`text-xs font-bold ${theme.textAccent} mb-1`}>{title}</p>
+        <p className="text-xs text-slate-300 leading-relaxed">{description}</p>
+        {/* Tooltip Arrow */}
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-[1px] w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-slate-900"></div>
+      </div>
     </div>
   );
 };
