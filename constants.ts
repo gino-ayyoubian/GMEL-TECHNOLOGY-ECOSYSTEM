@@ -1,4 +1,5 @@
-import { Patent, FinancialData, Milestone, Region, UserRole } from './types';
+
+import { Patent, FinancialData, Milestone, Region, UserRole, ThemeConfig } from './types';
 import { Language } from './hooks/useI18n';
 
 export const KKM_LOGO_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSI4IiBmaWxsPSIjRkZGRkZGIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaGyPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzBlYTVlOSI+S0tNPC90ZXh0Pjwvc3ZnPg==";
@@ -6,6 +7,52 @@ export const KKM_LOGO_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQi
 export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ayyoubian and the KKM International Group. Any form of usage or exploitation in any manner is prohibited and subject to legal repercussions.";
 
 // NOTE: The following data is updated to reflect the "Ultimate Optimized Version (2025)" of the GMEL project.
+
+export const THEMES: Record<string, ThemeConfig> = {
+    warm: {
+        name: 'warm',
+        primaryColor: 'orange',
+        button: 'bg-orange-600',
+        buttonHover: 'hover:bg-orange-700',
+        textAccent: 'text-orange-400',
+        borderAccent: 'border-orange-500',
+        activeNav: 'bg-orange-600 text-white',
+        chartColors: ['#ea580c', '#d97706', '#b45309', '#78350f', '#f59e0b']
+    },
+    cool: {
+        name: 'cool',
+        primaryColor: 'sky',
+        button: 'bg-sky-600',
+        buttonHover: 'hover:bg-sky-700',
+        textAccent: 'text-sky-400',
+        borderAccent: 'border-sky-500',
+        activeNav: 'bg-sky-600 text-white',
+        chartColors: ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6']
+    },
+    emerald: {
+        name: 'emerald',
+        primaryColor: 'emerald',
+        button: 'bg-emerald-600',
+        buttonHover: 'hover:bg-emerald-700',
+        textAccent: 'text-emerald-400',
+        borderAccent: 'border-emerald-500',
+        activeNav: 'bg-emerald-600 text-white',
+        chartColors: ['#059669', '#047857', '#10b981', '#34d399', '#065f46']
+    }
+};
+
+export const REGION_THEME_MAP: Record<Region, string> = {
+    'Qeshm Free Zone': 'warm',
+    'Chabahar Free Zone': 'warm',
+    'Oman': 'warm',
+    'Saudi Arabia': 'warm',
+    'United Arab Emirates': 'warm',
+    'Qatar': 'warm',
+    'Makoo Free Zone': 'cool',
+    'Iranian Kurdistan': 'emerald',
+    'Mahabad': 'emerald',
+    'Kurdistan Region, Iraq': 'emerald'
+};
 
 export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole, regions?: Region[] }> = {
   'GMEL-kkm-admin': { password: '84375690', role: 'admin' },

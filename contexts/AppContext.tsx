@@ -1,6 +1,8 @@
-import React, { useState, createContext, useEffect } from 'react';
-import { Region, View, UserRole } from '../types';
+
+import React, { useState, createContext, useEffect, useMemo } from 'react';
+import { Region, View, UserRole, ThemeConfig } from '../types';
 import { Language, locales } from '../hooks/useI18n';
+import { THEMES, REGION_THEME_MAP } from '../constants';
 
 export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted' | 'resetPassword';
 
@@ -28,6 +30,7 @@ interface AppContextType {
   setAllowedRegions: (regions: Region[] | null) => void;
   error: string | null;
   setError: (message: string | null) => void;
+  theme: ThemeConfig;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -54,6 +57,11 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [technicalTopic, setTechnicalTopic] = useState<string | null>(null);
     const [allowedRegions, setAllowedRegionsState] = useState<Region[] | null>(getInitialState('gmel_allowed_regions', null));
     const [error, setError] = useState<string | null>(null);
+
+    const theme = useMemo(() => {
+        const themeName = REGION_THEME_MAP[region] || 'warm';
+        return THEMES[themeName];
+    }, [region]);
 
     const setAuthStep = (step: AuthStep) => {
         sessionStorage.setItem('gmel_auth_step', JSON.stringify(step));
@@ -211,6 +219,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setAllowedRegions,
         error,
         setError,
+        theme,
     };
 
     return (

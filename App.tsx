@@ -1,6 +1,7 @@
+
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContextProvider, AppContext } from './contexts/AppContext';
-import { useI18n, Language } from './hooks/useI18n';
+import { useI18n } from './hooks/useI18n';
 import { hasPermission } from './utils/permissions';
 
 // Auth Components
@@ -36,19 +37,20 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 // --- INQUIRIES & CONTRIBUTIONS COMPONENT ---
 const InquiriesAndContributions: React.FC = () => {
     const { t } = useI18n();
+    const { theme } = useContext(AppContext)!;
 
     const ContactCard: React.FC<{ href: string; icon: React.ReactNode; title: string; detail: string }> = ({ href, icon, title, detail }) => (
         <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="group bg-slate-800 p-6 rounded-lg border border-slate-700 flex items-center gap-4 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:border-sky-500"
+            className={`group bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:${theme.borderAccent}`}
         >
-            <div className="p-3 bg-slate-700 rounded-full group-hover:bg-sky-500/20 transition-colors">
+            <div className="p-3 bg-slate-700 rounded-full group-hover:bg-opacity-20 transition-colors">
                 {icon}
             </div>
             <div>
-                <h4 className="font-semibold text-white group-hover:text-sky-400 transition-colors">{title}</h4>
+                <h4 className={`font-semibold text-white group-hover:${theme.textAccent} transition-colors`}>{title}</h4>
                 <p className="text-sm text-slate-400">{detail}</p>
             </div>
         </a>
@@ -63,37 +65,37 @@ const InquiriesAndContributions: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
                     <ContactCard 
                         href="tel:+982128424630" 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-slate-300 group-hover:${theme.textAccent} transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
                         title={t('contact_phone')}
                         detail="+98 21 2842 4630"
                     />
                      <ContactCard 
                         href="https://www.linkedin.com/in/gino-ayyoubian" 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-slate-300 group-hover:${theme.textAccent} transition-colors`} viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>}
                         title={t('contact_gino_linkedin')}
                         detail="linkedin.com/in/gino-ayyoubian"
                     />
                      <ContactCard 
                         href="https://www.linkedin.com/company/kkm-intl-co/" 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-slate-300 group-hover:${theme.textAccent} transition-colors`} viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>}
                         title={t('contact_kkm_linkedin')}
                         detail="linkedin.com/company/kkm-intl-co"
                     />
                      <ContactCard 
                         href="mailto:info@kkm-intl.org" 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-slate-300 group-hover:${theme.textAccent} transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
                         title={t('contact_general_email')}
                         detail="info@kkm-intl.org"
                     />
                     <ContactCard 
                         href="mailto:g.ayyoubian@kkm-intl.org" 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-slate-300 group-hover:${theme.textAccent} transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>}
                         title={t('contact_direct_email')}
                         detail="g.ayyoubian@kkm-intl.org"
                     />
                     <ContactCard 
                         href="mailto:g.ayyoubian@kkm-intl.org?subject=Technical/IP Inquiry regarding GMEL Project" 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300 group-hover:text-sky-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V7.618a1 1 0 01.553-.894L9 4l5.447 2.724A1 1 0 0115 7.618v8.764a1 1 0 01-.553.894L9 20z" /><path d="M9 12l6-3" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-slate-300 group-hover:${theme.textAccent} transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V7.618a1 1 0 01.553-.894L9 4l5.447 2.724A1 1 0 0115 7.618v8.764a1 1 0 01-.553.894L9 20z" /><path d="M9 12l6-3" /></svg>}
                         title={t('contact_technical_ip')}
                         detail="g.ayyoubian@kkm-intl.org"
                     />
@@ -111,7 +113,7 @@ const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
 
 // --- LANGUAGE SWITCHER COMPONENT ---
 const LanguageSwitcher: React.FC = () => {
-    const { lang, setLang, supportedLangs } = useContext(AppContext)!;
+    const { lang, setLang, supportedLangs, theme } = useContext(AppContext)!;
     const { t } = useI18n();
 
     return (
@@ -121,7 +123,7 @@ const LanguageSwitcher: React.FC = () => {
                 id="language-switcher"
                 value={lang}
                 onChange={(e) => setLang(e.target.value as any)}
-                className="bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className={`bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold focus:outline-none focus:ring-2 focus:${theme.borderAccent}`}
             >
                 {supportedLangs.map((l) => (
                     <option key={l.code} value={l.code}>
@@ -135,7 +137,7 @@ const LanguageSwitcher: React.FC = () => {
 
 // --- MAIN APP LAYOUT (shown after successful login) ---
 const MainAppLayout: React.FC = () => {
-    const { activeView, setActiveView, region, setRegion, lang, userRole, allowedRegions } = useContext(AppContext)!;
+    const { activeView, setActiveView, region, setRegion, lang, userRole, allowedRegions, theme } = useContext(AppContext)!;
     const { t } = useI18n();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
@@ -149,7 +151,7 @@ const MainAppLayout: React.FC = () => {
             }}
             aria-label={t(labelKey)}
             className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeView === view
-                    ? 'bg-amber-600 text-white'
+                    ? theme.activeNav
                     : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
                 }`}
         >
@@ -161,9 +163,12 @@ const MainAppLayout: React.FC = () => {
     const NavGroup: React.FC<{ titleKey: keyof typeof en; children: React.ReactNode }> = ({ titleKey, children }) => {
         const [isOpen, setIsOpen] = useState(true);
         const childrenArray = React.Children.toArray(children);
-        if (childrenArray.every(child => child === null)) {
-            return null; // Don't render group if all children are hidden
+        const hasVisibleChildren = childrenArray.some(child => child); // Ensure at least one child is rendered
+
+        if (!hasVisibleChildren) {
+            return null;
         }
+
         return (
             <div className="mt-4 first:mt-0">
                 <button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-3 mb-2 text-xs font-semibold uppercase text-slate-500 tracking-wider hover:text-slate-400 transition-colors">
@@ -220,12 +225,12 @@ const MainAppLayout: React.FC = () => {
                     {hasPermission(userRole, 'ip') && <NavItem view="ip" labelKey="nav_ip" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V7.618a1 1 0 01.553-.894L9 4l5.447 2.724A1 1 0 0115 7.618v8.764a1 1 0 01-.553.894L9 20z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l5.447-2.724A1 1 0 0115 7.618" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12V4" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.553 6.724L9 12" /></svg>} />}
                     {hasPermission(userRole, 'technical') && <NavItem view="technical" labelKey="nav_technical" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 16v-2m0-8v-2m-8 4h2m16 0h-2m-7-7l1.414-1.414M5.636 5.636L7.05 7.05m12.728 9.9L16.95 16.95M5.636 18.364l1.414-1.414m11.314-11.314l-1.414 1.414" /></svg>} />}
                     {hasPermission(userRole, 'financials') && <NavItem view="financials" labelKey="nav_financials" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>} />}
+                     {hasPermission(userRole, 'site') && <NavItem view="site" labelKey="nav_site" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />}
                 </NavGroup>
                 <NavGroup titleKey="nav_group_strategic">
-                    {hasPermission(userRole, 'tech_comparison') && <NavItem view="tech_comparison" labelKey="nav_tech_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>} />}
+                     {hasPermission(userRole, 'comparison') && <NavItem view="comparison" labelKey="nav_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>} />}
                     {hasPermission(userRole, 'benchmark') && <NavItem view="benchmark" labelKey="nav_benchmark" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11.686a.5.5 0 01.69.043l3.25 3.5a.5.5 0 01-.345.871H3.5a.5.5 0 01-.5-.5v-3.5a.5.5 0 01.055-.228zM15 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zM4 15a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM15 15a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" /></svg>} />}
-                    {hasPermission(userRole, 'site') && <NavItem view="site" labelKey="nav_site" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />}
-                    {hasPermission(userRole, 'comparison') && <NavItem view="comparison" labelKey="nav_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>} />}
+                    {hasPermission(userRole, 'tech_comparison') && <NavItem view="tech_comparison" labelKey="nav_tech_comparison" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>} />}
                     {hasPermission(userRole, 'simulations') && <NavItem view="simulations" labelKey="nav_simulations" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2 1M4 7l2-1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>} />}
                     {hasPermission(userRole, 'strategy_modeler') && <NavItem view="strategy_modeler" labelKey="nav_strategy_modeler" icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V5a1 1 0 00-1.447-.894l-4 2A1 1 0 0011 7v10zM4 17a1 1 0 001.447.894l4-2A1 1 0 0010 15V5a1 1 0 00-1.447-.894l-4 2A1 1 0 004 7v10z" /></svg>} />}
                 </NavGroup>
@@ -273,7 +278,7 @@ const MainAppLayout: React.FC = () => {
                                     id="region-selector" 
                                     value={region} 
                                     onChange={e => setRegion(e.target.value as Region)}
-                                    className="bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold"
+                                    className={`bg-slate-700 border-slate-600 rounded-md py-1.5 pl-3 pr-8 text-sm text-white font-semibold focus:ring-2 focus:${theme.borderAccent}`}
                                 >
                                     {allowedRegions ? (
                                         allowedRegions.map(r => <option key={r} value={r}>{r}</option>)
@@ -293,7 +298,7 @@ const MainAppLayout: React.FC = () => {
                                     )}
                                 </select>
                             </div>
-                            <button onClick={() => setIsChatOpen(!isChatOpen)} className="p-2 rounded-full bg-slate-700 text-slate-300 hover:bg-sky-600 hover:text-white transition-colors" aria-label="Open Project Assistant Chat">
+                            <button onClick={() => setIsChatOpen(!isChatOpen)} className={`p-2 rounded-full bg-slate-700 text-slate-300 hover:${theme.button} hover:text-white transition-colors`} aria-label="Open Project Assistant Chat">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                             </button>
                         </div>

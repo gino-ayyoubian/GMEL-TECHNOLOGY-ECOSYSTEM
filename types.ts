@@ -1,3 +1,4 @@
+
 export interface Patent {
   level: 'Core' | 'Derivatives' | 'Applied' | 'Strategic';
   code: string;
@@ -33,3 +34,14 @@ export type Region = 'Qeshm Free Zone' | 'Makoo Free Zone' | 'Chabahar Free Zone
 export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'image' | 'video' | 'chat' | 'site' | 'comparison' | 'correspondence' | 'contact' | 'tech_comparison' | 'simulations' | 'strategy_modeler' | 'proposal_generator';
 
 export type UserRole = 'admin' | 'guest' | 'member' | 'team' | 'client' | 'manager';
+
+export interface ThemeConfig {
+  name: 'warm' | 'cool' | 'emerald';
+  primaryColor: string;
+  button: string;
+  buttonHover: string;
+  textAccent: string;
+  borderAccent: string;
+  activeNav: string;
+  chartColors: string[];
+}
