@@ -145,34 +145,64 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             }
             const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
             const allVoices = speechSynthesis.getVoices();
-            const desiredLangCode = locales[lang];
             let selectedVoice: SpeechSynthesisVoice | undefined;
 
-            if (lang === 'fa' || lang === 'ar') {
-                const femaleVoices = allVoices.filter(v => 
-                    v.lang.startsWith(lang) && 
-                    ((v as any).gender === 'female' || v.name.toLowerCase().includes('female'))
-                );
-
-                if (femaleVoices.length > 0) {
-                    const preferredArabicVoice = femaleVoices.find(v => v.name.toLowerCase().includes('leila') || v.name.toLowerCase().includes('laila'));
-                    
-                    if (lang === 'ar' && preferredArabicVoice) {
-                        selectedVoice = preferredArabicVoice;
-                    } else {
-                        selectedVoice = femaleVoices.find(v => !v.name.toLowerCase().includes('google')) || femaleVoices[0];
-                    }
+            if (lang === 'en') {
+                // STRICTLY MALE, AMERICAN ACCENT
+                // Priority 1: Google US English (High Quality, usually gender-neutral/female but fits "best accent")
+                // Priority 2: Microsoft David (Windows standard Male)
+                // Priority 3: Any US Male
+                
+                // Attempt to find a high-quality US male voice
+                selectedVoice = allVoices.find(v => v.lang === 'en-US' && v.name.includes('Google') && v.name.includes('Male'));
+                
+                // Fallback to Microsoft David (Standard Windows Male)
+                if (!selectedVoice) {
+                    selectedVoice = allVoices.find(v => v.lang === 'en-US' && v.name.includes('David'));
                 }
-            }
-    
-            if (!selectedVoice) {
-                selectedVoice = allVoices.find(v => v.lang === desiredLangCode) || allVoices.find(v => v.lang.startsWith(lang));
+
+                // Fallback to any US voice that isn't explicitly Female (trying to avoid Zira)
+                if (!selectedVoice) {
+                    selectedVoice = allVoices.find(v => v.lang === 'en-US' && !v.name.includes('Zira') && !v.name.toLowerCase().includes('female'));
+                }
+
+                // Absolute fallback to any US English
+                if (!selectedVoice) {
+                    selectedVoice = allVoices.find(v => v.lang === 'en-US');
+                }
+            } else {
+                // STRICTLY FEMALE, BEST NATIVE ACCENT (FA, AR, KU)
+                const targetLangCode = lang === 'ku' ? 'ckb' : lang; // Handle Sorani code if present
+                const langVoices = allVoices.filter(v => v.lang.startsWith(targetLangCode) || v.lang.startsWith(lang));
+
+                // Priority 1: Google Neural Voices (High Quality)
+                selectedVoice = langVoices.find(v => v.name.includes('Google'));
+
+                // Priority 2: Known Female Voices
+                if (!selectedVoice) {
+                    selectedVoice = langVoices.find(v => 
+                        v.name.toLowerCase().includes('female') || 
+                        v.name.includes('Laila') || // Arabic
+                        v.name.includes('Salma') || // Arabic
+                        v.name.includes('Sahar') || // Farsi
+                        v.name.includes('Zira')
+                    );
+                }
+
+                // Priority 3: Any voice in the language (fallback)
+                if (!selectedVoice) {
+                    selectedVoice = langVoices[0];
+                }
             }
             
             if (selectedVoice) {
                 utterance.voice = selectedVoice;
             }
-            utterance.lang = desiredLangCode;
+            // Ensure the lang attribute is set correctly for the engine to switch phonemes
+            utterance.lang = locales[lang] || lang;
+
+            // Adjust rate slightly for better clarity
+            utterance.rate = 0.95; 
 
             utterance.onend = () => {
                 currentChunkIndex++;
