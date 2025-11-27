@@ -115,34 +115,58 @@ const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
 const LanguageSwitcher: React.FC = () => {
     const { lang, setLang, supportedLangs, theme } = useContext(AppContext)!;
     const { t } = useI18n();
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Determine border color based on theme if available, otherwise default
     const borderColor = theme ? `focus-within:${theme.borderAccent}` : 'focus-within:border-sky-500';
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     return (
-        <div className="relative">
-            <div className={`flex items-center bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-1.5 hover:border-slate-500 transition-colors focus-within:ring-2 focus-within:ring-opacity-50 ${borderColor}`}>
+        <div className="relative" ref={dropdownRef}>
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-1.5 hover:border-slate-500 transition-colors focus:ring-2 focus:ring-opacity-50 focus:outline-none ${borderColor}`}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+            >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                 </svg>
-                <label htmlFor="language-select" className="sr-only">{t('language')}</label>
-                <select
-                    id="language-select"
-                    value={lang}
-                    onChange={(e) => setLang(e.target.value as any)}
-                    className="bg-transparent text-white text-sm font-medium focus:outline-none cursor-pointer appearance-none pr-6 w-full"
-                    style={{backgroundImage: 'none'}}
-                >
-                    {supportedLangs.map((l) => (
-                        <option key={l.code} value={l.code} className="bg-slate-800 text-slate-100">
-                            {l.name}
-                        </option>
-                    ))}
-                </select>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500 absolute right-3 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                <span className="text-sm font-medium text-white mr-2">{supportedLangs.find(l => l.code === lang)?.name}</span>
+                <svg className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-            </div>
+            </button>
+            
+            {isOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in-down" role="listbox">
+                    {supportedLangs.map((l) => (
+                        <button
+                            key={l.code}
+                            role="option"
+                            aria-selected={lang === l.code}
+                            onClick={() => {
+                                setLang(l.code);
+                                setIsOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-700 transition-colors flex items-center justify-between ${lang === l.code ? 'text-sky-400 bg-slate-700/50' : 'text-slate-200'}`}
+                        >
+                            <span>{l.name}</span>
+                            {lang === l.code && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

@@ -1,3 +1,4 @@
+
 import React, { useContext } from 'react';
 import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
 import { Patent } from '../types';
@@ -36,16 +37,22 @@ const PatentNode: React.FC<{ patent: Patent }> = ({ patent }) => {
 
     const handleClick = () => {
         if (hasTechPage) {
-            const topicCode = patent.code.includes('-') ? patent.code.split('-')[1] : patent.code;
+            const topicCode = patent.code.replace('GMEL-', '');
             setTechnicalTopic(topicCode);
             setActiveView('technical');
         }
     };
     
+    // Detailed tooltip string
+    const tooltipText = `${patent.title} (${patent.code})
+Status: ${patent.status}
+Progress: ${patent.progress}%
+Application: ${patent.application}${hasTechPage ? '\n\n[Click to view Technical Deep Dive]' : ''}`;
+
     return (
         <div 
             className={`group relative p-3 rounded-lg border-l-4 ${colors.border} ${colors.bg} transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-black/50 ${hasTechPage ? 'cursor-pointer' : 'cursor-default'}`}
-            title={hasTechPage ? `${patent.application} (Click to see technical details)`: patent.application}
+            title={tooltipText}
             onClick={handleClick}
         >
             <div className="flex items-start gap-3">

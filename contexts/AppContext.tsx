@@ -149,36 +149,34 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
             if (lang === 'en') {
                 // STRICTLY MALE, AMERICAN ACCENT
-                // Priority 1: Google US English (High Quality, usually gender-neutral/female but fits "best accent")
-                // Priority 2: Microsoft David (Windows standard Male)
-                // Priority 3: Any US Male
+                // Filter for US English voices
+                const usVoices = allVoices.filter(v => v.lang === 'en-US');
                 
-                // Attempt to find a high-quality US male voice
-                selectedVoice = allVoices.find(v => v.lang === 'en-US' && v.name.includes('Google') && v.name.includes('Male'));
+                // Priority 1: High Quality US Male (e.g., Google US English Male if available, or just Google US)
+                selectedVoice = usVoices.find(v => v.name.includes('Google') && v.name.includes('Male'));
                 
-                // Fallback to Microsoft David (Standard Windows Male)
-                if (!selectedVoice) {
-                    selectedVoice = allVoices.find(v => v.lang === 'en-US' && v.name.includes('David'));
-                }
+                // Priority 2: Microsoft David (Standard Windows US Male)
+                if (!selectedVoice) selectedVoice = usVoices.find(v => v.name.includes('David'));
+                
+                // Priority 3: Any US voice that is explicitly marked Male or isn't Zira/Female
+                if (!selectedVoice) selectedVoice = usVoices.find(v => v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('female'));
 
-                // Fallback to any US voice that isn't explicitly Female (trying to avoid Zira)
-                if (!selectedVoice) {
-                    selectedVoice = allVoices.find(v => v.lang === 'en-US' && !v.name.includes('Zira') && !v.name.toLowerCase().includes('female'));
-                }
-
-                // Absolute fallback to any US English
-                if (!selectedVoice) {
-                    selectedVoice = allVoices.find(v => v.lang === 'en-US');
-                }
+                // Fallback: Any US English voice (Google US English is often neutral/good)
+                if (!selectedVoice) selectedVoice = usVoices.find(v => v.name.includes('Google'));
+                
+                // Absolute Fallback: Any US voice
+                if (!selectedVoice) selectedVoice = usVoices[0];
             } else {
-                // STRICTLY FEMALE, BEST NATIVE ACCENT (FA, AR, KU)
+                // STRICTLY FEMALE, BEST ACCENT (FA, AR, KU)
                 const targetLangCode = lang === 'ku' ? 'ckb' : lang; // Handle Sorani code if present
+                
+                // Filter voices for the target language or related dialects
                 const langVoices = allVoices.filter(v => v.lang.startsWith(targetLangCode) || v.lang.startsWith(lang));
 
-                // Priority 1: Google Neural Voices (High Quality)
-                selectedVoice = langVoices.find(v => v.name.includes('Google'));
+                // Priority 1: High Quality / Neural Female Voices (Google often provides good neural voices)
+                selectedVoice = langVoices.find(v => v.name.includes('Google') && !v.name.toLowerCase().includes('male'));
 
-                // Priority 2: Known Female Voices
+                // Priority 2: Known good Female voices by name
                 if (!selectedVoice) {
                     selectedVoice = langVoices.find(v => 
                         v.name.toLowerCase().includes('female') || 
@@ -189,7 +187,12 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                     );
                 }
 
-                // Priority 3: Any voice in the language (fallback)
+                // Priority 3: Fallback for Kurdish - if no Kurdish voice, try Persian female as closest regional proxy if preferred
+                if (!selectedVoice && lang === 'ku') {
+                     selectedVoice = allVoices.find(v => v.lang.startsWith('fa') && (v.name.includes('Google') || v.name.toLowerCase().includes('female')));
+                }
+
+                // Priority 4: Any voice in the language
                 if (!selectedVoice) {
                     selectedVoice = langVoices[0];
                 }
