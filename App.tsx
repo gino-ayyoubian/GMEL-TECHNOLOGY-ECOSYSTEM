@@ -115,68 +115,34 @@ const KkmLogo = ({ className = 'h-12 w-auto' }: { className?: string }) => (
 const LanguageSwitcher: React.FC = () => {
     const { lang, setLang, supportedLangs, theme } = useContext(AppContext)!;
     const { t } = useI18n();
-    const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const currentLang = supportedLangs.find(l => l.code === lang);
+    // Determine border color based on theme if available, otherwise default
+    const borderColor = theme ? `focus-within:${theme.borderAccent}` : 'focus-within:border-sky-500';
 
     return (
-        <div className="relative" ref={containerRef}>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-2 bg-slate-800/50 border border-slate-700 hover:border-slate-500 rounded-lg py-2 px-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:${theme.borderAccent}`}
-                aria-haspopup="listbox"
-                aria-expanded={isOpen}
-                aria-label={t('language')}
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="relative">
+            <div className={`flex items-center bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-1.5 hover:border-slate-500 transition-colors focus-within:ring-2 focus-within:ring-opacity-50 ${borderColor}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                 </svg>
-                <span>{currentLang?.name}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-            </button>
-
-            {isOpen && (
-                <ul 
-                    className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 max-h-60 overflow-auto py-1 animate-fade-in-down"
-                    role="listbox"
+                <label htmlFor="language-select" className="sr-only">{t('language')}</label>
+                <select
+                    id="language-select"
+                    value={lang}
+                    onChange={(e) => setLang(e.target.value as any)}
+                    className="bg-transparent text-white text-sm font-medium focus:outline-none cursor-pointer appearance-none pr-6 w-full"
+                    style={{backgroundImage: 'none'}}
                 >
                     {supportedLangs.map((l) => (
-                        <li 
-                            key={l.code}
-                            onClick={() => {
-                                setLang(l.code);
-                                setIsOpen(false);
-                            }}
-                            className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-slate-700 transition-colors ${lang === l.code ? 'text-white bg-slate-700/50' : 'text-slate-400'}`}
-                            role="option"
-                            aria-selected={lang === l.code}
-                        >
-                            <span>{l.name}</span>
-                            {lang === l.code && (
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${theme.textAccent}`} viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                            )}
-                        </li>
+                        <option key={l.code} value={l.code} className="bg-slate-800 text-slate-100">
+                            {l.name}
+                        </option>
                     ))}
-                </ul>
-            )}
+                </select>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500 absolute right-3 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+            </div>
         </div>
     );
 };
@@ -409,8 +375,14 @@ const AuthScreen: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-slate-100 p-4">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-slate-100 p-4 relative">
             <div className="auth-background"></div>
+            
+            {/* Language Switcher added for access during Auth flow */}
+            <div className="absolute top-4 right-4 z-20">
+                <LanguageSwitcher />
+            </div>
+
             <div className="w-full max-w-md mx-auto relative">
                  <div className="text-center mb-8">
                     <img src={KKM_LOGO_DATA_URL} alt="KKM International Logo" className="h-20 mx-auto mb-4 bg-white rounded-2xl p-2" />
