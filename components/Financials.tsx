@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { jsPDF } from 'jspdf';
@@ -10,6 +11,7 @@ import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
+import { extractJson } from '../utils/helpers';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6', '#10b981', '#6366f1'];
 
@@ -26,46 +28,6 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
             {`${(percent * 100).toFixed(0)}%`}
         </text>
     );
-};
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    // First, try to find a JSON markdown block
-    const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (match && match[1]) {
-        try {
-            return JSON.parse(match[1]);
-        } catch (error) {
-            console.error("Failed to parse JSON from markdown block:", match[1], error);
-        }
-    }
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    let start = -1;
-
-    if (firstBrace === -1 && firstBracket === -1) return null;
-    if (firstBrace === -1) start = firstBracket;
-    else if (firstBracket === -1) start = firstBrace;
-    else start = Math.min(firstBrace, firstBracket);
-    
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
-    let end = -1;
-    
-    if (lastBrace === -1 && lastBracket === -1) return null;
-    if (lastBrace === -1) end = lastBracket;
-    else if (lastBracket === -1) end = lastBrace;
-    else end = Math.max(lastBrace, lastBracket);
-    
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON string:", jsonString, error);
-        return null;
-    }
 };
 
 interface IPOData {

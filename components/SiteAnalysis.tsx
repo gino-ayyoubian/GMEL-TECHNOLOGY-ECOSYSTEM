@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { generateGroundedText, generateMapsGroundedText, generateJsonData } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -14,13 +15,17 @@ const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
     'Chabahar Free Zone': [25.2915, 60.6431],
-    'Iranian Kurdistan': [35.4330, 46.9831], // Sanandaj as center
+    'Iranian Kurdistan': [35.3142, 46.9942], // Sanandaj as center
     'Mahabad': [36.7633, 45.7201],
     'Kurdistan Region, Iraq': [36.1911, 44.0094], // Erbil
     'Oman': [23.5859, 58.3816], // Muscat
     'Saudi Arabia': [24.7136, 46.6753], // Riyadh
     'United Arab Emirates': [24.466667, 54.366669], // Abu Dhabi
-    'Qatar': [25.286667, 51.533333] // Doha
+    'Qatar': [25.286667, 51.533333], // Doha
+    'Iceland': [64.9631, -19.0208],
+    "Turkey (Denizli/Aydin)": [37.838, 28.536],
+    "USA (California's Salton Sea)": [33.328, -115.844],
+    "Germany (Bavaria)": [48.7904, 11.4979]
 };
 
 const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {

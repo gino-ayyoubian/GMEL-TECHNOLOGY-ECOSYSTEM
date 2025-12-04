@@ -1,8 +1,9 @@
+
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../../contexts/AppContext';
-import { USER_CREDENTIALS } from '../../constants';
 import { useI18n } from '../../hooks/useI18n';
-import { Region } from '../../types';
+import { AuthService } from '../../services/authService';
+import { USER_CREDENTIALS } from '../../constants'; // Only used for Hint display now
 
 export const Login: React.FC = () => {
     const { setCurrentUser, setUserRole, setAuthStep, setAllowedRegions, setRegion } = useContext(AppContext)!;
@@ -13,26 +14,27 @@ export const Login: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showHints, setShowHints] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
-        // Simulate network delay for better UX
-        setTimeout(() => {
-            const userCredentials = USER_CREDENTIALS[userId];
-            if (userCredentials && userCredentials.password === password) {
+        try {
+            const result = await AuthService.login(userId, password);
+            
+            if (result.success && result.userRole) {
                 setCurrentUser(userId);
-                setUserRole(userCredentials.role);
+                setUserRole(result.userRole);
 
-                if (userCredentials.regions && userCredentials.regions.length > 0) {
-                    setAllowedRegions(userCredentials.regions as Region[]);
-                    setRegion(userCredentials.regions[0] as Region);
+                if (result.regions && result.regions.length > 0) {
+                    setAllowedRegions(result.regions);
+                    setRegion(result.regions[0]);
                 } else {
                     setAllowedRegions(null);
                 }
                 
-                if (userCredentials.role === 'admin' || userCredentials.role === 'guest') {
+                // Skip 2FA for Admin/Guest for ease of demo, but log it
+                if (result.userRole === 'admin' || result.userRole === 'guest') {
                     setAuthStep('granted');
                 } else {
                     setAuthStep('2fa');
@@ -40,8 +42,11 @@ export const Login: React.FC = () => {
             } else {
                 setError(t('login_error'));
             }
+        } catch (e) {
+            setError(t('login_error'));
+        } finally {
             setIsLoading(false);
-        }, 500);
+        }
     };
 
     const handleHintClick = (user: string, pass: string) => {

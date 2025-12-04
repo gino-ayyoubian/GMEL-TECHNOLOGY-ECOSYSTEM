@@ -10,6 +10,11 @@ const withRetries = async <T,>(fn: () => Promise<T>, retries = 3, initialDelay =
             lastError = error;
             const errorMessage = (error instanceof Error) ? error.message.toLowerCase() : '';
             
+            // Don't retry if it's an auth/permission error
+            if (errorMessage.includes('403') || errorMessage.includes('404') || errorMessage.includes('requested entity was not found') || errorMessage.includes('permission denied')) {
+                throw error;
+            }
+
             if (errorMessage.includes('500') || errorMessage.includes('503') || errorMessage.includes('rate limit') || errorMessage.includes('xhr error')) {
                 const delay = initialDelay * Math.pow(2, i) + Math.random() * 100;
                 console.warn(`API call failed (attempt ${i + 1}/${retries}). Retrying in ${delay.toFixed(0)}ms...`, error);
@@ -316,6 +321,17 @@ export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' 
   }
 };
 
+const isAuthError = (error: any): boolean => {
+    if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        return msg.includes("requested entity was not found") || 
+               msg.includes("403") || 
+               msg.includes("404") ||
+               msg.includes("permission denied");
+    }
+    return false;
+};
+
 export const generateVideo = async (prompt: string, config: any): Promise<any> => {
     try {
         return await withRetries(async () => {
@@ -329,7 +345,7 @@ export const generateVideo = async (prompt: string, config: any): Promise<any> =
         });
     } catch (error) {
         console.error("Error generating video:", error);
-        if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
+        if (isAuthError(error)) {
             throw new Error("API_KEY_INVALID");
         }
         throw error;
@@ -345,7 +361,7 @@ export const getVideoOperation = async (operation: any): Promise<any> => {
         });
     } catch (error) {
         console.error("Error getting video operation status:", error);
-        if (error instanceof Error && error.message.includes("Requested entity was not found.")) {
+        if (isAuthError(error)) {
             throw new Error("API_KEY_INVALID");
         }
         throw error;

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useContext, useEffect } from 'react';
+import React, { useState, useMemo, useContext, useEffect, useRef } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { generateGroundedText } from '../services/geminiService';
 import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
@@ -9,49 +9,7 @@ import { Patent } from '../types';
 import { PatentInfographic } from './PatentInfographic';
 import ExportButtons from './shared/ExportButtons';
 import { AppContext } from '../contexts/AppContext';
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    // First, try to find a JSON markdown block
-    const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (match && match[1]) {
-        try {
-            return JSON.parse(match[1]);
-        } catch (error) {
-            console.error("Failed to parse JSON from markdown block:", match[1], error);
-            // Fall through to try parsing a substring
-        }
-    }
-
-    // If no block found, or parsing failed, try to find the first '{' or '[' and last '}' or ']'
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    
-    if (firstBrace === -1 && firstBracket === -1) return null;
-
-    let start = -1;
-    let end = -1;
-
-    // Determine if we're looking for an object or an array based on which comes first
-    if (firstBrace === -1 || (firstBracket !== -1 && firstBracket < firstBrace)) {
-        start = firstBracket;
-        end = text.lastIndexOf(']');
-    } else {
-        start = firstBrace;
-        end = text.lastIndexOf('}');
-    }
-
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON substring:", jsonString, error);
-        return null;
-    }
-};
-
+import { extractJson } from '../utils/helpers';
 
 interface PatentOverlap {
     patent_identifier: string;
@@ -176,6 +134,7 @@ const CompetitiveAnalysis: React.FC = () => {
 
 const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, isSelected: boolean }> = ({ patent, onSelect, isSelected }) => {
     const { t } = useI18n();
+    const { setActiveView, setTechnicalTopic } = useContext(AppContext)!;
     const levelColors: Record<Patent['level'], string> = {
         Core: 'border-teal-400 bg-teal-500/10',
         Derivatives: 'border-sky-400 bg-sky-500/10',
@@ -189,24 +148,42 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
         Strategic: 'bg-purple-400',
     };
 
+    const hasTechPage = true; // All patents now have tech pages in Rev 2.0
+
+    const handleNavigate = () => {
+        if (hasTechPage) {
+            setTechnicalTopic(patent.code);
+            setActiveView('technical');
+        }
+    };
+
     return (
-        <div className={`flex flex-col bg-slate-800 p-4 rounded-lg border-l-4 transition-all duration-200 ${isSelected ? 'ring-2 ring-sky-400' : levelColors[patent.level]} h-full`}>
+        <div className={`group flex flex-col bg-slate-800 p-4 rounded-lg border-l-4 transition-all duration-200 ${isSelected ? 'ring-2 ring-sky-400' : levelColors[patent.level]} h-full relative`}>
             <div className="flex-grow">
-                <div className="flex justify-between items-start">
+                <div 
+                    className={`flex justify-between items-start ${hasTechPage ? 'cursor-pointer hover:opacity-80' : ''}`}
+                    onClick={handleNavigate}
+                >
                     <h3 className="font-bold text-white pr-2">{patent.title}</h3>
                     <span className="text-xs font-mono text-slate-500 flex-shrink-0">{patent.code}</span>
                 </div>
-                <p className="text-sm text-slate-400 mt-2">{patent.application}</p>
+                <p className="text-sm text-slate-400 mt-2 line-clamp-3">{patent.application}</p>
+                
+                {/* Tooltip on Hover */}
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute left-0 bottom-full mb-2 w-full bg-slate-900 border border-slate-600 p-3 rounded shadow-xl z-20 pointer-events-none">
+                    <p className="text-xs text-white">{patent.application}</p>
+                    {hasTechPage && <p className="text-[10px] text-sky-400 mt-1 italic">Click title to view technical details</p>}
+                </div>
             </div>
             <div className="mt-4 flex-shrink-0">
                  <div className="flex justify-between items-center mb-1">
-                     <label htmlFor={`compare-${patent.code}`} className="flex items-center text-xs text-slate-400 cursor-pointer">
+                     <label htmlFor={`compare-${patent.code}`} className="flex items-center text-xs text-slate-400 cursor-pointer hover:text-white transition-colors select-none" onClick={(e) => e.stopPropagation()}>
                         <input
                             id={`compare-${patent.code}`}
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => onSelect(patent.code)}
-                            className="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500"
+                            className="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500 focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800"
                         />
                         <span className="ml-2">{t('add_to_compare')}</span>
                     </label>
@@ -223,29 +200,76 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
 const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({ patents, onClose }) => {
     const { t } = useI18n();
     const fields: (keyof Patent)[] = ['code', 'level', 'application', 'status', 'path', 'kpi', 'progress'];
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        
+        if (modalRef.current) {
+            modalRef.current.focus();
+        }
+
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
     
     return (
-         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+         <div 
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in" 
+            onClick={onClose}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+        >
+            <div 
+                ref={modalRef}
+                className="bg-slate-800 border border-slate-700 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col outline-none" 
+                onClick={e => e.stopPropagation()}
+                tabIndex={-1}
+            >
                 <div className="flex justify-between items-center p-4 border-b border-slate-700">
-                    <h2 className="text-xl font-bold text-white">{t('patent_comparison_title')}</h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white">&times;</button>
+                    <h2 id="modal-title" className="text-xl font-bold text-white">{t('patent_comparison_title')}</h2>
+                    <button 
+                        onClick={onClose} 
+                        className="text-slate-400 hover:text-white p-2 rounded focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        aria-label="Close"
+                    >
+                        &times;
+                    </button>
                 </div>
-                <div className="overflow-auto">
+                <div className="overflow-auto" tabIndex={0} role="region" aria-label={t('patent_comparison_title')}>
                      <table className="w-full text-sm text-left text-slate-400">
+                        <caption className="sr-only">{t('patent_comparison_title')} Table</caption>
                         <thead className="text-xs text-slate-300 uppercase bg-slate-700/50 sticky top-0">
                             <tr>
-                                <th scope="col" className="px-6 py-3 w-1/6">{t('metric')}</th>
-                                {patents.map(p => <th key={p.code} scope="col" className="px-6 py-3">{p.title}</th>)}
+                                <th scope="col" className="px-6 py-3 w-1/6 min-w-[150px] bg-slate-800/90 backdrop-blur">{t('metric')}</th>
+                                {patents.map(p => (
+                                    <th key={p.code} scope="col" className="px-6 py-3 min-w-[200px] bg-slate-800/90 backdrop-blur">
+                                        {p.title}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
                             {fields.map(field => (
                                 <tr key={field} className="bg-slate-800 border-b border-slate-700 hover:bg-slate-700/50">
-                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap capitalize">{field}</th>
+                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap capitalize sticky left-0 bg-slate-800">{field}</th>
                                     {patents.map(p => (
                                         <td key={p.code} className="px-6 py-4 align-top">
-                                            {field === 'progress' ? `${p[field]}%` : p[field] || 'N/A'}
+                                            {field === 'progress' ? `${p[field]}%` : (
+                                                field === 'application' ? (
+                                                    <div className="group relative" tabIndex={0} role="note" aria-label="Application details">
+                                                        <span className="truncate block max-w-[200px] cursor-help border-b border-dotted border-slate-600">{p[field]}</span>
+                                                        <div className="opacity-0 group-hover:opacity-100 group-focus:opacity-100 absolute left-0 bottom-full mb-2 w-64 p-2 bg-slate-900 border border-slate-600 rounded shadow-lg text-xs z-10 pointer-events-none transition-opacity">
+                                                            {p[field]}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    p[field] || 'N/A'
+                                                )
+                                            )}
                                         </td>
                                     ))}
                                 </tr>
@@ -326,6 +350,32 @@ export const IPRoadmap: React.FC = () => {
                 </button>
             </div>
             
+            {/* Common Comparison Control (visible in both views if selection exists) */}
+            {comparisonSelection.length > 0 && (
+                <div className="fixed bottom-8 right-8 z-50 flex items-center gap-4 bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-2xl animate-fade-in-up">
+                    <div className="flex flex-col">
+                        <p className="text-sm font-bold text-white">Compare {comparisonSelection.length} Patents</p>
+                        <p className="text-xs text-slate-400">Select at least 2</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => setShowComparisonModal(true)} 
+                            disabled={comparisonSelection.length < 2}
+                            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-bold transition-colors shadow-lg"
+                        >
+                            {t('compare_selected')}
+                        </button>
+                        <button 
+                            onClick={() => setComparisonSelection([])} 
+                            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors"
+                            aria-label="Clear selection"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {viewMode === 'grid' && (
                 <>
                     {/* Filtering and Sorting Controls */}
@@ -335,9 +385,9 @@ export const IPRoadmap: React.FC = () => {
                             placeholder={t('search_placeholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-slate-700 border-slate-600 rounded-md text-slate-200 placeholder-slate-400"
+                            className="bg-slate-700 border-slate-600 rounded-md text-slate-200 placeholder-slate-400 focus:ring-sky-500 focus:border-sky-500"
                         />
-                        {/* Other filters can go here */}
+                        {/* Additional filters can be added here */}
                     </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredAndSortedPatents.map(patent => (
@@ -349,27 +399,21 @@ export const IPRoadmap: React.FC = () => {
                             />
                         ))}
                     </div>
-
-                     {comparisonSelection.length > 0 && (
-                        <div className="fixed bottom-8 right-8 z-20 flex items-center gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-lg">
-                            <p className="text-sm font-semibold text-white">Comparing {comparisonSelection.length} patents</p>
-                            <button onClick={() => setShowComparisonModal(true)} className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-bold">{t('compare_selected')}</button>
-                            <button onClick={() => setComparisonSelection([])} className="px-4 py-2 bg-slate-600 text-white rounded-md text-sm">{t('clear_comparison')}</button>
-                        </div>
-                    )}
-
-                    {showComparisonModal && (
-                        <ComparisonModal patents={patentsForComparison} onClose={() => setShowComparisonModal(false)} />
-                    )}
                 </>
             )}
 
             {viewMode === 'graph' && (
-                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 overflow-x-auto">
-                    <PatentInfographic />
+                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 overflow-x-auto min-h-[600px]">
+                    <PatentInfographic 
+                        selectedPatents={comparisonSelection}
+                        onToggleSelection={handleSelectForComparison}
+                    />
                 </div>
             )}
 
+            {showComparisonModal && (
+                <ComparisonModal patents={patentsForComparison} onClose={() => setShowComparisonModal(false)} />
+            )}
 
             <CompetitiveAnalysis />
         </div>

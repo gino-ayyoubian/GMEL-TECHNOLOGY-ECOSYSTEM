@@ -1,130 +1,94 @@
+
 import { UserRole, View } from '../types';
 
-type AccessLevel = 'full' | 'view' | 'none';
+// Capability-Based Access Control (CBAC)
+export type Capability = 
+    | 'VIEW_DASHBOARD'
+    | 'VIEW_IP_ROADMAP'
+    | 'VIEW_FINANCIALS'
+    | 'VIEW_TECHNICAL'
+    | 'VIEW_STRATEGIC'
+    | 'VIEW_GENERATIVE'
+    | 'EDIT_GENERATIVE'
+    | 'EXPORT_DATA'
+    | 'MANAGE_ACCESS'
+    | 'VIEW_AUDIT_LOGS';
 
-const PERMISSIONS: Record<UserRole, Record<View, AccessLevel>> = {
-    admin: {
-        dashboard: 'full',
-        ip: 'full',
-        financials: 'full',
-        technical: 'full',
-        benchmark: 'full',
-        site: 'full',
-        comparison: 'full',
-        tech_comparison: 'full',
-        simulations: 'full',
-        strategy_modeler: 'full',
-        correspondence: 'full',
-        proposal_generator: 'full',
-        image: 'full',
-        video: 'full',
-        chat: 'full',
-        contact: 'full',
-    },
-    manager: {
-        dashboard: 'full',
-        ip: 'full',
-        financials: 'full',
-        technical: 'full',
-        benchmark: 'full',
-        site: 'full',
-        comparison: 'full',
-        tech_comparison: 'full',
-        simulations: 'full',
-        strategy_modeler: 'full',
-        correspondence: 'full',
-        proposal_generator: 'full',
-        image: 'full',
-        video: 'full',
-        chat: 'full',
-        contact: 'full',
-    },
-    guest: {
-        dashboard: 'view',
-        ip: 'view',
-        financials: 'none',
-        technical: 'none',
-        benchmark: 'none',
-        site: 'none',
-        comparison: 'none',
-        tech_comparison: 'none',
-        simulations: 'none',
-        strategy_modeler: 'none',
-        correspondence: 'none',
-        proposal_generator: 'none',
-        image: 'none',
-        video: 'none',
-        chat: 'none',
-        contact: 'full',
-    },
-    member: {
-        dashboard: 'full',
-        ip: 'full',
-        financials: 'view',
-        technical: 'full',
-        benchmark: 'full',
-        site: 'full',
-        comparison: 'full',
-        tech_comparison: 'full',
-        simulations: 'view',
-        strategy_modeler: 'view',
-        correspondence: 'view',
-        proposal_generator: 'view',
-        image: 'view',
-        video: 'view',
-        chat: 'full',
-        contact: 'full',
-    },
-    team: {
-        dashboard: 'full',
-        ip: 'full',
-        financials: 'full',
-        technical: 'full',
-        benchmark: 'full',
-        site: 'full',
-        comparison: 'full',
-        tech_comparison: 'full',
-        simulations: 'view',
-        strategy_modeler: 'view',
-        correspondence: 'full',
-        proposal_generator: 'view',
-        image: 'full',
-        video: 'full',
-        chat: 'full',
-        contact: 'full',
-    },
-    client: {
-        dashboard: 'view',
-        ip: 'view',
-        financials: 'view',
-        technical: 'view',
-        benchmark: 'view',
-        site: 'view',
-        comparison: 'view',
-        tech_comparison: 'view',
-        simulations: 'none',
-        strategy_modeler: 'none',
-        correspondence: 'none',
-        proposal_generator: 'none',
-        image: 'view',
-        video: 'view',
-        chat: 'view',
-        contact: 'full',
-    },
+const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
+    admin: [
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL', 
+        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE', 'EXPORT_DATA', 'MANAGE_ACCESS', 'VIEW_AUDIT_LOGS'
+    ],
+    manager: [
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL', 
+        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE', 'VIEW_AUDIT_LOGS'
+    ],
+    team: [
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL', 
+        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE'
+    ],
+    client: [
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL'
+    ],
+    member: [
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_TECHNICAL', 'VIEW_STRATEGIC'
+    ],
+    guest: [
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP'
+    ]
 };
 
+// Map old "Views" to required Capabilities for backward compatibility with Sidebar logic
+const VIEW_CAPABILITY_MAP: Record<View, Capability> = {
+    dashboard: 'VIEW_DASHBOARD',
+    ip: 'VIEW_IP_ROADMAP',
+    financials: 'VIEW_FINANCIALS',
+    technical: 'VIEW_TECHNICAL',
+    benchmark: 'VIEW_STRATEGIC',
+    site: 'VIEW_STRATEGIC',
+    comparison: 'VIEW_STRATEGIC',
+    tech_comparison: 'VIEW_TECHNICAL',
+    simulations: 'VIEW_STRATEGIC',
+    strategy_modeler: 'VIEW_STRATEGIC',
+    correspondence: 'EDIT_GENERATIVE',
+    proposal_generator: 'EDIT_GENERATIVE',
+    image: 'VIEW_GENERATIVE',
+    video: 'VIEW_GENERATIVE',
+    chat: 'VIEW_DASHBOARD', // Everyone with dashboard access can chat
+    contact: 'VIEW_DASHBOARD', // Public
+    access_control: 'MANAGE_ACCESS',
+    audit_logs: 'VIEW_AUDIT_LOGS'
+};
+
+/**
+ * Checks if a user has a specific capability.
+ */
+export const checkCapability = (role: UserRole | null, capability: Capability): boolean => {
+    if (!role) return false;
+    return ROLE_CAPABILITIES[role]?.includes(capability) || false;
+};
+
+/**
+ * Legacy helper for Sidebar navigation visibility.
+ * Maps a View to a Capability check.
+ */
 export const hasPermission = (role: UserRole | null, view: View): boolean => {
-    if (!role) {
-        return false;
-    }
-    const access = PERMISSIONS[role]?.[view] || 'none';
-    return access !== 'none';
+    if (!role) return false;
+    // Public pages
+    if (view === 'contact') return true; 
+    
+    const requiredCap = VIEW_CAPABILITY_MAP[view];
+    if (!requiredCap) return false;
+    
+    return checkCapability(role, requiredCap);
 };
 
+/**
+ * Helper for UI elements (buttons) that modify state.
+ * Usually requires 'EDIT_GENERATIVE' or specific write access.
+ */
 export const canEdit = (role: UserRole | null, view: View): boolean => {
-    if (!role) {
-        return false;
-    }
-    const access = PERMISSIONS[role]?.[view] || 'none';
-    return access === 'full';
-}
+    if (!role) return false;
+    if (role === 'admin' || role === 'manager' || role === 'team') return true;
+    return false;
+};

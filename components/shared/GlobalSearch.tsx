@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useContext, useEffect, useRef } from 'react';
 import { AppContext } from '../../contexts/AppContext';
 import { useI18n } from '../../hooks/useI18n';
@@ -55,6 +56,7 @@ export const GlobalSearch: React.FC = () => {
             title: topic,
             description: detail,
             action: () => {
+                // Extract code from format "Topic Name (CODE-123)"
                 const code = topic.match(/\(([^)]+)\)/)?.[1];
                 if (code) setTechnicalTopic(code);
                 setActiveView('technical');

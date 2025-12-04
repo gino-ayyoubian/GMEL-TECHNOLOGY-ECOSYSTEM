@@ -8,6 +8,7 @@ import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
 import { canEdit } from '../utils/permissions';
+import { extractJson } from '../utils/helpers';
 
 interface ProposalData {
     gmel_proposal: {

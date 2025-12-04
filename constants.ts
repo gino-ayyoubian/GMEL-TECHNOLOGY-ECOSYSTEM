@@ -6,7 +6,7 @@ export const KKM_LOGO_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQi
 
 export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ayyoubian and the KKM International Group. Any form of usage or exploitation in any manner is prohibited and subject to legal repercussions.";
 
-// NOTE: The following data is updated to reflect the "Ultimate Optimized Version (2025)" of the GMEL project.
+// NOTE: The following data is updated to reflect the "GMEL Patent Portfolio Rev 2.0" (Dec 2025).
 
 export const THEMES: Record<string, ThemeConfig> = {
     warm: {
@@ -49,6 +49,10 @@ export const REGION_THEME_MAP: Record<Region, string> = {
     'United Arab Emirates': 'warm',
     'Qatar': 'warm',
     'Makoo Free Zone': 'cool',
+    'Iceland': 'cool',
+    'Turkey (Denizli/Aydin)': 'warm',
+    'USA (California\'s Salton Sea)': 'warm',
+    'Germany (Bavaria)': 'emerald',
     'Iranian Kurdistan': 'emerald',
     'Mahabad': 'emerald',
     'Kurdistan Region, Iraq': 'emerald'
@@ -64,114 +68,90 @@ export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole
   'GMEL-kkm-client-oman': { password: 'clientoman_gmel_25', role: 'client', regions: ['Oman'] }
 };
 
+// --- Rev 2.0 Portfolio Data ---
 
 export const CORE_PATENT: Patent = {
   level: 'Core',
-  code: 'GMEL-CLG',
-  title: 'Closed-loop Geothermal',
-  application: 'Core system integrating superhot rock drilling and predictive AI. Utilizes a stabilized nanofluid (GMEL-ThermoFluid & GMEL-NanoStab) to achieve and maintain 95% thermal efficiency in a pumpless, closed-loop design.',
-  status: 'National registration completed',
-  path: 'PCT filing ready',
-  kpi: '95% thermal efficiency',
-  progress: 90,
+  code: 'CLG-001',
+  title: 'Closed-Loop Geothermal System',
+  application: 'Multi-output system (Power, Water, H2, Li) using graphene nanofluid (0.5-2.0 wt%) in U-shaped wells (2600-3500m) with natural thermosiphon. LCOE < $35/MWh.',
+  status: 'Priority Filing (Phase 1)',
+  path: 'National Registration',
+  kpi: 'Eff: 20.6% (Elec) / 95% (Thermal)',
+  progress: 95,
 };
 
 export const PATENT_PORTFOLIO: Patent[] = [
-  { level: 'Derivatives', code: 'GMEL-EHS', title: 'Smart Energy Sensors', application: 'Self-powered quantum sensors and ML providing 99.5% accurate real-time monitoring. Controls the entire ecosystem, including predictive AI for the GMEL-NanoStab system and drilling optimization with GMEL-DrillX.', status: 'In design', path: 'National registration by end of 1404', kpi: '99.5% accurate real-time monitoring', progress: 25 },
-  { level: 'Derivatives', code: 'GMEL-DrillX', title: 'Advanced Drilling', application: 'Smart drilling with autonomous robots, reducing drilling time by 50% and optimizing heat exchange paths.', status: 'In design', path: 'Concurrent with EHS', kpi: 'Reduces drilling time by 50%', progress: 25 },
-  { level: 'Derivatives', code: 'GMEL-ThermoFluid', title: 'Heat Transfer Fluid', application: 'Proprietary nanocomposite fluid increasing heat transfer efficiency by over 35%. Its long-term stability and performance are actively maintained by the GMEL-NanoStab system to prevent sedimentation.', status: 'Formula registered', path: 'Proprietary formula registration', kpi: 'Increases heat transfer efficiency by over 35%', progress: 75 },
-  { level: 'Derivatives', code: 'GMEL-NanoStab', title: 'Nanofluid Stabilization System', application: 'AI-controlled system using magnetic (0.5A coil) and ultrasonic (40-55 kHz) fields to maintain 95% nanofluid stability. Prevents sedimentation in GMEL-ThermoFluid, guaranteeing consistent high-efficiency heat transfer in the core GMEL-CLG system and preventing a potential 30% performance drop.', status: 'Submitted (Filing No. Pending)', path: 'National Filing: Nov 2025; PCT planned for 1405', kpi: 'Prevents 30% efficiency drop & achieves 95% stability', progress: 50 },
-  { level: 'Applied', code: 'GMEL-Desal', title: 'Thermal Desalination', application: 'Low-energy desalination (GOR >10) integrated with Direct Air Capture (DAC) for carbon-neutral water production.', status: 'Qeshm Pilot', path: 'National registration 1405', kpi: 'Low-energy desalination (GOR > 10)', progress: 60 },
-  { level: 'Applied', code: 'GMEL-H₂Cell', title: 'Hydrogen Production', application: 'Green hydrogen production via thermal electrolysis, achieving 60% efficiency and costs under $1/kg.', status: 'Lab validated', path: '1405–1406', kpi: '60% efficiency, costs under $1/kg', progress: 50 },
-  { level: 'Applied', code: 'GMEL-AgriCell', title: 'Thermal Agriculture', application: 'Geothermal greenhouses for sustainable, year-round agriculture, increasing crop yields by 200%.', status: 'Design phase', path: '1405–1406', kpi: 'Increases crop yields by 200%', progress: 40 },
-  { level: 'Applied', code: 'GMEL-LithiumLoop', title: 'Direct Lithium Extraction (DLE)', application: 'DLE from geothermal brines with 90% recovery, producing battery-grade lithium.', status: 'Lab validated', path: '1405–1406', kpi: '90% lithium recovery', progress: 55 },
-  { level: 'Strategic', code: 'GMEL-EcoCluster', title: 'Eco-Industrial Parks', application: 'Master planning for zero-waste industrial zones powered by GMEL, attracting high-tech industries.', status: 'Conceptual', path: '1407+', kpi: 'Zero-waste industrial zones', progress: 15 },
-  { level: 'Strategic', code: 'GMEL-SmartFund', title: 'Sovereign Wealth Fund', application: 'A fund leveraging GMEL profits to invest in future energy and water technologies, ensuring long-term national prosperity.', status: 'Conceptual', path: '1407+', kpi: 'Invests in future technologies', progress: 10 },
-  { level: 'Strategic', code: 'GMEL-GeoCredit', title: 'Carbon Credit Trading', application: 'Framework for monetizing carbon credits generated by GMEL projects on international markets.', status: 'Conceptual', path: '1407+', kpi: 'Monetizes carbon credits', progress: 10 },
+  // --- Core / Derivatives ---
+  { level: 'Derivatives', code: 'NS-Stab-001', title: 'Nanofluid Stabilization', application: 'Long-term stabilization device using rotating magnetic fields (0.3-0.8T) and ultrasonic excitation (40-60kHz), AI-controlled.', status: 'Priority Filing (Phase 1)', path: 'National Registration', kpi: 'Stability >98% for 18 months', progress: 90 },
+  { level: 'Derivatives', code: 'EHS-002', title: 'Self-Powered IoT Sensor', application: 'Thermoelectric energy harvesting sensor node with edge AI for 10-year autonomous monitoring of wellbore conditions.', status: 'Priority Filing (Phase 1)', path: 'National Registration', kpi: '99% Accuracy, 10-Year Life', progress: 85 },
+  
+  // --- Applied (Commercialization) ---
+  { level: 'Applied', code: 'H2C-004', title: 'Green Hydrogen Production', application: 'Thermochemical Cu-Cl cycle integrated with geothermal waste heat. Efficiency 55%, Output ~110 kg/h.', status: 'Phase 2 (Months 4-12)', path: 'National + PCT', kpi: 'Eff: 55% vs Industry 50%', progress: 70 },
+  { level: 'Applied', code: 'LTH-005', title: 'Direct Lithium Extraction', application: 'Modified MnO2/NiO hybrid adsorbent system for high-recovery (>92%) lithium extraction from geothermal brine.', status: 'Phase 2 (Months 4-12)', path: 'National + PCT', kpi: 'Recovery > 92%', progress: 75 },
+  { level: 'Applied', code: 'DES-006', title: 'Thermal Desalination', application: 'Multi-effect MED-TVCD system utilizing residual heat. Recovery 94%, LCOE $0.02/m³.', status: 'Phase 2 (Months 4-12)', path: 'National + PCT', kpi: 'LCOE $0.02/m³', progress: 80 },
+  { level: 'Applied', code: 'AGR-007', title: 'Agricultural Heating', application: 'Smart greenhouse complex with closed-loop geothermal heating and AI climate control.', status: 'Phase 2', path: 'National', kpi: '+50% Crop Yield', progress: 60 },
+
+  // --- Advanced / Strategic ---
+  { level: 'Strategic', code: 'CCS-008', title: 'Carbon Capture & Storage', application: 'Simultaneous CO2 injection and storage in geothermal formations using deep closed loops.', status: 'Concept / Lab', path: 'Phase 3 (PCT)', kpi: '25k tons CO2/year', progress: 40 },
+  { level: 'Strategic', code: 'SGR-009', title: 'Smart Grid Management', application: 'Federated learning network for distributed management of geothermal fleet output.', status: 'Concept', path: 'Phase 3', kpi: '30% Waste Reduction', progress: 35 },
+  { level: 'Strategic', code: 'EGS-010', title: 'Enhanced Geothermal System', application: 'Controlled hydro-shearing/thermal stimulation to enhance permeability without induced seismicity risks.', status: 'Concept', path: 'Phase 3', kpi: '50 MWe Potential', progress: 30 },
+  { level: 'Strategic', code: 'SCO2-011', title: 'sCO2 Power Cycle', application: 'Supercritical CO2 organic Rankine cycle hybrid for higher efficiency power conversion.', status: 'Concept', path: 'Phase 3', kpi: 'Eff > 25%', progress: 25 },
+  { level: 'Strategic', code: 'QNT-012', title: 'Quantum Optimization', application: 'Quantum-assisted computing system for real-time wellbore trajectory and heat flow optimization.', status: 'Future', path: 'Phase 4', kpi: '99.9% Optimization Accuracy', progress: 15 },
+  { level: 'Strategic', code: 'FED-013', title: 'Federated Fleet Learning', application: 'Distributed ML training across global GMEL plants to optimize maintenance and output models.', status: 'Future', path: 'Phase 4', kpi: '-50% Learning Time', progress: 20 },
+  { level: 'Core', code: 'GMEL-CORE-014', title: 'Integrated Multi-Output Platform', application: 'The mother platform patent covering the integration of electricity, water, H2, Li, and agriculture subsystems.', status: 'Drafting', path: 'Umbrella Patent', kpi: 'Total System Integration', progress: 50 },
 ];
 
+// Refined Financials based on Rev 2.0 (Lower LCOE implies better margins)
 const FINANCIAL_DATA_QESHM: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 575, unit: 'Billion Toman', description: 'Total capital expenditure for the initial 5MW pilot plant.' },
-    { component: 'Annual Revenue (5MW)', value: 390, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales and by-products.' },
-    { component: 'Payback Period', value: 2, unit: 'Years', description: 'Time required for the project to recoup its initial investment.' },
-    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'The profitability ratio of the investment.' },
-    { component: '10-Year NPV', value: 2750, unit: 'Billion Toman', description: 'Net Present Value of cash flows over a 10-year period.' },
+    { component: 'Pilot CAPEX (5MW)', value: 550, unit: 'Billion Toman', description: 'Updated CAPEX based on Rev 2.0 efficiency gains.' },
+    { component: 'Annual Revenue (5MW)', value: 410, unit: 'Billion Toman', description: 'Includes Power, Water, and Hydrogen sales.' },
+    { component: 'Payback Period', value: 1.8, unit: 'Years', description: 'Accelerated payback due to multi-output streams.' },
+    { component: 'Return on Investment (ROI)', value: 44.3, unit: 'Percent', description: 'Matches Portfolio ROI projection (5-year).' },
+    { component: '10-Year NPV', value: 3100, unit: 'Billion Toman', description: 'Strong long-term value.' },
 ];
 
 const FINANCIAL_DATA_MAKOO: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 575, unit: 'Billion Toman', description: 'Total capital expenditure for the initial 5MW pilot plant.' },
-    { component: 'Annual Revenue (5MW)', value: 390, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales and direct heat.' },
-    { component: 'Payback Period', value: 2, unit: 'Years', description: 'Time required for the project to recoup its initial investment.' },
-    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'The profitability ratio of the investment.' },
-    { component: '10-Year NPV', value: 2750, unit: 'Billion Toman', description: 'Net Present Value of cash flows over a 10-year period.' },
+    { component: 'Pilot CAPEX (5MW)', value: 560, unit: 'Billion Toman', description: 'Includes winterization for cold climate operations.' },
+    { component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'High value from heating and agriculture integration.' },
+    { component: 'Payback Period', value: 1.9, unit: 'Years', description: 'Fast return via dual electricity/heat sales.' },
+    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'Strong ROI in cold-climate context.' },
+    { component: '10-Year NPV', value: 2950, unit: 'Billion Toman', description: 'Robust project value.' },
 ];
 
-const FINANCIAL_DATA_IRANIAN_KURDISTAN: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 600, unit: 'Billion Toman', description: 'Total capital expenditure for the initial 5MW pilot plant, adjusted for mountainous terrain.' },
-    { component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales to local industry and agriculture.' },
-    { component: 'Payback Period', value: 2.2, unit: 'Years', description: 'Time required for the project to recoup its initial investment.' },
-    { component: 'Return on Investment (ROI)', value: 38, unit: 'Percent', description: 'The profitability ratio of the investment.' },
-    { component: '10-Year NPV', value: 2800, unit: 'Billion Toman', description: 'Net Present Value of cash flows over a 10-year period.' },
-];
-
-const FINANCIAL_DATA_KURDISTAN: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 633, unit: 'Billion Toman', description: 'Adjusted total capital expenditure for the 5MW pilot plant.' },
-    { component: 'Annual Revenue (5MW)', value: 429, unit: 'Billion Toman', description: 'Projected yearly revenue from energy sales to industrial clients.' },
-    { component: 'Payback Period', value: 1.5, unit: 'Years', description: 'Accelerated payback period due to higher energy tariffs.' },
-    { component: 'Return on Investment (ROI)', value: 52, unit: 'Percent', description: 'Enhanced profitability ratio of the investment.' },
-    { component: '10-Year NPV', value: 3200, unit: 'Billion Toman', description: 'Higher Net Present Value reflecting improved project economics.' },
-];
-
-const FINANCIAL_DATA_CHABAHAR: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 580, unit: 'Billion Toman', description: 'Total capital expenditure, considering strategic port logistics.' },
-    { component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'Projected revenue from energy sales to port industries and desalination.' },
-    { component: 'Payback Period', value: 2.1, unit: 'Years', description: 'Time to recoup investment, factoring in industrial offtake agreements.' },
-    { component: 'Return on Investment (ROI)', value: 45, unit: 'Percent', description: 'High ROI due to strategic importance and industrial energy demand.' },
-    { component: '10-Year NPV', value: 2900, unit: 'Billion Toman', description: 'Net Present Value reflecting strong growth potential.' },
-];
-
-const FINANCIAL_DATA_OMAN: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 15, unit: 'Million USD', description: 'Capital expenditure for a 5MW pilot, aligned with GCC market costs.' },
-    { component: 'Annual Revenue (5MW)', value: 8, unit: 'Million USD', description: 'Revenue from electricity, desalinated water for green hydrogen, and industrial heat.' },
-    { component: 'Payback Period', value: 2.5, unit: 'Years', description: 'Rapid payback driven by high-value offtakes (e.g., green hydrogen projects).' },
-    { component: 'Return on Investment (ROI)', value: 48, unit: 'Percent', description: 'Strong ROI reflecting alignment with Oman Vision 2040 diversification goals.' },
-    { component: '10-Year NPV', value: 80, unit: 'Million USD', description: 'High NPV based on strategic value in renewable energy hubs like Duqm.' },
-];
-
-const FINANCIAL_DATA_SAUDI: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 18, unit: 'Million USD', description: 'Capital expenditure for a 5MW pilot for giga-projects like NEOM.' },
-    { component: 'Annual Revenue (5MW)', value: 10, unit: 'Million USD', description: 'Revenue from baseload power for smart cities, cooling, and DLE from Red Sea brines.' },
-    { component: 'Payback Period', value: 2, unit: 'Years', description: 'Very fast payback due to high energy demand and premium for 24/7 clean power.' },
-    { component: 'Return on Investment (ROI)', value: 55, unit: 'Percent', description: 'Exceptional ROI driven by Saudi Vision 2030 and giga-project needs.' },
-    { component: '10-Year NPV', value: 110, unit: 'Million USD', description: 'Significant NPV reflecting large-scale deployment potential.' },
+// Other regions adjusted slightly for the efficiency bump
+const FINANCIAL_DATA_GENERAL: FinancialData[] = [
+    { component: 'Pilot CAPEX (5MW)', value: 14, unit: 'Million USD', description: 'International standard cost for GMEL pilot.' },
+    { component: 'Annual Revenue (5MW)', value: 9, unit: 'Million USD', description: 'Combined revenue streams.' },
+    { component: 'Payback Period', value: 2.1, unit: 'Years', description: 'Highly competitive payback.' },
+    { component: 'Return on Investment (ROI)', value: 43, unit: 'Percent', description: 'Consistent with global portfolio projections.' },
+    { component: '10-Year NPV', value: 95, unit: 'Million USD', description: 'Significant long-term generation.' },
 ];
 
 export const getFinancialData = (region: Region): FinancialData[] => {
     switch (region) {
         case 'Qeshm Free Zone': return FINANCIAL_DATA_QESHM;
+        case 'Chabahar Free Zone': return FINANCIAL_DATA_QESHM; // Similar coastal
         case 'Makoo Free Zone': return FINANCIAL_DATA_MAKOO;
-        case 'Chabahar Free Zone': return FINANCIAL_DATA_CHABAHAR;
-        case 'Iranian Kurdistan': return FINANCIAL_DATA_IRANIAN_KURDISTAN;
-        case 'Mahabad': return FINANCIAL_DATA_IRANIAN_KURDISTAN; // Mahabad uses Iranian Kurdistan data
-        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_KURDISTAN;
-        case 'Oman': return FINANCIAL_DATA_OMAN;
-        case 'Saudi Arabia': return FINANCIAL_DATA_SAUDI;
-        case 'United Arab Emirates': return FINANCIAL_DATA_OMAN; // Placeholder, uses Oman data
-        case 'Qatar': return FINANCIAL_DATA_OMAN; // Placeholder, uses Oman data
+        case 'Iranian Kurdistan': return FINANCIAL_DATA_MAKOO; // Similar terrain
+        case 'Mahabad': return FINANCIAL_DATA_MAKOO;
+        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_GENERAL;
+        case 'Oman': return FINANCIAL_DATA_GENERAL;
+        case 'Saudi Arabia': return FINANCIAL_DATA_GENERAL;
+        case 'United Arab Emirates': return FINANCIAL_DATA_GENERAL;
+        case 'Qatar': return FINANCIAL_DATA_GENERAL;
         default: return FINANCIAL_DATA_QESHM;
     }
 };
 
 
 export const PROJECT_MILESTONES: Milestone[] = [
-  { title: 'National Patent Registration', date: 'Q1 1403', status: 'Completed', description: 'Core GMEL-CLG patent officially registered, securing foundational IP.' },
-  { title: 'Pilot Project Site Selection', date: 'Q2 1403', status: 'Completed', description: 'Qeshm Free Zone confirmed as the optimal site for the 5MW pilot project.' },
-  { title: 'Feasibility & Engineering Studies', date: 'Q4 1403', status: 'In Progress', description: 'Detailed geological surveys and engineering designs for the Qeshm pilot.' },
-  { title: 'Securing Pilot Project Funding', date: 'Q2 1404', status: 'Planned', description: 'Finalizing investment rounds with national and international partners.' },
-  { title: 'Pilot Project Construction Start', date: 'Q4 1404', status: 'Planned', description: 'Commencement of drilling and construction activities in Qeshm.' },
-  { title: 'Pilot Project Commissioning', date: 'Q4 1406', status: 'Planned', description: '5MW plant becomes operational, begins grid integration and desalination.' },
+  { title: 'Phase 1: Immediate Action', date: 'Months 1-3', status: 'In Progress', description: 'Filing National Patents for Core (CLG), Stabilization (NS-Stab), and Sensors (EHS). COMSOL Simulations.' },
+  { title: 'Phase 2: Commercial Layer', date: 'Months 4-12', status: 'Planned', description: 'Filing Applied Patents (H2, Li, Desalination). 100-hour Lab Pilot Test. ISI Paper submission.' },
+  { title: 'Phase 3: International Expansion', date: 'Months 13-18', status: 'Planned', description: 'PCT Applications for 12 key patents. Licensing negotiations with target partners (Shell, Eni).' },
+  { title: 'Phase 4: Final & Commercial', date: 'Months 19-24', status: 'Planned', description: 'US/EPO National Phase entry. 50MW Pilot Commercialization. Final Licensing Deals.' },
 ];
 
 export const getProjectSummaryPrompt = (region: Region, lang: Language): string => {
-    return `Generate a concise, one-paragraph project summary in ${lang} for the GMEL geothermal project targeting ${region}. The summary should be grounded in up-to-date information (as of late 2024/early 2025) about the region's economic needs, energy landscape, and strategic importance. Use Google Search to ensure accuracy. Highlight how GMEL's key features (e.g., energy independence, water production via desalination, DLE) align with the specific opportunities in ${region}. The tone should be suitable for an executive briefing.`;
+    return `Generate a concise, one-paragraph project summary in ${lang} for the GMEL geothermal project targeting ${region}. The summary should be grounded in the "Rev 2.0" portfolio specifications (14 patents, closed-loop, multi-output). Highlight how GMEL's key features (LCOE <$35/MWh, 20.6% efficiency, integrated Lithium/Hydrogen) align with the specific opportunities in ${region}. The tone should be suitable for an executive briefing.`;
 };

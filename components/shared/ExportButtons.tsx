@@ -1,3 +1,4 @@
+
 import React, { useContext } from 'react';
 import { jsPDF } from 'jspdf';
 import { AppContext } from '../../contexts/AppContext';
@@ -12,6 +13,7 @@ interface ExportButtonsProps {
 const ExportButtons: React.FC<ExportButtonsProps> = ({ content, title, isJson, htmlContent }) => {
     const { userRole } = useContext(AppContext)!;
 
+    // Strict Role Check: Only Admin can see/use export buttons
     if (userRole !== 'admin') {
         return null;
     }

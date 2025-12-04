@@ -9,21 +9,25 @@ import { Region } from '../types';
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
-// FIX: Added missing regions to `regionCoordinates` to satisfy the `Record<Region, [number, number]>` type, and corrected the coordinates for 'Iranian Kurdistan'.
+// FIX: Added missing regions to `regionCoordinates` to satisfy the `Record<Region, [number, number]>` type.
 const regionCoordinates: Record<Region, [number, number]> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
     'Chabahar Free Zone': [25.2915, 60.6431],
-    'Iranian Kurdistan': [35.4330, 46.9831], // Sanandaj as center
+    'Iranian Kurdistan': [35.4330, 46.9831], 
     'Mahabad': [36.7633, 45.7201],
-    'Kurdistan Region, Iraq': [36.1911, 44.0094], // Erbil
-    'Oman': [23.5859, 58.3816], // Muscat
-    'Saudi Arabia': [24.7136, 46.6753], // Riyadh
-    'United Arab Emirates': [24.466667, 54.366669], // Abu Dhabi
-    'Qatar': [25.286667, 51.533333] // Doha
+    'Kurdistan Region, Iraq': [36.1911, 44.0094], 
+    'Oman': [23.5859, 58.3816], 
+    'Saudi Arabia': [24.7136, 46.6753], 
+    'United Arab Emirates': [24.466667, 54.366669], 
+    'Qatar': [25.286667, 51.533333],
+    'Iceland': [64.9631, -19.0208],
+    "Turkey (Denizli/Aydin)": [37.838, 28.536],
+    "USA (California's Salton Sea)": [33.328, -115.844],
+    "Germany (Bavaria)": [48.7904, 11.4979]
 };
 
-// FIX: Added missing infrastructurePoints constant, which was used but not defined.
+// FIX: Added missing infrastructurePoints definition referenced in component
 const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {
     'Qeshm Free Zone': [
         { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },
@@ -75,7 +79,6 @@ const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; n
     ]
 };
 
-
 export const SiteAnalysis: React.FC = () => {
     const { region } = useContext(AppContext)!;
     const { t } = useI18n();
@@ -111,14 +114,13 @@ export const SiteAnalysis: React.FC = () => {
             });
         }
 
-        // Cleanup function to remove map on component unmount
         return () => {
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
             }
         };
-    }, []); // Run only once
+    }, []);
 
     // Map updates when region changes
     useEffect(() => {
@@ -191,7 +193,7 @@ export const SiteAnalysis: React.FC = () => {
                      <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-lg z-0"></div>
                      <button onClick={handleLocate} title="Find my location" className="absolute top-20 right-6 z-10 p-2 bg-slate-700 text-white rounded-md shadow-lg hover:bg-slate-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                           <path fillRule="evenodd" d="M10.022 1.13a.5.5 0 0 0-.044 0l-8.5 3a.5.5 0 0 0 .022.976l8.5-3a.5.5 0 0 0 .022-.976zM10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 1a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm-8.478 3.403a.5.5 0 0 0-.022.976l8.5 3a.5.5 0 0 0 .478-.022l8.5-3a.5.5 0 0 0-.022-.976l-8.5 3a.5.5 0 0 0-.456 0l-8.5-3z" clipRule="evenodd"/>
+                           <path fillRule="evenodd" d="M10.022 1.13a.5.5 0 0 0-.044 0l-8.5 3a.5.5 0 0 0 .022.976l8.5-3a.5.5 0 0 0 .022-.976zM10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 1a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm-8.478 3.403a.5.5 0 0 0-.022.976l8.5 3a.5.5 0 0 0 .478-.022l8.5-3a.5.5 0 0 0-.456 0l-8.5-3z" clipRule="evenodd"/>
                         </svg>
                      </button>
                 </div>

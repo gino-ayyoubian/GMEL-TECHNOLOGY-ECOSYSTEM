@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// FIX: Changed to named import
-import { AppWrapper } from './App';
+// FIX: Changed to default import as App.tsx exports default
+import App from './App';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,6 +11,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AppWrapper />
+    <App />
   </React.StrictMode>
 );

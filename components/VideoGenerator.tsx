@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { generateVideo, getVideoOperation } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
@@ -28,12 +29,6 @@ export const VideoGenerator: React.FC = () => {
         };
     }, []);
     
-    const handleSelectKey = async () => {
-        await window.aistudio.openSelectKey();
-        // Assume success and update UI immediately to avoid race condition
-        setHasApiKey(true);
-    };
-
     const pollOperation = (op: any) => {
         pollingInterval.current = window.setInterval(async () => {
             try {
@@ -52,9 +47,9 @@ export const VideoGenerator: React.FC = () => {
             } catch (err: any) {
                 if (err.message === 'API_KEY_INVALID') {
                     setHasApiKey(false);
-                    setError('Your API key is no longer valid. Please select a new one.');
+                    setError('Your API key appears to be invalid, expired, or lacking permissions for video generation. Please select a valid key.');
                 } else {
-                    setError('An error occurred while checking video status.');
+                    setError('An error occurred while checking video status. Please try again.');
                 }
                 setIsLoading(false);
                 if (pollingInterval.current) clearInterval(pollingInterval.current);
@@ -65,9 +60,17 @@ export const VideoGenerator: React.FC = () => {
     const handleGenerate = async () => {
         const keyStatus = await checkApiKey();
         if (!keyStatus) {
-            setError('Please select an API key to generate videos.');
-            return;
+            // Trigger the key selection dialog if no key is present
+            try {
+                await window.aistudio.openSelectKey();
+                setHasApiKey(true);
+                setError(null);
+            } catch (e) {
+                setError('Failed to select API key.');
+                return;
+            }
         }
+        
         if (!prompt) return;
 
         setIsLoading(true);
@@ -93,9 +96,9 @@ export const VideoGenerator: React.FC = () => {
         } catch (err: any) {
              if (err.message === 'API_KEY_INVALID') {
                 setHasApiKey(false);
-                setError('Your API key is invalid. Please select a new one.');
+                setError('The selected API key is invalid, expired, or does not have access to the Veo model. Please select a new key to continue.');
             } else {
-                setError('An error occurred while starting video generation.');
+                setError(`An error occurred while starting video generation: ${err.message}`);
             }
             setIsLoading(false);
         }
@@ -107,17 +110,6 @@ export const VideoGenerator: React.FC = () => {
             <p className="text-slate-400 max-w-3xl">
                 {t('video_generator_description')}
             </p>
-
-            {!hasApiKey && (
-                 <div className="bg-amber-800/50 border border-amber-600 p-4 rounded-lg text-amber-200">
-                    <p className="font-bold">Action Required: Select API Key</p>
-                    <p className="text-sm mb-2">To use the video generation feature, you must select an API key. Video generation is a billable service.</p>
-                     <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline text-sm">Learn more about billing.</a>
-                    <button onClick={handleSelectKey} className="mt-2 bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">
-                        Select API Key
-                    </button>
-                </div>
-            )}
             
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
                 <div>
@@ -132,7 +124,7 @@ export const VideoGenerator: React.FC = () => {
                 </div>
                 <button
                     onClick={handleGenerate}
-                    disabled={isLoading || !hasApiKey}
+                    disabled={isLoading}
                     className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-800 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                     {isLoading ? 'Generating...' : t('generate_video')}

@@ -1,45 +1,14 @@
 
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-// FIX: Changed import from static FINANCIAL_DATA to dynamic getFinancialData function.
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
-import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
-import { Milestone } from '../types';
+import { generateTextWithThinking, generateGroundedText, generateFinancialData } from '../services/geminiService';
+import { Milestone, FinancialData } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    let start = -1;
-
-    if (firstBrace === -1 && firstBracket === -1) return null;
-    if (firstBrace === -1) start = firstBracket;
-    else if (firstBracket === -1) start = firstBrace;
-    else start = Math.min(firstBrace, firstBracket);
-    
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
-    let end = -1;
-    
-    if (lastBrace === -1 && lastBracket === -1) return null;
-    if (lastBrace === -1) end = lastBracket;
-    else if (lastBracket === -1) end = lastBrace;
-    else end = Math.max(lastBrace, lastBracket);
-    
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON string:", jsonString, error);
-        return null;
-    }
-};
+import { extractJson } from '../utils/helpers';
 
 const DataCard: React.FC<{ title: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, value, description, icon }) => {
   const { theme } = useContext(AppContext)!;
@@ -303,29 +272,41 @@ const GMELStatementBanner = () => {
 
 
 export const Dashboard: React.FC = () => {
-    // FIX: Add lang from AppContext to pass to getProjectSummaryPrompt
-    const { region, lang, theme, setActiveView } = useContext(AppContext)!;
+    const { region, lang, theme, setActiveView, setError } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
-    // FIX: Financial data is now dynamically retrieved based on the current region.
-    const financialData = useMemo(() => getFinancialData(region), [region]);
+    const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
+    const [isFinancialLoading, setIsFinancialLoading] = useState(false);
+
+    useEffect(() => {
+        setFinancialData(getFinancialData(region));
+        setSummary('');
+        setStrategicAnalysis('');
+    }, [region]);
+
+    const handleRefreshData = async () => {
+        setIsFinancialLoading(true);
+        setError(null);
+        try {
+            const data = await generateFinancialData(region, lang);
+            setFinancialData(data);
+        } catch (e: any) {
+            setError(e.message || "Failed to refresh financial data.");
+        } finally {
+            setIsFinancialLoading(false);
+        }
+    };
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        // FIX: Pass the 'lang' variable to the getProjectSummaryPrompt function call.
         const prompt = getProjectSummaryPrompt(region, lang);
         const result = await generateGroundedText(prompt);
         setSummary(result.text);
         setIsSummaryLoading(false);
     };
-    
-    useEffect(() => {
-        setSummary('');
-        setStrategicAnalysis('');
-    }, [region]);
 
     const chartData = useMemo(() => {
         return financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
@@ -367,10 +348,28 @@ export const Dashboard: React.FC = () => {
     return (
     <div className="space-y-8">
       <GMELStatementBanner />
-      <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
+          <button
+              onClick={handleRefreshData}
+              disabled={isFinancialLoading}
+              className={`flex items-center gap-2 px-4 py-2 ${theme.button} ${theme.buttonHover} text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
+          >
+              {isFinancialLoading ? (
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+              ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+              )}
+              Refresh Data
+          </button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {/* FIX: Use the dynamic financialData variable instead of the static import. */}
         {financialData.map((item, index) => (
           <DataCard 
             key={index}

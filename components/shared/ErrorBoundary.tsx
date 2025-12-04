@@ -1,23 +1,27 @@
-import React, { Component, ErrorInfo, ReactNode, ContextType } from 'react';
+
+import React, { ErrorInfo, ReactNode, ContextType } from 'react';
 import { AppContext } from '../../contexts/AppContext';
 
-interface Props {
+interface ErrorBoundaryProps {
   children?: ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = {
     hasError: false,
   };
+
+  // Explicitly declare props to avoid TypeScript error about 'props' not existing
+  declare props: Readonly<ErrorBoundaryProps>;
 
   static contextType = AppContext;
   declare context: ContextType<typeof AppContext>;
 
-  static getDerivedStateFromError(_: Error): State {
+  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     return { hasError: true };
   }
 

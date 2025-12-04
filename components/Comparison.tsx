@@ -1,41 +1,12 @@
+
 import React, { useState, useEffect, useContext } from 'react';
 import { generateTextWithThinking, generateJsonWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import { extractJson } from '../utils/helpers';
 import { AppContext } from '../contexts/AppContext';
 import ExportButtons from './shared/ExportButtons';
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    let start = -1;
-
-    if (firstBrace === -1 && firstBracket === -1) return null;
-    if (firstBrace === -1) start = firstBracket;
-    else if (firstBracket === -1) start = firstBrace;
-    else start = Math.min(firstBrace, firstBracket);
-    
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
-    let end = -1;
-    
-    if (lastBrace === -1 && lastBracket === -1) return null;
-    if (lastBrace === -1) end = lastBracket;
-    else if (lastBracket === -1) end = lastBrace;
-    else end = Math.max(lastBrace, lastBracket);
-    
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON string:", jsonString, error);
-        return null;
-    }
-};
 
 interface ComparisonData {
     metric: string;
@@ -55,8 +26,8 @@ const renderCellContent = (content: any): string => {
 };
 
 export const Comparison: React.FC = () => {
-    const { lang, setError } = useContext(AppContext)!;
     const { t } = useI18n();
+    const { setError, lang } = useContext(AppContext)!;
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -69,7 +40,6 @@ export const Comparison: React.FC = () => {
         setStrategicInsights('');
         setError(null);
     }, [lang, setError]);
-
 
     const fetchComparison = async () => {
         setIsLoading(true);

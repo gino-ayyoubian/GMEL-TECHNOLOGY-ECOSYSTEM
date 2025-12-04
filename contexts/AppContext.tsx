@@ -47,7 +47,8 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
 
 
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [authStep, setAuthStepState] = useState<AuthStep>(getInitialState('gmel_auth_step', 'language'));
+    // FIX: Default authStep changed from 'language' to 'login' to skip the welcome page.
+    const [authStep, setAuthStepState] = useState<AuthStep>(getInitialState('gmel_auth_step', 'login'));
     const [currentUser, setCurrentUserState] = useState<string | null>(getInitialState('gmel_current_user', null));
     const [userRole, setUserRoleState] = useState<UserRole | null>(getInitialState('gmel_user_role', null));
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
@@ -148,63 +149,34 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             let selectedVoice: SpeechSynthesisVoice | undefined;
 
             if (lang === 'en') {
-                // STRICTLY MALE, AMERICAN ACCENT
-                // Filter for US English voices
                 const usVoices = allVoices.filter(v => v.lang === 'en-US');
-                
-                // Priority 1: High Quality US Male (e.g., Google US English Male if available, or just Google US)
                 selectedVoice = usVoices.find(v => v.name.includes('Google') && v.name.includes('Male'));
-                
-                // Priority 2: Microsoft David (Standard Windows US Male)
                 if (!selectedVoice) selectedVoice = usVoices.find(v => v.name.includes('David'));
-                
-                // Priority 3: Any US voice that is explicitly marked Male or isn't Zira/Female
                 if (!selectedVoice) selectedVoice = usVoices.find(v => v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('female'));
-
-                // Fallback: Any US English voice (Google US English is often neutral/good)
-                if (!selectedVoice) selectedVoice = usVoices.find(v => v.name.includes('Google'));
-                
-                // Absolute Fallback: Any US voice
                 if (!selectedVoice) selectedVoice = usVoices[0];
             } else {
-                // STRICTLY FEMALE, BEST ACCENT (FA, AR, KU)
-                const targetLangCode = lang === 'ku' ? 'ckb' : lang; // Handle Sorani code if present
-                
-                // Filter voices for the target language or related dialects
+                const targetLangCode = lang === 'ku' ? 'ckb' : lang;
                 const langVoices = allVoices.filter(v => v.lang.startsWith(targetLangCode) || v.lang.startsWith(lang));
-
-                // Priority 1: High Quality / Neural Female Voices (Google often provides good neural voices)
                 selectedVoice = langVoices.find(v => v.name.includes('Google') && !v.name.toLowerCase().includes('male'));
-
-                // Priority 2: Known good Female voices by name
                 if (!selectedVoice) {
                     selectedVoice = langVoices.find(v => 
                         v.name.toLowerCase().includes('female') || 
-                        v.name.includes('Laila') || // Arabic
-                        v.name.includes('Salma') || // Arabic
-                        v.name.includes('Sahar') || // Farsi
+                        v.name.includes('Laila') || 
+                        v.name.includes('Salma') || 
+                        v.name.includes('Sahar') || 
                         v.name.includes('Zira')
                     );
                 }
-
-                // Priority 3: Fallback for Kurdish - if no Kurdish voice, try Persian female as closest regional proxy if preferred
                 if (!selectedVoice && lang === 'ku') {
                      selectedVoice = allVoices.find(v => v.lang.startsWith('fa') && (v.name.includes('Google') || v.name.toLowerCase().includes('female')));
                 }
-
-                // Priority 4: Any voice in the language
-                if (!selectedVoice) {
-                    selectedVoice = langVoices[0];
-                }
+                if (!selectedVoice) selectedVoice = langVoices[0];
             }
             
             if (selectedVoice) {
                 utterance.voice = selectedVoice;
             }
-            // Ensure the lang attribute is set correctly for the engine to switch phonemes
             utterance.lang = locales[lang] || lang;
-
-            // Adjust rate slightly for better clarity
             utterance.rate = 0.95; 
 
             utterance.onend = () => {
