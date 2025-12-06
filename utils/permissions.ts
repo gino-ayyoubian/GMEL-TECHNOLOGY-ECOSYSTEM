@@ -12,29 +12,26 @@ export type Capability =
     | 'EDIT_GENERATIVE'
     | 'EXPORT_DATA'
     | 'MANAGE_ACCESS'
-    | 'VIEW_AUDIT_LOGS';
+    | 'VIEW_AUDIT_LOGS'
+    | 'VIEW_COMPLIANCE';
 
 const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
     admin: [
         'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL', 
-        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE', 'EXPORT_DATA', 'MANAGE_ACCESS', 'VIEW_AUDIT_LOGS'
+        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE', 'EXPORT_DATA', 'MANAGE_ACCESS', 'VIEW_AUDIT_LOGS', 'VIEW_COMPLIANCE'
     ],
     manager: [
         'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL', 
-        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE', 'VIEW_AUDIT_LOGS'
+        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE', 'VIEW_AUDIT_LOGS', 'VIEW_COMPLIANCE'
     ],
-    team: [
-        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL', 
-        'VIEW_STRATEGIC', 'VIEW_GENERATIVE', 'EDIT_GENERATIVE'
+    partner: [ // Strategic Partner / Investor
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_STRATEGIC', 'VIEW_GENERATIVE'
     ],
-    client: [
-        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_FINANCIALS', 'VIEW_TECHNICAL'
-    ],
-    member: [
-        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP', 'VIEW_TECHNICAL', 'VIEW_STRATEGIC'
-    ],
+    regulator: [ // Government / Agency
+        'VIEW_DASHBOARD', 'VIEW_TECHNICAL', 'VIEW_SITE_ANALYSIS', 'VIEW_COMPLIANCE', 'VIEW_STRATEGIC'
+    ] as Capability[],
     guest: [
-        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP'
+        'VIEW_DASHBOARD', 'VIEW_IP_ROADMAP' // Limited Public View
     ]
 };
 
@@ -54,8 +51,8 @@ const VIEW_CAPABILITY_MAP: Record<View, Capability> = {
     proposal_generator: 'EDIT_GENERATIVE',
     image: 'VIEW_GENERATIVE',
     video: 'VIEW_GENERATIVE',
-    chat: 'VIEW_DASHBOARD', // Everyone with dashboard access can chat
-    contact: 'VIEW_DASHBOARD', // Public
+    chat: 'VIEW_DASHBOARD', 
+    contact: 'VIEW_DASHBOARD',
     access_control: 'MANAGE_ACCESS',
     audit_logs: 'VIEW_AUDIT_LOGS'
 };
@@ -77,6 +74,9 @@ export const hasPermission = (role: UserRole | null, view: View): boolean => {
     // Public pages
     if (view === 'contact') return true; 
     
+    // Regulators specifically need site analysis even if they don't have full strategic view
+    if (role === 'regulator' && view === 'site') return true;
+
     const requiredCap = VIEW_CAPABILITY_MAP[view];
     if (!requiredCap) return false;
     
@@ -85,10 +85,9 @@ export const hasPermission = (role: UserRole | null, view: View): boolean => {
 
 /**
  * Helper for UI elements (buttons) that modify state.
- * Usually requires 'EDIT_GENERATIVE' or specific write access.
  */
 export const canEdit = (role: UserRole | null, view: View): boolean => {
     if (!role) return false;
-    if (role === 'admin' || role === 'manager' || role === 'team') return true;
+    if (role === 'admin' || role === 'manager') return true;
     return false;
 };

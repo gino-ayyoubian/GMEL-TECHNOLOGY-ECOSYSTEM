@@ -54,7 +54,6 @@ const DesalSystemDiagram = () => {
     return (
     <div className="my-4 p-6 bg-slate-100 rounded-2xl flex justify-center items-center border border-slate-300 shadow-inner">
         <svg width="100%" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" className="max-w-2xl w-full">
-            {/* ... (SVG content remains same, styling handled by container) ... */}
             <title>GMEL-Desal System Diagram</title>
             <defs>
                 <marker id="arrow-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -148,7 +147,7 @@ const NanoStabSystemDiagram = () => (
 );
 
 export const Technical: React.FC = () => {
-    const { technicalTopic, setTechnicalTopic, setError, lang, currentUser } = useContext(AppContext)!;
+    const { technicalTopic, setTechnicalTopic, setError, lang, currentUser, supportedLangs } = useContext(AppContext)!;
     const [explanations, setExplanations] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
     const [demystified, setDemystified] = useState<Record<string, {isLoading: boolean, text: string | null, error: string | null}>>({});
     const [diagrams, setDiagrams] = useState<Record<string, {isLoading: boolean, url: string | null, error: string | null}>>({});
@@ -183,7 +182,9 @@ export const Technical: React.FC = () => {
         if (explanations[topic]?.text) return;
 
         setExplanations(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
-        const prompt = t('technical_explanation_prompt', { topic, detail });
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
+        const prompt = t('technical_explanation_prompt', { topic, detail }) + `\n\nResponse Language: ${langName}`;
+        
         try {
             const result = await generateTextWithThinking(prompt);
             setExplanations(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));
@@ -197,7 +198,9 @@ export const Technical: React.FC = () => {
     const getDemystification = async (topic: string, detail: string) => {
         if (demystified[topic]?.text) return;
         setDemystified(prev => ({ ...prev, [topic]: {isLoading: true, text: null, error: null} }));
-        const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}`;
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
+        const prompt = `Explain the core idea of '${topic}' in one simple paragraph, using an analogy a 10-year-old would understand. Technical details for context: ${detail}. \n\nResponse Language: ${langName}`;
+        
         try {
             const result = await generateText(prompt, 'gemini-flash-lite-latest');
             setDemystified(prev => ({ ...prev, [topic]: {isLoading: false, text: result, error: null} }));

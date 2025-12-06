@@ -41,7 +41,7 @@ export type Region =
   | 'USA (Salton Sea)'
   | 'Germany (Bavaria)';
 
-export type UserRole = 'admin' | 'manager' | 'guest' | 'member' | 'team' | 'client';
+export type UserRole = 'admin' | 'manager' | 'partner' | 'regulator' | 'guest';
 
 export interface ThemeConfig {
     name: string;

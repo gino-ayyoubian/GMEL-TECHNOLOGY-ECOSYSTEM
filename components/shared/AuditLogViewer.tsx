@@ -68,4 +68,27 @@ export const AuditLogViewer: React.FC = () => {
                                 </tr>
                             ) : (
                                 logs.map((log, index) => (
-                                    <tr key={index}
+                                    <tr key={index} className="hover:bg-slate-700/50 transition-colors border-b border-slate-700/50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300 font-mono text-xs">{new Date(log.timestamp).toLocaleString()}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-medium">{log.user}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-400">{log.action}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                log.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                            }`}>
+                                                {log.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-slate-400 truncate max-w-xs" title={log.details}>
+                                            {log.details || '-'}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};

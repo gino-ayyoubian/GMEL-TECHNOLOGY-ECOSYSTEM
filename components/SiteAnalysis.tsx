@@ -1,4 +1,3 @@
-
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';

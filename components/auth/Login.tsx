@@ -5,7 +5,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { AuthService } from '../../services/authService';
 import { USER_CREDENTIALS } from '../../constants';
 import { UserRole } from '../../types';
-import { ShieldCheck, Briefcase, Users, Eye, Lock, User, ChevronRight, Activity, Globe, Server, ChevronDown } from 'lucide-react';
+import { ShieldCheck, Briefcase, Eye, Lock, User, Activity, Globe, Server, ChevronDown, Scale, TrendingUp } from 'lucide-react';
 
 // --- Enterprise Role Definitions ---
 
@@ -15,57 +15,49 @@ interface RoleDefinition {
     tier: 'Tier 1' | 'Tier 2' | 'Tier 3' | 'Tier 4';
     clearance: string;
     icon: React.ReactNode;
-    category: 'Governance' | 'Strategic' | 'Operations' | 'External';
+    category: 'Governance' | 'Strategic' | 'Compliance' | 'Public';
 }
 
 const ROLE_DEFINITIONS: Record<UserRole, RoleDefinition> = {
     admin: { 
         title: 'System Administrator', 
-        description: 'Full system configuration, user management, and security audit logs.',
+        description: 'Full system configuration, security audit logs, and global user management.',
         tier: 'Tier 1',
         clearance: 'System-Wide',
         icon: <ShieldCheck className="w-4 h-4" />,
         category: 'Governance'
     },
     manager: { 
-        title: 'Program Director', 
-        description: 'Strategic planning, financial simulations, and high-level roadmap oversight.',
+        title: 'Operations Director', 
+        description: 'Project execution oversight, simulation tools, and proposal generation.',
         tier: 'Tier 2',
         clearance: 'Strategic Read/Write',
         icon: <Briefcase className="w-4 h-4" />,
         category: 'Strategic'
     },
-    client: { 
+    partner: { 
         title: 'Strategic Investor', 
-        description: 'Executive dashboards, financial reporting, and milestone tracking.',
+        description: 'ROI analysis, financial benchmarks, and high-level milestones tracking.',
         tier: 'Tier 2',
-        clearance: 'Strategic Read-Only',
-        icon: <Globe className="w-4 h-4" />,
+        clearance: 'Financial Read-Only',
+        icon: <TrendingUp className="w-4 h-4" />,
         category: 'Strategic'
     },
-    team: { 
-        title: 'Lead Engineer', 
-        description: 'Technical deep dives, patent data management, and site analysis tools.',
+    regulator: { 
+        title: 'Government Agency / Regulator', 
+        description: 'Feasibility studies, site analysis, environmental impact, and permit compliance.',
         tier: 'Tier 3',
-        clearance: 'Operational Read/Write',
-        icon: <Server className="w-4 h-4" />,
-        category: 'Operations'
-    },
-    member: { 
-        title: 'Operations Analyst', 
-        description: 'Standard access to project modules and technical documentation.',
-        tier: 'Tier 3',
-        clearance: 'Operational Read-Only',
-        icon: <Activity className="w-4 h-4" />,
-        category: 'Operations'
+        clearance: 'Compliance Read-Only',
+        icon: <Scale className="w-4 h-4" />,
+        category: 'Compliance'
     },
     guest: { 
-        title: 'External Auditor', 
-        description: 'Limited visibility for compliance review and public demonstration.',
+        title: 'Public Observer', 
+        description: 'Limited visibility for public demonstrations and non-sensitive concept review.',
         tier: 'Tier 4',
         clearance: 'Public Limited',
         icon: <Eye className="w-4 h-4" />,
-        category: 'External'
+        category: 'Public'
     }
 };
 
@@ -150,7 +142,7 @@ export const Login: React.FC = () => {
         return acc;
     }, {} as Record<string, any[]>);
 
-    const categoryOrder = ['Governance', 'Strategic', 'Operations', 'External'];
+    const categoryOrder = ['Governance', 'Strategic', 'Compliance', 'Public'];
 
     return (
         <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start animate-fade-in justify-center">
@@ -273,7 +265,7 @@ export const Login: React.FC = () => {
                 </div>
             </div>
 
-            {/* Access Tiers Panel (Side Panel) - Kept for reference but not primary input method now */}
+            {/* Access Tiers Panel (Side Panel) */}
             <div className={`flex-1 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden transition-all duration-300 ${showPersonas ? 'block' : 'hidden lg:block'}`}>
                 <div className="p-6 border-b border-white/5 bg-slate-800/30">
                     <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">

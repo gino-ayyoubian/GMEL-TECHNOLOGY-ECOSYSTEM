@@ -23,12 +23,11 @@ const regionCoordinates: Record<Region, [number, number]> = {
     'United Arab Emirates': [24.466667, 54.366669], 
     'Qatar': [25.286667, 51.533333],
     'Iceland': [64.9631, -19.0208],
-    "Turkey (Denizli/Aydin)": [37.838, 28.536],
-    "USA (California's Salton Sea)": [33.328, -115.844],
-    "Germany (Bavaria)": [48.7904, 11.4979]
+    'Turkey (Geothermal Belt)': [37.838, 28.536],
+    'USA (Salton Sea)': [33.328, -115.844],
+    'Germany (Bavaria)': [48.7904, 11.4979]
 };
 
-// FIX: Added missing infrastructurePoints definition referenced in component
 const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {
     'Qeshm Free Zone': [
         { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },
