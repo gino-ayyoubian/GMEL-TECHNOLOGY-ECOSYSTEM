@@ -12,6 +12,7 @@ import { Feedback } from './shared/Feedback';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
 import { extractJson } from '../utils/helpers';
+import { Spinner, Skeleton } from './shared/Loading';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6', '#10b981', '#6366f1'];
 
@@ -21,10 +22,10 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    if (percent < 0.05) return null; // Don't render label for very small slices
+    if (percent < 0.05) return null;
 
     return (
-        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12" fontWeight="bold">
+        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="11" fontWeight="bold">
             {`${(percent * 100).toFixed(0)}%`}
         </text>
     );
@@ -38,7 +39,7 @@ interface IPOData {
 }
 
 const IPOAnalysis: React.FC = () => {
-    const { region, setError } = useContext(AppContext)!;
+    const { region, setError, supportedLangs, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const financialData = useMemo(() => getFinancialData(region), [region]);
     const [ipoData, setIpoData] = useState<IPOData | null>(null);
@@ -47,19 +48,21 @@ const IPOAnalysis: React.FC = () => {
     useEffect(() => {
         setIpoData(null);
         setError(null);
-    }, [region, setError]);
+    }, [region, lang, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setIpoData(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         try {
             const prompt = t('ipo_analysis_prompt', {
                 region: region,
-                npv: financialData.find(d => d.component === '10-Year NPV')?.value || 0,
-                revenue: financialData.find(d => d.component === 'Annual Revenue (5MW)')?.value || 0,
-                roi: financialData.find(d => d.component === 'Return on Investment (ROI)')?.value || 0,
-                payback: financialData.find(d => d.component === 'Payback Period')?.value || 0,
+                npv: financialData.find(d => d.id === 'npv')?.value || 0,
+                revenue: financialData.find(d => d.id === 'revenue')?.value || 0,
+                roi: financialData.find(d => d.id === 'roi')?.value || 0,
+                payback: financialData.find(d => d.id === 'payback')?.value || 0,
+                language: langName
             });
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
@@ -76,35 +79,40 @@ const IPOAnalysis: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-xl font-semibold mb-2 text-white">{t('ipo_analysis_title')}</h2>
-            <p className="text-sm text-slate-400 mb-4">{t('ipo_analysis_desc')}</p>
+            <p className="text-sm text-slate-400 mb-6">{t('ipo_analysis_desc')}</p>
             {!ipoData && (
-                <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
+                <button 
+                    onClick={handleGenerate} 
+                    disabled={isLoading} 
+                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                    {isLoading && <Spinner size="sm" className="text-white" />}
                     {isLoading ? t('analyzing') : t('generate_ipo_analysis')}
                 </button>
             )}
-            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            
             {ipoData && (
                  <div className="mt-6 space-y-6 animate-fade-in">
                     <ExportButtons content={JSON.stringify(ipoData, null, 2)} title={`IPO_Forecast_${region}`} />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-slate-900 p-4 rounded-lg">
-                            <h4 className="text-sm font-medium text-sky-400">{t('projected_ipo_date')}</h4>
-                            <p className="text-2xl font-bold text-white mt-1">{ipoData.projected_date}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-slate-800/50 p-6 rounded-xl border border-white/5">
+                            <h4 className="text-xs uppercase tracking-wide font-bold text-sky-400 mb-2">{t('projected_ipo_date')}</h4>
+                            <p className="text-2xl font-bold text-white">{ipoData.projected_date}</p>
                         </div>
-                         <div className="bg-slate-900 p-4 rounded-lg">
-                            <h4 className="text-sm font-medium text-sky-400">{t('pre_ipo_valuation')}</h4>
-                            <p className="text-2xl font-bold text-white mt-1">{ipoData.pre_ipo_valuation}</p>
+                         <div className="bg-slate-800/50 p-6 rounded-xl border border-white/5">
+                            <h4 className="text-xs uppercase tracking-wide font-bold text-sky-400 mb-2">{t('pre_ipo_valuation')}</h4>
+                            <p className="text-2xl font-bold text-white">{ipoData.pre_ipo_valuation}</p>
                         </div>
-                         <div className="bg-slate-900 p-4 rounded-lg">
-                            <h4 className="text-sm font-medium text-sky-400">{t('expected_market_cap')}</h4>
-                            <p className="text-2xl font-bold text-white mt-1">{ipoData.expected_market_cap}</p>
+                         <div className="bg-slate-800/50 p-6 rounded-xl border border-white/5">
+                            <h4 className="text-xs uppercase tracking-wide font-bold text-sky-400 mb-2">{t('expected_market_cap')}</h4>
+                            <p className="text-2xl font-bold text-white">{ipoData.expected_market_cap}</p>
                         </div>
                     </div>
-                     <div>
+                     <div className="bg-slate-800/30 p-6 rounded-xl border border-white/5">
                         <h4 className="text-lg font-semibold text-white mb-2 flex items-center">{t('analyst_narrative')} <SpeakerIcon text={ipoData.narrative} /></h4>
-                        <p className="text-slate-300 text-sm whitespace-pre-wrap">{ipoData.narrative}</p>
+                        <p className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{ipoData.narrative}</p>
                     </div>
                     <Feedback sectionId={`ipo-analysis-${region}`} />
                  </div>
@@ -112,6 +120,10 @@ const IPOAnalysis: React.FC = () => {
         </div>
     );
 };
+
+// ... Rest of the file uses similar updates (Skeleton, Spinner, bg-slate-900/60 backdrop-blur-xl)
+// To save space in this response, assume the patterns above are applied to RevenueStreamsAnalysis, FundingSourcesAnalysis, and the main component.
+// I will provide the full content for the main component below to ensure it compiles correctly.
 
 interface RevenueStream {
     stream: string;
@@ -126,7 +138,7 @@ interface RevenueStreamsData {
 }
 
 const RevenueStreamsAnalysis: React.FC = () => {
-    const { region, setError } = useContext(AppContext)!;
+    const { region, setError, supportedLangs, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const financialData = useMemo(() => getFinancialData(region), [region]);
     const [data, setData] = useState<RevenueStreamsData | null>(null);
@@ -135,15 +147,15 @@ const RevenueStreamsAnalysis: React.FC = () => {
     useEffect(() => {
         setData(null);
         setError(null);
-    }, [region, setError]);
+    }, [region, lang, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setData(null);
-
-        const annualRevenue = financialData.find(d => d.component.includes('Revenue'))?.value || 390;
-        const prompt = t('revenue_streams_prompt', { region, revenue: annualRevenue });
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
+        const annualRevenue = financialData.find(d => d.id === 'revenue')?.value || 390;
+        const prompt = t('revenue_streams_prompt', { region, revenue: annualRevenue, language: langName });
         
         try {
             const result = await generateJsonWithThinking(prompt);
@@ -161,57 +173,61 @@ const RevenueStreamsAnalysis: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-xl font-semibold mb-2 text-white">{t('revenue_streams_title')}</h2>
-            <p className="text-sm text-slate-400 mb-4">{t('revenue_streams_desc', { region })}</p>
+            <p className="text-sm text-slate-400 mb-6">{t('revenue_streams_desc', { region })}</p>
             {!data && (
-                <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
+                <button 
+                    onClick={handleGenerate} 
+                    disabled={isLoading} 
+                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                    {isLoading && <Spinner size="sm" className="text-white" />}
                     {isLoading ? t('analyzing') : t('generate_revenue_breakdown')}
                 </button>
             )}
-            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
 
             {data && (
-                <div className="mt-6 space-y-6 animate-fade-in">
+                <div className="mt-6 space-y-8 animate-fade-in">
                     <ExportButtons content={JSON.stringify(data, null, 2)} title={`Revenue_Streams_${region}`} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                        <div>
-                            <h3 className="text-lg font-semibold text-white mb-4">{t('revenue_stream_chart_title')}</h3>
+                        <div className="bg-slate-800/30 p-4 rounded-xl border border-white/5">
+                            <h3 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wide text-center">{t('revenue_stream_chart_title')}</h3>
                              <div style={{ width: '100%', height: 250 }}>
                                 <ResponsiveContainer>
                                     <PieChart>
-                                        <Pie data={data.table} dataKey="percentage" nameKey="stream" cx="50%" cy="50%" outerRadius="80%" labelLine={false} label={renderCustomizedLabel}>
-                                            {data.table.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                        <Pie data={data.table} dataKey="percentage" nameKey="stream" cx="50%" cy="50%" outerRadius="70%" labelLine={false} label={renderCustomizedLabel}>
+                                            {data.table.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0.5)" />)}
                                         </Pie>
-                                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} formatter={(value: number) => `${value.toFixed(1)}%`} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }} formatter={(value: number) => `${value.toFixed(1)}%`} />
                                         <Legend wrapperStyle={{fontSize: '12px'}}/>
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
                         <div>
-                             <h3 className="text-lg font-semibold text-white mb-2 flex items-center">{t('narrative_summary')} <SpeakerIcon text={data.narrative} /></h3>
-                             <p className="text-slate-300 text-sm whitespace-pre-wrap">{data.narrative}</p>
+                             <h3 className="text-lg font-semibold text-white mb-3 flex items-center">{t('narrative_summary')} <SpeakerIcon text={data.narrative} /></h3>
+                             <p className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{data.narrative}</p>
                         </div>
                     </div>
                     <div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-slate-700 text-sm">
-                                <thead className="bg-slate-700/50">
+                        <div className="overflow-x-auto rounded-lg border border-slate-700">
+                            <table className="min-w-full divide-y divide-slate-700">
+                                <thead className="bg-slate-800/80">
                                     <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('stream')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('contribution')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{t('projected_value')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-2/5">{t('assumptions')}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">{t('stream')}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">{t('contribution')}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">{t('projected_value')}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider w-2/5">{t('assumptions')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-slate-800 divide-y divide-slate-700">
+                                <tbody className="bg-slate-900/40 divide-y divide-slate-800/50">
                                     {data.table.map((row, index) => (
-                                        <tr key={index}>
-                                            <td className="px-4 py-3 whitespace-nowrap font-medium text-white">{row.stream}</td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-slate-300">{row.percentage.toFixed(1)}%</td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-slate-300">{row.value.toFixed(1)}</td>
-                                            <td className="px-4 py-3 text-slate-400">{row.assumptions}</td>
+                                        <tr key={index} className="hover:bg-slate-800/30 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap font-medium text-white">{row.stream}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-slate-300">{row.percentage.toFixed(1)}%</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sky-400 font-mono">{row.value.toFixed(1)}</td>
+                                            <td className="px-6 py-4 text-slate-400 text-sm">{row.assumptions}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -226,7 +242,7 @@ const RevenueStreamsAnalysis: React.FC = () => {
 }
 
 const FundingSourcesAnalysis: React.FC = () => {
-    const { region, setError } = useContext(AppContext)!;
+    const { region, setError, supportedLangs, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [fundingData, setFundingData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -234,15 +250,15 @@ const FundingSourcesAnalysis: React.FC = () => {
     useEffect(() => {
         setFundingData(null);
         setError(null);
-    }, [region, setError]);
+    }, [region, lang, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setFundingData(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         try {
-            const prompt = t('funding_prompt', { region });
-            // Use grounded text generation for up-to-date research
+            const prompt = t('funding_prompt', { region, language: langName });
             const result = await generateGroundedText(prompt);
             const parsed = extractJson(result.text);
             if (parsed && parsed.venture_capital) {
@@ -258,14 +274,16 @@ const FundingSourcesAnalysis: React.FC = () => {
     };
     
     const FundingCategory: React.FC<{ title: string; sources: any[]; color: string }> = ({ title, sources, color }) => (
-        <div>
-            <h3 className={`text-xl font-semibold mb-3 ${color}`}>{title}</h3>
+        <div className="bg-slate-800/30 p-6 rounded-xl border border-white/5">
+            <h3 className={`text-xl font-semibold mb-4 ${color}`}>{title}</h3>
             <div className="space-y-4">
                 {sources.map((source, index) => (
-                    <div key={index} className="bg-slate-900/50 p-4 rounded-lg">
-                        <h4 className="font-bold text-white">{source.name}</h4>
-                        <p className="text-sm text-slate-300 mt-1"><span className="font-semibold">{t('focus')}:</span> {source.focus}</p>
-                        <p className="text-sm text-slate-400 mt-1"><span className="font-semibold">{t('potential_fit')}:</span> {source.potential_fit}</p>
+                    <div key={index} className="bg-slate-900/50 p-4 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+                        <h4 className="font-bold text-white text-lg">{source.name}</h4>
+                        <div className="mt-2 space-y-1">
+                            <p className="text-sm text-slate-300"><span className="text-slate-500 font-medium uppercase text-xs mr-2">{t('focus')}:</span> {source.focus}</p>
+                            <p className="text-sm text-slate-300"><span className="text-slate-500 font-medium uppercase text-xs mr-2">{t('potential_fit')}:</span> {source.potential_fit}</p>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -273,19 +291,26 @@ const FundingSourcesAnalysis: React.FC = () => {
     );
 
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-2xl font-bold text-white">{t('funding_sources_title')}</h2>
-            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('funding_sources_desc')}</p>
-            <button onClick={handleGenerate} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed">
+            <p className="text-slate-400 mt-2 mb-6 max-w-3xl">{t('funding_sources_desc')}</p>
+            <button 
+                onClick={handleGenerate} 
+                disabled={isLoading} 
+                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+                {isLoading && <Spinner size="sm" className="text-white" />}
                 {isLoading ? t('analyzing') : t('research_funding')}
             </button>
-            {isLoading && <p className="mt-4 text-slate-400">{t('analyzing')}...</p>}
+            
             {fundingData && (
-                <div className="mt-6 space-y-6">
+                <div className="mt-8 space-y-6 animate-fade-in">
                     <ExportButtons content={JSON.stringify(fundingData, null, 2)} title={`Funding_Sources_${region}`} />
-                    <FundingCategory title={t('venture_capital')} sources={fundingData.venture_capital} color="text-teal-400" />
-                    <FundingCategory title={t('government_grants')} sources={fundingData.government_grants} color="text-sky-400" />
-                    <FundingCategory title={t('international_funds')} sources={fundingData.international_funds} color="text-amber-400" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <FundingCategory title={t('venture_capital')} sources={fundingData.venture_capital} color="text-teal-400" />
+                        <FundingCategory title={t('government_grants')} sources={fundingData.government_grants} color="text-sky-400" />
+                        <FundingCategory title={t('international_funds')} sources={fundingData.international_funds} color="text-amber-400" />
+                    </div>
                     <Feedback sectionId={`funding-analysis-${region}`} />
                 </div>
             )}
@@ -295,46 +320,44 @@ const FundingSourcesAnalysis: React.FC = () => {
 
 
 export const Financials: React.FC = () => {
-    const { region, lang, userRole, setError } = useContext(AppContext)!;
+    const { region, lang, userRole, setError, supportedLangs } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState(false);
     const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
     
-    const baseInitialInvestment = useMemo(() => financialData.find(d => d.component.includes('CAPEX'))?.value || 575, [financialData]);
-    const baseAnnualRevenue = useMemo(() => financialData.find(d => d.component.includes('Revenue'))?.value || 390, [financialData]);
+    // Initial fetch logic to support language changes
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            if (lang === 'en') {
+                setFinancialData(getFinancialData(region));
+            } else {
+                try {
+                    const data = await generateFinancialData(region, lang);
+                    setFinancialData(data);
+                } catch (e) {
+                    console.error("Failed to translate financials", e);
+                    setFinancialData(getFinancialData(region)); // Fallback
+                }
+            }
+        };
+        fetchInitialData();
+        setAnalysis({text: '', sources: []});
+    }, [region, lang]);
+
+    const baseInitialInvestment = useMemo(() => financialData.find(d => d.id === 'capex')?.value || 575, [financialData]);
+    const baseAnnualRevenue = useMemo(() => financialData.find(d => d.id === 'revenue')?.value || 390, [financialData]);
 
     const [customAnnualRevenue, setCustomAnnualRevenue] = useState(baseAnnualRevenue);
     const [customInitialInvestment, setCustomInitialInvestment] = useState(baseInitialInvestment);
     const [inputErrors, setInputErrors] = useState({ investment: '', revenue: '' });
     
     useEffect(() => {
-        const staticData = getFinancialData(region);
-        setAnalysis({text: '', sources: []});
-        setError(null);
-
-        const newBaseInitialInvestment = staticData.find(d => d.component.includes('CAPEX'))?.value || 575;
-        const newBaseAnnualRevenue = staticData.find(d => d.component.includes('Revenue'))?.value || 390;
+        const newBaseInitialInvestment = financialData.find(d => d.id === 'capex')?.value || 575;
+        const newBaseAnnualRevenue = financialData.find(d => d.id === 'revenue')?.value || 390;
         setCustomInitialInvestment(newBaseInitialInvestment);
         setCustomAnnualRevenue(newBaseAnnualRevenue);
-        setInputErrors({ investment: '', revenue: '' });
-
-        if (lang !== 'en') {
-            const fetchTranslatedData = async () => {
-                try {
-                    const data = await generateFinancialData(region, lang);
-                    setFinancialData(data);
-                } catch (err: any) {
-                    console.error("Failed to fetch translated financial data, falling back to English.", err);
-                    setError(err.message || "Failed to load localized financial data.");
-                    setFinancialData(staticData); // Fallback
-                }
-            };
-            fetchTranslatedData();
-        } else {
-            setFinancialData(staticData);
-        }
-    }, [region, lang, setError]);
+    }, [financialData]);
     
     const handleInvestmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -375,14 +398,20 @@ export const Financials: React.FC = () => {
     const calculatedPayback = useMemo(() => (customAnnualRevenue > 0 ? (customInitialInvestment / customAnnualRevenue) : Infinity), [customInitialInvestment, customAnnualRevenue]);
     const calculatedROI = useMemo(() => (customInitialInvestment > 0 ? (customAnnualRevenue / customInitialInvestment) * 100 : Infinity), [customInitialInvestment, customAnnualRevenue]);
     
-    const barChartData = useMemo(() => financialData.filter(d => 
-        d.component.includes('CAPEX') ||
-        d.component.includes('Revenue') ||
-        d.component.includes('NPV')
-    ).map(d => ({
-        name: d.component.split('(')[0].trim(),
-        value: d.value,
-    })), [financialData]);
+    const barChartData = useMemo(() => {
+        return financialData
+            .filter(d => ['capex', 'revenue', 'npv'].includes(d.id))
+            .map(d => ({
+                name: d.component.split('(')[0].trim(),
+                value: d.value,
+            }));
+    }, [financialData]);
+
+    const pieData = useMemo(() => {
+        return financialData
+            .filter(d => ['capex', 'revenue'].includes(d.id))
+            .map(d => ({ name: d.component, value: d.value }));
+    }, [financialData]);
 
     
     const projectionData = useMemo(() => {
@@ -406,10 +435,10 @@ export const Financials: React.FC = () => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="p-2 bg-slate-900 border border-slate-700 rounded-md shadow-lg text-sm">
-                    <p className="label text-slate-300 font-bold">{`Year ${label}`}</p>
+                <div className="p-3 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-lg shadow-xl text-sm">
+                    <p className="label text-slate-300 font-bold mb-1">{`Year ${label}`}</p>
                     {payload.map((p: any) => (
-                         <p key={p.name} style={{ color: p.color }}>
+                         <p key={p.name} style={{ color: p.color }} className="font-mono">
                             {p.name}: {p.value.toFixed(1)} B Toman
                         </p>
                     ))}
@@ -422,8 +451,9 @@ export const Financials: React.FC = () => {
     const handleAnalysis = async () => {
         setIsLoading(true);
         setError(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         try {
-            const prompt = t('market_analysis_prompt', { region });
+            const prompt = t('market_analysis_prompt', { region, language: langName });
             const result = await generateGroundedText(prompt);
             setAnalysis({
                 text: result.text ? `${result.text}` : t('error_no_analysis'),
@@ -448,16 +478,16 @@ export const Financials: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
                     <h2 className="text-xl font-semibold mb-4 text-white">Key Financial Metrics</h2>
                     <div style={{ width: '100%', height: 350 }}>
                         <ResponsiveContainer>
                             <BarChart data={barChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                                <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} angle={-15} textAnchor="end" height={50} />
-                                <YAxis tick={{ fill: '#94a3b8' }} unit={financialData[0]?.unit.includes('Toman') ? " B" : " M"} />
-                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} cursor={{fill: 'rgba(148, 163, 184, 0.1)'}}/>
-                                <Bar dataKey="value" name={financialData[0]?.unit}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} angle={-15} textAnchor="end" height={50} interval={0} />
+                                <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} unit={financialData[0]?.unit.includes('Toman') ? " B" : " M"} />
+                                <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }} cursor={{fill: 'rgba(255, 255, 255, 0.05)'}}/>
+                                <Bar dataKey="value" name={financialData[0]?.unit} radius={[4, 4, 0, 0]}>
                                     {barChartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
@@ -466,56 +496,59 @@ export const Financials: React.FC = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-                <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
-                    <h2 className="text-xl font-semibold text-white">{t('interactive_financial_model_title')}</h2>
-                    <p className="text-sm text-slate-400 -mt-2">{t('interactive_financial_model_desc')}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg space-y-6">
+                    <div>
+                        <h2 className="text-xl font-semibold text-white">{t('interactive_financial_model_title')}</h2>
+                        <p className="text-sm text-slate-400 mt-1">{t('interactive_financial_model_desc')}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <div>
-                            <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300">{t('custom_initial_investment')}</label>
+                            <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300 mb-2">{t('custom_initial_investment')}</label>
                             <input
                                 type="number"
                                 id="customInitialInvestment"
                                 value={customInitialInvestment}
                                 onChange={handleInvestmentChange}
-                                className={`mt-1 w-full bg-slate-700 border rounded-md py-2 px-3 text-white ${inputErrors.investment ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600 focus:ring-sky-500 focus:border-sky-500'}`}
+                                className={`w-full bg-slate-800 border rounded-lg py-2.5 px-3 text-white transition-all ${inputErrors.investment ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500'}`}
                                 min="0"
                             />
                             {inputErrors.investment && <p className="mt-1 text-xs text-red-400">{inputErrors.investment}</p>}
                         </div>
                         <div>
-                            <label htmlFor="customAnnualRevenue" className="block text-sm font-medium text-slate-300">{t('custom_annual_revenue')}</label>
+                            <label htmlFor="customAnnualRevenue" className="block text-sm font-medium text-slate-300 mb-2">{t('custom_annual_revenue')}</label>
                             <input
                                 type="number"
                                 id="customAnnualRevenue"
                                 value={customAnnualRevenue}
                                 onChange={handleRevenueChange}
-                                className={`mt-1 w-full bg-slate-700 border rounded-md py-2 px-3 text-white ${inputErrors.revenue ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600 focus:ring-sky-500 focus:border-sky-500'}`}
+                                className={`w-full bg-slate-800 border rounded-lg py-2.5 px-3 text-white transition-all ${inputErrors.revenue ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500'}`}
                                 min="0"
                             />
                              {inputErrors.revenue && <p className="mt-1 text-xs text-red-400">{inputErrors.revenue}</p>}
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                        <div className="bg-slate-900 p-3 rounded-lg text-center">
-                            <p className="text-xs text-slate-400">{t('calculated_roi')}</p>
-                            <p className="text-2xl font-bold text-white">{isFinite(calculatedROI) ? `${calculatedROI.toFixed(1)}%` : 'N/A'}</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/5 text-center">
+                            <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">{t('calculated_roi')}</p>
+                            <p className="text-2xl font-bold text-teal-400">{isFinite(calculatedROI) ? `${calculatedROI.toFixed(1)}%` : 'N/A'}</p>
                         </div>
-                        <div className="bg-slate-900 p-3 rounded-lg text-center">
-                            <p className="text-xs text-slate-400">{t('calculated_payback')}</p>
-                            <p className="text-2xl font-bold text-white">{isFinite(calculatedPayback) ? `${calculatedPayback.toFixed(1)} Yrs` : 'N/A'}</p>
+                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/5 text-center">
+                            <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">{t('calculated_payback')}</p>
+                            <p className="text-2xl font-bold text-sky-400">{isFinite(calculatedPayback) ? `${calculatedPayback.toFixed(1)} Yrs` : 'N/A'}</p>
                         </div>
                     </div>
                     <div style={{ width: '100%', height: 200 }}>
                          <ResponsiveContainer>
                             <LineChart data={projectionData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                                <XAxis dataKey="year" tick={{ fill: '#94a3b8' }} unit=" yr"/>
-                                <YAxis tick={{ fill: '#94a3b8' }} unit=" B"/>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 11 }} unit=" yr" axisLine={false} tickLine={false} />
+                                <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} unit=" B" axisLine={false} tickLine={false} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1, strokeDasharray: '3 3' }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="pessimistic" name={t('pessimistic_scenario')} stroke="#f43f5e" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                                <Line type="monotone" dataKey="baseline" name={t('baseline_scenario')} stroke="#3b82f6" strokeWidth={2} dot={{r: 4}} />
-                                <Line type="monotone" dataKey="optimistic" name={t('optimistic_scenario')} stroke="#22c55e" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                                <Line type="monotone" dataKey="pessimistic" name={t('pessimistic_scenario')} stroke="#f43f5e" strokeWidth={2} dot={false} strokeDasharray="5 5" activeDot={{ r: 6 }} />
+                                <Line type="monotone" dataKey="baseline" name={t('baseline_scenario')} stroke="#3b82f6" strokeWidth={3} dot={{r: 4, strokeWidth: 0, fill: '#3b82f6'}} activeDot={{ r: 6 }} />
+                                <Line type="monotone" dataKey="optimistic" name={t('optimistic_scenario')} stroke="#22c55e" strokeWidth={2} dot={false} strokeDasharray="5 5" activeDot={{ r: 6 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -526,23 +559,31 @@ export const Financials: React.FC = () => {
 
             <IPOAnalysis />
 
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+            <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
                  <h2 className="text-xl font-semibold mb-4 text-white">{t('market_analysis_for', { region })}</h2>
-                 <p className="text-sm text-slate-400 mb-4">{t('market_analysis_description')}</p>
-                 <button onClick={handleAnalysis} disabled={isLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-400">
-                    {isLoading ? t('analyzing') : t('generate_analysis')}
-                 </button>
+                 <p className="text-sm text-slate-400 mb-6">{t('market_analysis_description')}</p>
+                 {!analysis.text && (
+                    <button 
+                        onClick={handleAnalysis} 
+                        disabled={isLoading} 
+                        className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isLoading && <Spinner size="sm" className="text-white" />}
+                        {isLoading ? t('analyzing') : t('generate_analysis')}
+                    </button>
+                 )}
                  {analysis.text && (
-                     <div className="mt-6 p-4 bg-slate-900 rounded-lg">
+                     <div className="mt-6 p-6 bg-slate-800/50 rounded-xl border border-white/5 animate-fade-in">
                          <ExportButtons content={analysis.text} title={`Market_Analysis_${region}`} />
-                         <p className="text-slate-300 whitespace-pre-wrap mt-4">{analysis.text}</p>
+                         <p className="text-slate-300 whitespace-pre-wrap mt-4 leading-relaxed">{analysis.text}</p>
                          {analysis.sources.length > 0 && (
-                            <div className="mt-4">
-                                <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
-                                <ul className="list-disc list-inside mt-2 text-xs text-slate-500 space-y-1">
+                            <div className="mt-6 pt-4 border-t border-white/5">
+                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{t('sources')}:</h4>
+                                <ul className="space-y-2">
                                 {analysis.sources.map((source, i) => (
-                                    <li key={i}>
-                                        <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                    <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
+                                        <span className="text-sky-500 mt-0.5">•</span>
+                                        <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline transition-colors">
                                             {source.web?.title || source.web?.uri}
                                         </a>
                                     </li>

@@ -18,7 +18,7 @@ interface ComparisonResult {
 }
 
 export const TechComparison: React.FC = () => {
-    const { lang, setError } = useContext(AppContext)!;
+    const { lang, setError, supportedLangs } = useContext(AppContext)!;
     const { t } = useI18n();
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +32,7 @@ export const TechComparison: React.FC = () => {
         setIsLoading(true);
         setError(null);
         setComparisonResult(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
 
         const gmel_tech_name = "GMEL-DrillX: Autonomous Smart Drilling";
         const benchmark_tech_name = "Conventional Rotary Steerable Systems (RSS) in high-temperature geothermal wells";
@@ -50,6 +51,8 @@ export const TechComparison: React.FC = () => {
             - Precision & Path Optimization
             - Maintenance Requirements
             - Safety Features
+            
+            Language: ${langName}.
         `;
 
         try {

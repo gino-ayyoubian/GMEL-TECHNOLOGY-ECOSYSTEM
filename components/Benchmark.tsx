@@ -1,28 +1,45 @@
 
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import { generateTextWithThinking } from '../services/geminiService';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
+import { generateBenchmarkComparison, generateFinancialData } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
-import { extractJson } from '../utils/helpers';
+import { Spinner, Skeleton } from './shared/Loading';
+import { AuditService } from '../services/auditService';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { FinancialData, Region } from '../types';
+import { ALL_REGIONS } from '../constants';
 
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
-const baseRegions = ["Iceland", "Turkey (Denizli/Aydin)", "USA (California's Salton Sea)", "Germany (Bavaria)"];
-const comparisonRegions = ["Qeshm Free Zone", "Makoo Free Zone", "Kurdistan Region, Iraq", ...baseRegions];
-
-const regionCoordinates: Record<string, [number, number]> = {
+const regionCoordinates: Partial<Record<Region, [number, number]>> = {
     'Qeshm Free Zone': [26.9581, 56.2718],
     'Makoo Free Zone': [39.3330, 44.5160],
     'Kurdistan Region, Iraq': [36.1911, 44.0094],
     'Iceland': [64.9631, -19.0208],
-    "Turkey (Denizli/Aydin)": [37.838, 28.536],
-    "USA (California's Salton Sea)": [33.328, -115.844],
-    "Germany (Bavaria)": [48.7904, 11.4979]
+    'Turkey (Geothermal Belt)': [37.838, 28.536],
+    'USA (Salton Sea)': [33.328, -115.844],
+    'Germany (Bavaria)': [48.7904, 11.4979],
+    'Chabahar Free Zone': [25.2915, 60.6431],
+    'Iranian Kurdistan': [35.3142, 46.9942],
+    'Mahabad': [36.7633, 45.7201],
+    'Oman': [23.5859, 58.3816],
+    'Saudi Arabia': [24.7136, 46.6753],
+    'United Arab Emirates': [24.466667, 54.366669],
+    'Qatar': [25.286667, 51.533333]
 };
 
+const REGION_METADATA: Record<string, { potential: 'High' | 'Medium' | 'Low', stability: 'High' | 'Medium' | 'Low', infrastructure: 'Ready' | 'Developing' | 'Basic' }> = {
+    'Iceland': { potential: 'High', stability: 'High', infrastructure: 'Ready' },
+    'Turkey (Geothermal Belt)': { potential: 'High', stability: 'Medium', infrastructure: 'Ready' },
+    'USA (Salton Sea)': { potential: 'High', stability: 'High', infrastructure: 'Ready' },
+    'Germany (Bavaria)': { potential: 'Medium', stability: 'High', infrastructure: 'Ready' },
+    'Qeshm Free Zone': { potential: 'Medium', stability: 'Medium', infrastructure: 'Developing' },
+    'Makoo Free Zone': { potential: 'Medium', stability: 'Medium', infrastructure: 'Developing' },
+    'Kurdistan Region, Iraq': { potential: 'Medium', stability: 'Medium', infrastructure: 'Basic' },
+};
 
 interface ComparisonResult {
     table: {
@@ -31,6 +48,9 @@ interface ComparisonResult {
         region2: string | { [key: string]: any };
     }[];
     narrative: string;
+    tech_comparison: string;
+    ip_roadmap_comparison: string;
+    sources: string[];
 }
 
 // Helper to safely render content that might be an object
@@ -44,18 +64,42 @@ const renderCellContent = (content: any): string => {
     return String(content);
 };
 
-
 export const Benchmark: React.FC = () => {
     const { t } = useI18n();
+    const { currentUser, supportedLangs, lang, theme } = useContext(AppContext)!;
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
     
-    const [region1, setRegion1] = useState<string>('Qeshm Free Zone');
-    const [region2, setRegion2] = useState<string>('Iceland');
+    const [region1, setRegion1] = useState<Region>('Qeshm Free Zone');
+    const [region2, setRegion2] = useState<Region>('Iceland');
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    
+    // Filter State
+    const [filterPotential, setFilterPotential] = useState<string>('All');
+    const [filterStability, setFilterStability] = useState<string>('All');
+    const [filterInfrastructure, setFilterInfrastructure] = useState<string>('All');
+    
+    // Map Interaction State
+    const [selectedMapRegion, setSelectedMapRegion] = useState<Region | null>(null);
+
+    // Financial Chart State
+    const [financialComparisonData, setFinancialComparisonData] = useState<any[]>([]);
+    const [isFinancialLoading, setIsFinancialLoading] = useState(false);
+
+    // Filtered Regions List
+    const filteredRegions = useMemo(() => {
+        return ALL_REGIONS.filter(region => {
+            const meta = REGION_METADATA[region];
+            if (!meta) return true;
+            if (filterPotential !== 'All' && meta.potential !== filterPotential) return false;
+            if (filterStability !== 'All' && meta.stability !== filterStability) return false;
+            if (filterInfrastructure !== 'All' && meta.infrastructure !== filterInfrastructure) return false;
+            return true;
+        });
+    }, [filterPotential, filterStability, filterInfrastructure]);
 
      // Map initialization
     useEffect(() => {
@@ -73,169 +117,343 @@ export const Benchmark: React.FC = () => {
         };
     }, []);
 
-    // Update map when regions change
+    // Update map markers based on filtered regions
     useEffect(() => {
         if (mapRef.current) {
-            // Clear existing markers
             markersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
             markersRef.current = [];
 
-            const coords1 = regionCoordinates[region1];
-            const coords2 = regionCoordinates[region2];
-            
-            if (coords1) {
-                const marker1 = L.marker(coords1).addTo(mapRef.current).bindPopup(`<b>${region1}</b>`);
-                markersRef.current.push(marker1);
-            }
-             if (coords2) {
-                const marker2 = L.marker(coords2).addTo(mapRef.current).bindPopup(`<b>${region2}</b>`);
-                markersRef.current.push(marker2);
-            }
+            filteredRegions.forEach(regionName => {
+                const coords = regionCoordinates[regionName];
+                if (coords) {
+                    const marker = L.marker(coords).addTo(mapRef.current);
+                    
+                    // Interaction: Click to select
+                    marker.on('click', () => {
+                        setSelectedMapRegion(regionName);
+                        mapRef.current.setView(coords, 6);
+                    });
 
-            if (coords1 && coords2) {
-                const bounds = L.latLngBounds([coords1, coords2]);
-                mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-            } else if (coords1) {
-                mapRef.current.setView(coords1, 5);
-            } else if (coords2) {
-                mapRef.current.setView(coords2, 5);
-            }
+                    // Highlight selected regions visually
+                    if (regionName === region1) {
+                        marker._icon.style.filter = "hue-rotate(140deg) brightness(1.2)"; // Blue/Cyan
+                    } else if (regionName === region2) {
+                        marker._icon.style.filter = "hue-rotate(280deg) brightness(1.2)"; // Orange/Red
+                    }
+
+                    markersRef.current.push(marker);
+                }
+            });
         }
-    }, [region1, region2]);
+    }, [filteredRegions, region1, region2]);
 
-    const handleCompare = async (r1: string, r2: string) => {
-        if (r1 === r2) {
+    const fetchFinancialComparison = async (r1: string, r2: string) => {
+        setIsFinancialLoading(true);
+        try {
+            const [data1, data2] = await Promise.all([
+                generateFinancialData(r1, lang),
+                generateFinancialData(r2, lang)
+            ]);
+
+            const metrics = ['capex', 'revenue', 'npv'];
+            const chartData = metrics.map(metricId => {
+                const item1 = data1.find(d => d.id === metricId);
+                const item2 = data2.find(d => d.id === metricId);
+                
+                return {
+                    name: item1?.component.split('(')[0] || metricId.toUpperCase(),
+                    [r1]: item1?.value || 0,
+                    [`${r1}_unit`]: item1?.unit || '', // Store unit for tooltip
+                    [r2]: item2?.value || 0,
+                    [`${r2}_unit`]: item2?.unit || '', // Store unit for tooltip
+                };
+            });
+            setFinancialComparisonData(chartData);
+        } catch (e) {
+            console.error("Error fetching financial comparison:", e);
+        } finally {
+            setIsFinancialLoading(false);
+        }
+    };
+
+    const handleCompare = async () => {
+        if (region1 === region2) {
             setError(t('error_select_different_regions'));
             return;
         }
         setIsLoading(true);
         setError(null);
         setComparisonResult(null);
-
-        const prompt = t('benchmark_comparison_prompt', { region1: r1, region2: r2 });
-        const result = await generateTextWithThinking(prompt);
         
-        try {
-            const parsed = extractJson(result);
+        // Parallel fetch for text comparison and financials
+        fetchFinancialComparison(region1, region2);
 
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
+        try {
+            const parsed = await generateBenchmarkComparison(region1, region2, langName);
             if (parsed && parsed.table && parsed.narrative) {
                 setComparisonResult(parsed);
+                AuditService.log(currentUser || 'user', 'BENCHMARK_COMPARE', `Compared ${region1} vs ${region2}`);
             } else {
                 throw new Error("Invalid format received from API");
             }
-        } catch (e) {
+        } catch (e: any) {
             setError(t('error_generating_comparison'));
-            console.error("Failed to parse comparison JSON:", e, "Raw result:", result);
+            console.error("Failed to parse comparison JSON:", e);
+            AuditService.log(currentUser || 'user', 'BENCHMARK_FAILED', e.message, 'FAILURE');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const renderGracefulCell = (content: any) => {
-        const text = renderCellContent(content);
-        const maxLength = 200;
-
-        if (text.length <= maxLength) {
-            return <p className="whitespace-pre-wrap">{text}</p>;
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-slate-900/95 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl text-xs z-50">
+                    <p className="font-bold text-slate-200 mb-3 border-b border-white/10 pb-2">{label}</p>
+                    {payload.map((entry: any, index: number) => {
+                        const regionName = entry.name;
+                        const unitKey = `${regionName}_unit`;
+                        const unit = entry.payload[unitKey];
+                        return (
+                            <div key={index} className="flex items-center justify-between gap-6 mb-2 last:mb-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentcolor]" style={{ backgroundColor: entry.color, color: entry.color }}></div>
+                                    <span className="text-slate-400 font-medium">{regionName}</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-mono text-white text-sm font-bold block">
+                                        {entry.value.toLocaleString()}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider">{unit}</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
         }
-
-        const truncatedText = text.substring(0, maxLength) + '...';
-        return (
-            <p className="whitespace-pre-wrap" title={text}>
-                {truncatedText}
-            </p>
-        );
+        return null;
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in">
             <h1 className="text-3xl font-bold text-white">{t('benchmark_title')}</h1>
             <p className="text-slate-400 max-w-3xl">
                 {t('benchmark_description')}
             </p>
 
-            <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex flex-col md:flex-row items-center justify-center gap-4">
-                <div>
-                    <label htmlFor="region1" className="sr-only">{t('select_region_1')}</label>
-                    <select id="region1" value={region1} onChange={e => setRegion1(e.target.value)} className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold">
-                        {comparisonRegions.map(r => <option key={`r1-${r}`} value={r}>{r}</option>)}
-                    </select>
+            {/* Filter Section */}
+            <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-4">Region Filters</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Geothermal Potential</label>
+                        <select value={filterPotential} onChange={e => setFilterPotential(e.target.value)} className="w-full bg-slate-800 border-slate-700 rounded-lg text-sm text-white focus:ring-sky-500">
+                            <option value="All">All Levels</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Economic Stability</label>
+                        <select value={filterStability} onChange={e => setFilterStability(e.target.value)} className="w-full bg-slate-800 border-slate-700 rounded-lg text-sm text-white focus:ring-sky-500">
+                            <option value="All">All Levels</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Infrastructure</label>
+                        <select value={filterInfrastructure} onChange={e => setFilterInfrastructure(e.target.value)} className="w-full bg-slate-800 border-slate-700 rounded-lg text-sm text-white focus:ring-sky-500">
+                            <option value="All">All Types</option>
+                            <option value="Ready">Ready</option>
+                            <option value="Developing">Developing</option>
+                            <option value="Basic">Basic</option>
+                        </select>
+                    </div>
                 </div>
-                <span className="text-slate-400 font-bold">VS</span>
-                <div>
-                     <label htmlFor="region2" className="sr-only">{t('select_region_2')}</label>
-                    <select id="region2" value={region2} onChange={e => setRegion2(e.target.value)} className="bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold">
-                        {comparisonRegions.map(r => <option key={`r2-${r}`} value={r}>{r}</option>)}
-                    </select>
-                </div>
-                <button onClick={() => handleCompare(region1, region2)} disabled={isLoading} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-400">
-                    {isLoading ? t('analyzing') : t('compare_regions')}
-                </button>
             </div>
-            
-            {error && <p className="text-red-400 text-center">{error}</p>}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="lg:col-span-2">
-                    {isLoading ? (
-                         <div className="w-full bg-slate-800 rounded-lg p-6 border border-slate-700 animate-pulse">
-                            <div className="h-6 bg-slate-700 rounded w-1/4 mb-6"></div>
-                            <div className="space-y-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="grid grid-cols-3 gap-4">
-                                        <div className="h-4 bg-slate-700 rounded col-span-1"></div>
-                                        <div className="h-4 bg-slate-700 rounded col-span-1"></div>
-                                        <div className="h-4 bg-slate-700 rounded col-span-1"></div>
-                                    </div>
-                                ))}
+            {/* Interactive Map */}
+            <div className="relative bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-white/10 h-[500px]">
+                <div ref={mapContainerRef} className="w-full h-full rounded-lg z-0"></div>
+                
+                {/* Map Overlay Card */}
+                {selectedMapRegion && (
+                    <div className="absolute top-6 right-6 z-[400] w-72 bg-slate-900/95 backdrop-blur-xl border border-sky-500/30 rounded-xl p-5 shadow-2xl animate-pop-in">
+                        <div className="flex justify-between items-start mb-3">
+                            <h4 className="font-bold text-white text-lg">{selectedMapRegion}</h4>
+                            <button onClick={() => setSelectedMapRegion(null)} className="text-slate-400 hover:text-white">&times;</button>
+                        </div>
+                        {REGION_METADATA[selectedMapRegion] && (
+                            <div className="space-y-2 mb-4 text-sm text-slate-300">
+                                <div className="flex justify-between"><span className="text-slate-500">Potential:</span> <span className="font-medium text-sky-400">{REGION_METADATA[selectedMapRegion].potential}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">Stability:</span> <span className="font-medium text-amber-400">{REGION_METADATA[selectedMapRegion].stability}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">Infrastructure:</span> <span className="font-medium text-teal-400">{REGION_METADATA[selectedMapRegion].infrastructure}</span></div>
                             </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-2">
+                            <button onClick={() => setRegion1(selectedMapRegion)} className="px-3 py-2 bg-sky-600/20 hover:bg-sky-600/40 text-sky-300 text-xs rounded-lg border border-sky-500/50 transition-colors">Set as Region A</button>
+                            <button onClick={() => setRegion2(selectedMapRegion)} className="px-3 py-2 bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 text-xs rounded-lg border border-amber-500/50 transition-colors">Set as Region B</button>
                         </div>
-                    ) : comparisonResult ? (
-                        <div className="space-y-8">
-                            <h2 className="text-2xl font-semibold text-white">{t('comparison_between', { region1, region2 })}</h2>
-                            <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-                                 <table className="min-w-full divide-y divide-slate-700 table-fixed">
-                                    <thead className="bg-slate-700/50">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-1/4">{t('metric')}</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-3/8">{region1}</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-3/8">{region2}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-slate-800 divide-y divide-slate-700">
-                                        {comparisonResult.table.map((row, index) => (
-                                            <tr key={index} className="hover:bg-slate-700/50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white align-top">{row.metric}</td>
-                                                <td className="px-6 py-4 text-sm text-slate-400 align-top">{renderGracefulCell(row.region1)}</td>
-                                                <td className="px-6 py-4 text-sm text-slate-400 align-top">{renderGracefulCell(row.region2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center py-10 text-slate-500 bg-slate-800 rounded-lg border border-slate-700">
-                            <p>Select two regions and click "Compare" to generate an analysis.</p>
-                        </div>
-                    )}
-                </div>
-                <div className="lg:col-span-2 bg-slate-800 p-4 rounded-lg border border-slate-700 flex flex-col min-h-[400px]">
-                    <h2 className="text-xl font-semibold text-white mb-4">{t('geographical_context_map')}</h2>
-                    <div ref={mapContainerRef} className="w-full h-full flex-grow rounded-lg z-0"></div>
-                </div>
-
-                {comparisonResult && (
-                    <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg border border-slate-700">
-                        <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                            {t('narrative_summary')}
-                            <SpeakerIcon text={comparisonResult.narrative} />
-                        </h2>
-                         <p className="text-slate-300 whitespace-pre-wrap">{comparisonResult.narrative}</p>
-                         <Feedback sectionId={`benchmark-comparison-${region1}-vs-${region2}`} />
                     </div>
                 )}
             </div>
+
+            {/* Selection & Compare Controls */}
+            <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-center gap-6">
+                <div className="w-full md:w-1/3">
+                    <label className="block text-xs font-bold text-sky-500 mb-2 uppercase text-center">Region A</label>
+                    <select value={region1} onChange={e => setRegion1(e.target.value as Region)} className="w-full bg-slate-800 border-sky-900/50 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold py-3 text-center">
+                        {filteredRegions.map(r => <option key={`r1-${r}`} value={r}>{r}</option>)}
+                    </select>
+                </div>
+                
+                <button onClick={handleCompare} disabled={isLoading} className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-900/40 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105">
+                    {isLoading && <Spinner size="sm" className="text-white" />}
+                    {isLoading ? t('analyzing') : "COMPARE NOW"}
+                </button>
+
+                <div className="w-full md:w-1/3">
+                    <label className="block text-xs font-bold text-amber-500 mb-2 uppercase text-center">Region B</label>
+                    <select value={region2} onChange={e => setRegion2(e.target.value as Region)} className="w-full bg-slate-800 border-amber-900/50 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-sm text-white font-semibold py-3 text-center">
+                        {filteredRegions.map(r => <option key={`r2-${r}`} value={r}>{r}</option>)}
+                    </select>
+                </div>
+            </div>
+            
+            {error && <p className="text-red-400 text-center bg-red-900/10 p-3 rounded-lg border border-red-900/30">{error}</p>}
+
+            {/* Results Section */}
+            {(comparisonResult || isLoading) && (
+                <div className="space-y-8">
+                    {/* Financial Chart */}
+                    <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
+                        <h2 className="text-xl font-semibold text-white mb-6">Financial Metrics Comparison</h2>
+                        {isFinancialLoading ? (
+                            <div className="h-64 flex items-center justify-center">
+                                <Spinner size="lg" />
+                            </div>
+                        ) : (
+                            <div style={{ width: '100%', height: 350 }}>
+                                <ResponsiveContainer>
+                                    <BarChart data={financialComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                        <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} />
+                                        <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                        <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(255, 255, 255, 0.05)'}} />
+                                        <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                                        {/* Use theme colors: Primary for Region 1, Secondary/Contrast for Region 2 */}
+                                        <Bar dataKey={region1} fill={theme.chartColors[0]} name={region1} radius={[4, 4, 0, 0]} maxBarSize={60} />
+                                        <Bar dataKey={region2} fill={theme.chartColors[2] || theme.chartColors[1]} name={region2} radius={[4, 4, 0, 0]} maxBarSize={60} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Comparison Table & Narrative */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="bg-slate-900/60 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden shadow-lg h-full">
+                            {isLoading ? (
+                                <div className="p-6 space-y-4">
+                                    <Skeleton className="h-8 w-1/2" />
+                                    <Skeleton className="h-64 w-full" />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col h-full">
+                                    <div className="px-6 py-4 bg-slate-800/50 border-b border-white/5">
+                                        <h3 className="font-bold text-white">Metrics Head-to-Head</h3>
+                                    </div>
+                                    <div className="overflow-auto">
+                                        <table className="min-w-full divide-y divide-white/5">
+                                            <thead className="bg-slate-900/50">
+                                                <tr>
+                                                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase w-1/3">{t('metric')}</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-bold text-sky-400 uppercase w-1/3">{region1}</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-bold text-amber-400 uppercase w-1/3">{region2}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {comparisonResult?.table.map((row, index) => (
+                                                    <tr key={index} className="hover:bg-white/5 transition-colors">
+                                                        <td className="px-6 py-4 text-sm font-medium text-white align-top">{row.metric}</td>
+                                                        <td className="px-6 py-4 text-sm text-slate-300 align-top">{renderCellContent(row.region1)}</td>
+                                                        <td className="px-6 py-4 text-sm text-slate-300 align-top">{renderCellContent(row.region2)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="space-y-6">
+                            {isLoading ? (
+                                <div className="space-y-4">
+                                    <Skeleton className="h-40 w-full" />
+                                    <Skeleton className="h-40 w-full" />
+                                    <Skeleton className="h-40 w-full" />
+                                </div>
+                            ) : comparisonResult ? (
+                                <>
+                                    <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-xl border border-white/10">
+                                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                                            <span className="p-1.5 bg-sky-500/20 rounded-md text-sky-400"><SpeakerIcon text={comparisonResult.narrative} /></span>
+                                            {t('narrative_summary')}
+                                        </h3>
+                                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{comparisonResult.narrative}</p>
+                                    </div>
+                                    <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-xl border border-white/10">
+                                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                                            <span className="p-1.5 bg-purple-500/20 rounded-md text-purple-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg></span>
+                                            Technical Comparative Analysis
+                                        </h3>
+                                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{comparisonResult.tech_comparison}</p>
+                                    </div>
+                                    <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-xl border border-white/10">
+                                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                                            <span className="p-1.5 bg-amber-500/20 rounded-md text-amber-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></span>
+                                            IP Roadmap Maturity & Strategy
+                                        </h3>
+                                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{comparisonResult.ip_roadmap_comparison}</p>
+                                    </div>
+                                </>
+                            ) : null}
+                        </div>
+                    </div>
+
+                    {/* Sources & Methodology */}
+                    {comparisonResult && (
+                        <div className="bg-slate-900/40 backdrop-blur-sm p-5 rounded-xl border border-white/10 mt-8 flex flex-col gap-3">
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Data Sources & Methodology
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        Comparative data is synthesized from regional energy reports, KKM internal simulations, and publicly available geothermal indices. Financial metrics are estimated based on 5MW pilot parameters.
+                                    </p>
+                                </div>
+                                <ul className="list-disc list-inside text-xs text-slate-500 space-y-1">
+                                    {comparisonResult.sources.map((source, idx) => (
+                                        <li key={idx} className="hover:text-slate-300 transition-colors">{source}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <Feedback sectionId={`benchmark-comparison-${region1}-vs-${region2}`} />
+                </div>
+            )}
         </div>
     );
 };

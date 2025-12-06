@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,76 +9,83 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;700&family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;700&family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <style>
+      :root {
+        --bg-midnight: #020617;
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-surface: rgba(15, 23, 42, 0.6);
+        --accent-primary: #0ea5e9;
+      }
+
       body {
         font-family: 'Inter', sans-serif;
-        -webkit-user-select: none; /* Safari */
-        -ms-user-select: none; /* IE 10+ */
-        user-select: none; /* Standard syntax */
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        background-color: var(--bg-midnight);
+        color: #f8fafc;
+        overflow-x: hidden;
       }
+      
       [dir="rtl"] {
         font-family: 'Vazirmatn', sans-serif;
       }
       [dir="rtl"][lang="ar"], [dir="rtl"][lang="ku"] {
         font-family: 'Noto Sans Arabic', sans-serif;
       }
+
+      /* Enhanced Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(51, 65, 85, 0.8);
+        border-radius: 4px;
+        border: 2px solid rgba(15, 23, 42, 0.5);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(71, 85, 105, 1);
+      }
+
+      /* Animations */
       @keyframes pop-in {
-        0% { transform: scale(0.5); opacity: 0; }
-        70% { transform: scale(1.1); opacity: 1; }
-        100% { transform: scale(1); }
+        0% { transform: scale(0.95); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
       }
-      .milestone-completed {
-        animation: pop-in 0.6s ease-out forwards;
+      .animate-pop-in {
+        animation: pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      @keyframes draw-line {
-        to { stroke-dashoffset: 0; }
+
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
-      .connector-line {
-        stroke-dasharray: 1000;
-        stroke-dashoffset: 1000;
-        animation: draw-line 2s ease-out forwards;
+      .animate-fade-in {
+        animation: fade-in 0.5s ease-out forwards;
       }
-      .auth-background {
-        background-color: #020617; /* slate-950 */
-        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
-        background-size: 20px 20px;
+
+      /* Auth Background & Noise */
+      .noise-overlay {
         position: fixed;
         inset: 0;
-        z-index: -1;
-      }
-
-      @keyframes slide-in-fade {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .auth-step-container {
-        animation: slide-in-fade 0.5s ease-out forwards;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
       }
       
-      .nda-scrollbar::-webkit-scrollbar {
-        width: 8px;
-      }
-      .nda-scrollbar::-webkit-scrollbar-track {
-        background: #1e293b; /* slate-800 */
-        border-radius: 4px;
-      }
-      .nda-scrollbar::-webkit-scrollbar-thumb {
-        background: #475569; /* slate-600 */
-        border-radius: 4px;
-      }
-      .nda-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #64748b; /* slate-500 */
+      .glass-panel {
+        background: var(--glass-surface);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
       }
     </style>
   <script type="importmap">
@@ -95,11 +103,12 @@
 }
 </script>
 </head>
-  <body class="bg-slate-900 text-slate-100">
+  <body class="bg-slate-950 text-slate-100 antialiased selection:bg-sky-500/30 selection:text-sky-200">
+    <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-black -z-10"></div>
+    <div class="noise-overlay"></div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
-      // Disable right-click context menu
       document.addEventListener('contextmenu', event => event.preventDefault());
     </script>
   </body>

@@ -1,5 +1,14 @@
+
+// ... existing imports
 import { GoogleGenAI, GenerateContentResponse, Type, Chat, Content } from "@google/genai";
-import { ChatMessage, FinancialData } from '../types';
+import { ChatMessage, FinancialData, Patent, Milestone } from '../types';
+import { PATENT_PORTFOLIO, CORE_PATENT, PROJECT_MILESTONES } from '../constants';
+
+// ... existing cache and helpers
+
+const financialDataCache = new Map<string, FinancialData[]>();
+const patentDataCache = new Map<string, Patent[]>();
+const milestoneDataCache = new Map<string, Milestone[]>();
 
 const withRetries = async <T,>(fn: () => Promise<T>, retries = 3, initialDelay = 1000): Promise<T> => {
     let lastError: Error | unknown;
@@ -9,12 +18,9 @@ const withRetries = async <T,>(fn: () => Promise<T>, retries = 3, initialDelay =
         } catch (error) {
             lastError = error;
             const errorMessage = (error instanceof Error) ? error.message.toLowerCase() : '';
-            
-            // Don't retry if it's an auth/permission error
             if (errorMessage.includes('403') || errorMessage.includes('404') || errorMessage.includes('requested entity was not found') || errorMessage.includes('permission denied')) {
                 throw error;
             }
-
             if (errorMessage.includes('500') || errorMessage.includes('503') || errorMessage.includes('rate limit') || errorMessage.includes('xhr error')) {
                 const delay = initialDelay * Math.pow(2, i) + Math.random() * 100;
                 console.warn(`API call failed (attempt ${i + 1}/${retries}). Retrying in ${delay.toFixed(0)}ms...`, error);
@@ -34,7 +40,6 @@ const withRetries = async <T,>(fn: () => Promise<T>, retries = 3, initialDelay =
     throw lastError;
 };
 
-
 const getAiClient = () => {
   if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
@@ -42,6 +47,7 @@ const getAiClient = () => {
   return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
+// ... existing generateText functions ...
 // @ts-ignore
 export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash' | 'gemini-flash-lite-latest' = 'gemini-2.5-flash'): Promise<string> => {
   try {
@@ -123,7 +129,6 @@ export const generateJsonWithThinking = async (prompt: string): Promise<string> 
     throw error;
   }
 };
-
 
 export const generateGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
@@ -249,8 +254,24 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
 };
 
 export const generateFinancialData = async (region: string, lang: string): Promise<FinancialData[]> => {
+  const cacheKey = `${region}_${lang}`;
+  if (financialDataCache.has(cacheKey)) {
+      return financialDataCache.get(cacheKey)!;
+  }
+
   try {
-    const prompt = `As a financial analyst, generate key financial projections for a 5MW GMEL geothermal pilot project in '${region}'. Use up-to-date economic data for the region. The output MUST be a valid JSON array. The baseline for a similar project in an Iranian Free Zone is: 575B Toman CAPEX, 390B Toman Annual Revenue, 2-year Payback, 42% ROI, 2750B Toman 10-Year NPV. Adjust these figures based on the specific economic conditions, labor costs, and energy market of '${region}'. All descriptions must be in the language with this code: ${lang}.`;
+    const prompt = `As a financial analyst, generate key financial projections for a 5MW GMEL geothermal pilot project in '${region}'. Use up-to-date economic data for the region. The output MUST be a valid JSON array.
+    
+    You must provide these 5 specific metrics in this exact order, with these specific IDs:
+    1. id: "capex" (Pilot CAPEX)
+    2. id: "revenue" (Annual Revenue)
+    3. id: "payback" (Payback Period)
+    4. id: "roi" (Return on Investment)
+    5. id: "npv" (10-Year NPV)
+
+    The baseline for a similar project in an Iranian Free Zone is: 575B Toman CAPEX, 390B Toman Annual Revenue, 2-year Payback, 42% ROI, 2750B Toman 10-Year NPV. Adjust these figures based on the specific economic conditions of '${region}'.
+    
+    IMPORTANT: You must translate the 'component', 'unit', and 'description' fields into the language with this code: ${lang}. The 'id' field MUST remain in English as specified above.`;
 
     const jsonStr = await withRetries(async () => {
         const ai = getAiClient();
@@ -264,12 +285,13 @@ export const generateFinancialData = async (region: string, lang: string): Promi
               items: {
                 type: Type.OBJECT,
                 properties: {
+                  id: { type: Type.STRING, description: "Fixed ID: 'capex', 'revenue', 'payback', 'roi', 'npv'" },
                   component: { type: Type.STRING },
                   value: { type: Type.NUMBER },
                   unit: { type: Type.STRING },
                   description: { type: Type.STRING },
                 },
-                required: ['component', 'value', 'unit', 'description']
+                required: ['id', 'component', 'value', 'unit', 'description']
               }
             }
           },
@@ -279,10 +301,13 @@ export const generateFinancialData = async (region: string, lang: string): Promi
     
     const data = JSON.parse(jsonStr);
     
-    const requiredComponents = ['CAPEX', 'Revenue', 'Payback', 'ROI', 'NPV'];
+    const requiredComponents = ['capex', 'revenue', 'payback', 'roi', 'npv'];
     if (data.length < requiredComponents.length) {
         throw new Error('Generated data is missing required financial components.');
     }
+
+    // Store in cache
+    financialDataCache.set(cacheKey, data);
 
     return data;
   } catch (error) {
@@ -293,6 +318,113 @@ export const generateFinancialData = async (region: string, lang: string): Promi
     throw new Error(`An unknown error occurred while generating financial data for ${region}.`);
   }
 };
+
+export const generateBenchmarkComparison = async (region1: string, region2: string, langName: string): Promise<any> => {
+    try {
+        const prompt = `Compare the geothermal potential of '${region1}' and '${region2}'. 
+        Provide the output as a strictly valid JSON object with the following fields:
+        1. "table": An array of objects, where each object has "metric", "region1" (value for ${region1}), and "region2" (value for ${region2}). Metrics should include 'Geothermal Potential', 'Est. CAPEX (5MW)', 'Grid Stability', 'Policy Support'.
+        2. "narrative": A summary string analyzing the key differences and strategic advantages.
+        3. "tech_comparison": A detailed paragraph comparing specific technical requirements (e.g., typical drilling depths, reservoir temperatures, suitability for closed-loop vs open systems) for each region.
+        4. "ip_roadmap_comparison": A detailed paragraph analyzing the IP maturity required for each region (e.g., patent enforcement strength, necessity of advanced filings like 'GMEL-DrillX' vs standard implementation).
+        5. "sources": An array of strings citing the data sources or methodologies used (e.g., "International Geothermal Association", "World Bank Energy Data").
+        
+        Language: ${langName}.`;
+
+        const jsonStr = await withRetries(async () => {
+            const ai = getAiClient();
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-pro',
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    thinkingConfig: { thinkingBudget: 32768 }
+                }
+            });
+            return response.text.trim();
+        });
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error("Error generating benchmark comparison:", error);
+        throw error;
+    }
+};
+
+// ... existing localization and video generation functions
+// (generateLocalizedPatents, generateLocalizedMilestones, generateImage, generateVideo, etc. remain unchanged)
+export const generateLocalizedPatents = async (lang: string): Promise<Patent[]> => {
+    if (lang === 'en') return [CORE_PATENT, ...PATENT_PORTFOLIO];
+    
+    const cacheKey = `patents_${lang}`;
+    if (patentDataCache.has(cacheKey)) return patentDataCache.get(cacheKey)!;
+
+    try {
+        const allPatents = [CORE_PATENT, ...PATENT_PORTFOLIO];
+        const simplifiedPatents = allPatents.map(p => ({
+            code: p.code,
+            level: p.level,
+            title: p.title,
+            application: p.application,
+            status: p.status,
+            path: p.path,
+            kpi: p.kpi,
+            progress: p.progress
+        }));
+
+        const prompt = `Translate the 'title', 'application', 'status', 'path', and 'kpi' fields of the following JSON array of patents into the language with code: ${lang}.
+        Do NOT translate 'code' or 'level'. Return strictly the translated JSON array.
+        
+        Input: ${JSON.stringify(simplifiedPatents)}`;
+
+        const jsonStr = await withRetries(async () => {
+            const ai = getAiClient();
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: { responseMimeType: "application/json" }
+            });
+            return response.text.trim();
+        });
+
+        const translatedData = JSON.parse(jsonStr);
+        patentDataCache.set(cacheKey, translatedData);
+        return translatedData;
+    } catch (e) {
+        console.error("Patent localization failed", e);
+        return [CORE_PATENT, ...PATENT_PORTFOLIO]; // Fallback to English
+    }
+};
+
+export const generateLocalizedMilestones = async (lang: string): Promise<Milestone[]> => {
+    if (lang === 'en') return PROJECT_MILESTONES;
+
+    const cacheKey = `milestones_${lang}`;
+    if (milestoneDataCache.has(cacheKey)) return milestoneDataCache.get(cacheKey)!;
+
+    try {
+        const prompt = `Translate the 'title', 'date', 'status', and 'description' fields of the following project milestones into the language with code: ${lang}.
+        Return strictly the translated JSON array.
+        
+        Input: ${JSON.stringify(PROJECT_MILESTONES)}`;
+
+        const jsonStr = await withRetries(async () => {
+            const ai = getAiClient();
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: { responseMimeType: "application/json" }
+            });
+            return response.text.trim();
+        });
+
+        const translatedData = JSON.parse(jsonStr);
+        milestoneDataCache.set(cacheKey, translatedData);
+        return translatedData;
+    } catch (e) {
+        console.error("Milestone localization failed", e);
+        return PROJECT_MILESTONES; // Fallback
+    }
+}
 
 
 export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '16:9'): Promise<string> => {

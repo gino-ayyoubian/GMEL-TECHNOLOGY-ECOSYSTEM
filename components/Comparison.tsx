@@ -27,7 +27,7 @@ const renderCellContent = (content: any): string => {
 
 export const Comparison: React.FC = () => {
     const { t } = useI18n();
-    const { setError, lang } = useContext(AppContext)!;
+    const { setError, lang, supportedLangs } = useContext(AppContext)!;
     const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
     const [narrative, setNarrative] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -47,9 +47,10 @@ export const Comparison: React.FC = () => {
         setComparisonData([]);
         setNarrative('');
         setStrategicInsights('');
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         
         try {
-            const prompt = t('comparison_prompt');
+            const prompt = t('comparison_prompt', { language: langName });
             const result = await generateJsonWithThinking(prompt);
             const parsedResult = extractJson(result);
             if (parsedResult && parsedResult.table && parsedResult.narrative) {
@@ -60,7 +61,7 @@ export const Comparison: React.FC = () => {
             }
         } catch (e: any) {
             console.error("Failed to parse comparison JSON:", e);
-            setError(e.message || t('error_comparison_generation'));
+            setError(e.message || t('error_generating_comparison'));
         } finally {
             setIsLoading(false);
         }
@@ -70,6 +71,7 @@ export const Comparison: React.FC = () => {
         if (!narrative || comparisonData.length === 0) return;
         setIsInsightsLoading(true);
         setError(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         try {
             const context = `
                 Based on the following comparison data:
@@ -77,6 +79,7 @@ export const Comparison: React.FC = () => {
                 Narrative: ${narrative}
 
                 Generate a deeper strategic analysis. For each region (Qeshm and Makoo), elaborate on the primary risks, hidden opportunities, and long-term strategic implications for KKM International. Go beyond the information already provided and infer potential outcomes. Structure your response in well-defined paragraphs.
+                Language: ${langName}.
             `;
             const result = await generateTextWithThinking(context);
             setStrategicInsights(result);

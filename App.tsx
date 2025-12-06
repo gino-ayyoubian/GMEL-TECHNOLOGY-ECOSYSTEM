@@ -15,7 +15,6 @@ import { Correspondence } from './components/Correspondence';
 import { ProposalGenerator } from './components/ProposalGenerator';
 import { ImageGenerator } from './components/ImageGenerator';
 import { VideoGenerator } from './components/VideoGenerator';
-import { GeminiChat } from './components/GeminiChat';
 import { Login } from './components/auth/Login';
 import { TwoFactorAuth } from './components/auth/TwoFactorAuth';
 import { NDAScreen } from './components/auth/NDAScreen';
@@ -24,8 +23,9 @@ import { GlobalErrorDisplay } from './components/shared/GlobalErrorDisplay';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { GlobalSearch } from './components/shared/GlobalSearch';
 import { AuditLogViewer } from './components/shared/AuditLogViewer';
-import { KKM_LOGO_DATA_URL, REGION_THEME_MAP } from './constants';
+import { KKM_LOGO_DATA_URL, REGION_THEME_MAP, ALL_REGIONS } from './constants';
 import { useI18n, Language } from './hooks/useI18n';
+import { Spinner } from './components/shared/Loading';
 import { 
   LayoutDashboard, FileText, Activity, Globe, Map, Scale, 
   FlaskConical, PenTool, Lightbulb, Video, MessageSquare, 
@@ -34,7 +34,7 @@ import {
 import { View, Region } from './types';
 import { hasPermission } from './utils/permissions';
 
-const LanguageSwitcher = () => {
+export const LanguageSwitcher = () => {
     const { lang, setLang, supportedLangs } = useContext(AppContext)!;
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -55,14 +55,14 @@ const LanguageSwitcher = () => {
         <div className="relative" ref={dropdownRef}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition-all text-sm font-medium backdrop-blur-md shadow-sm"
             >
                 <Globe className="w-4 h-4" />
                 <span>{currentLangName}</span>
             </button>
             
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-48 bg-slate-900/90 border border-white/10 rounded-lg shadow-2xl backdrop-blur-xl z-50 overflow-hidden transform origin-top-right transition-all animate-pop-in">
                     {supportedLangs.map((l) => (
                         <button
                             key={l.code}
@@ -70,7 +70,7 @@ const LanguageSwitcher = () => {
                                 setLang(l.code);
                                 setIsOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-700 transition-colors ${lang === l.code ? 'bg-slate-700/50 text-white font-semibold' : 'text-slate-400'}`}
+                            className={`w-full text-left px-4 py-3 text-sm hover:bg-white/5 transition-colors ${lang === l.code ? 'text-sky-400 font-semibold bg-white/5' : 'text-slate-400'}`}
                         >
                             {l.name}
                         </button>
@@ -86,13 +86,18 @@ const AuthScreen = () => {
   
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans`} style={{ backgroundColor: '#020617' }}>
-       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-black z-0"></div>
+       {/* Sophisticated Background */}
+       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,_#1e293b_0%,_#020617_40%)] z-0"></div>
        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 mix-blend-overlay"></div>
        
-       <div className="z-10 w-full max-w-md relative animate-fade-in">
-          <div className="flex justify-center mb-8">
-              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 shadow-2xl">
-                  <img src={KKM_LOGO_DATA_URL} alt="KKM Logo" className="h-16 w-auto" />
+       <div className="absolute top-6 right-6 z-20">
+           <LanguageSwitcher />
+       </div>
+
+       <div className="z-10 w-full max-w-md relative animate-pop-in">
+          <div className="flex justify-center mb-10">
+              <div className="bg-white/5 p-5 rounded-2xl backdrop-blur-2xl border border-white/10 shadow-[0_0_40px_-10px_rgba(14,165,233,0.3)]">
+                  <img src={KKM_LOGO_DATA_URL} alt="KKM Logo" className="h-16 w-auto drop-shadow-lg" />
               </div>
           </div>
 
@@ -110,26 +115,28 @@ const AuthScreen = () => {
 const SidebarItem = ({ view, label, icon: Icon, activeView, setActiveView, hasAccess }: any) => {
     if (!hasAccess) return null;
     
+    const isActive = activeView === view;
+    
     return (
         <button
             onClick={() => setActiveView(view)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                activeView === view 
-                ? 'bg-slate-800 text-white shadow-lg border border-slate-700/50' 
-                : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 group ${
+                isActive
+                ? 'bg-gradient-to-r from-sky-600/20 to-sky-400/5 text-sky-400 border border-sky-500/30 shadow-[0_0_15px_-3px_rgba(14,165,233,0.2)]' 
+                : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'
             }`}
         >
-            <Icon className={`w-5 h-5 ${activeView === view ? 'text-sky-400' : ''}`} />
-            <span className="font-medium text-sm">{label}</span>
+            <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+            <span className={`font-medium text-sm ${isActive ? 'font-semibold' : ''}`}>{label}</span>
+            {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_2px_rgba(56,189,248,0.6)]"></div>}
         </button>
     );
 };
 
 const MainAppLayout = () => {
-    const { activeView, setActiveView, region, setRegion, currentUser, userRole, setCurrentUser, setUserRole, setAuthStep, allowedRegions, theme } = useContext(AppContext)!;
+    const { activeView, setActiveView, region, setRegion, currentUser, userRole, setCurrentUser, setUserRole, setAuthStep, allowedRegions, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const handleLogout = () => {
         setCurrentUser(null);
@@ -167,37 +174,36 @@ const MainAppLayout = () => {
         ]}
     ];
 
-    const availableRegions: Region[] = allowedRegions || [
-        'Qeshm Free Zone', 'Makoo Free Zone', 'Chabahar Free Zone', 
-        'Iranian Kurdistan', 'Mahabad', 'Kurdistan Region, Iraq', 
-        'Oman', 'Saudi Arabia', 'United Arab Emirates', 'Qatar'
-    ];
+    const availableRegions: Region[] = allowedRegions || ALL_REGIONS;
+
+    const isRtl = lang === 'fa' || lang === 'ar' || lang === 'ku';
 
     return (
-        <div className="flex h-screen bg-slate-900 text-slate-100 overflow-hidden font-sans">
+        <div className="flex h-screen bg-[#020617] text-slate-100 overflow-hidden font-sans relative" dir={isRtl ? 'rtl' : 'ltr'}>
+            
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+                <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)} />
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform transition-transform duration-300 lg:transform-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
-                <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-slate-900/80 backdrop-blur-xl border-r border-white/5 transform transition-transform duration-300 lg:transform-none ${isMobileMenuOpen ? 'translate-x-0' : (isRtl ? 'translate-x-full' : '-translate-x-full')} flex flex-col shadow-2xl`}>
+                <div className="p-6 border-b border-white/5 bg-gradient-to-b from-slate-800/50 to-transparent">
                     <div className="flex items-center gap-3">
-                        <div className="bg-white/10 p-2 rounded-lg">
+                        <div className="bg-white/5 p-2 rounded-xl border border-white/10 shadow-inner">
                             <img src={KKM_LOGO_DATA_URL} alt="KKM" className="h-8 w-auto" />
                         </div>
                         <div>
-                            <h1 className="font-bold text-white tracking-tight">GMEL Vision</h1>
-                            <p className="text-xs text-slate-500 font-mono">Rev 2.0</p>
+                            <h1 className="font-bold text-white tracking-tight leading-none text-lg">GMEL Vision</h1>
+                            <p className="text-[10px] text-sky-400 font-mono mt-1 opacity-80">Rev 2.0 // Enterprise</p>
                         </div>
                     </div>
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-400">
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden absolute top-6 right-4 text-slate-400 hover:text-white">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 scrollbar-thin scrollbar-thumb-slate-700">
+                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 scrollbar-thin scrollbar-thumb-slate-700/50 scrollbar-track-transparent">
                     {navigation.map((group, idx) => {
                         const accessibleItems = group.items.filter(item => hasPermission(userRole, item.view as View));
                         if (accessibleItems.length === 0) return null;
@@ -205,7 +211,7 @@ const MainAppLayout = () => {
                         return (
                             <div key={idx}>
                                 {group.group !== 'Overview' && (
-                                    <h3 className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                                    <h3 className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 select-none">
                                         {group.group}
                                     </h3>
                                 )}
@@ -228,29 +234,32 @@ const MainAppLayout = () => {
                     })}
                 </div>
 
-                <div className="p-4 border-t border-slate-800">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-slate-800/50 rounded-lg mb-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs">
+                <div className="p-4 border-t border-white/5 bg-slate-900/50">
+                    <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl mb-3 border border-white/5 shadow-sm">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg ring-2 ring-white/10">
                             {currentUser?.substring(0, 2).toUpperCase()}
                         </div>
                         <div className="overflow-hidden">
                             <p className="text-sm font-medium text-white truncate">{currentUser}</p>
-                            <p className="text-xs text-slate-500 capitalize">{userRole}</p>
+                            <p className="text-xs text-slate-400 capitalize flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                {userRole}
+                            </p>
                         </div>
                     </div>
-                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
-                        <LogOut className="w-4 h-4" />
+                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors group">
+                        <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                         Sign Out
                     </button>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+            <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
                 {/* Header */}
-                <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-6 z-10">
+                <header className="h-16 border-b border-white/5 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-6 z-20 sticky top-0">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-slate-400 hover:text-white">
+                        <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-slate-400 hover:text-white transition-colors">
                             <Menu className="w-6 h-6" />
                         </button>
                         <GlobalSearch />
@@ -258,20 +267,25 @@ const MainAppLayout = () => {
                     
                     <div className="flex items-center gap-4">
                         <LanguageSwitcher />
-                        <div className="h-6 w-px bg-slate-800"></div>
-                        <select 
-                            value={region} 
-                            onChange={(e) => setRegion(e.target.value as Region)} 
-                            className="bg-slate-800 border-none text-sm text-slate-300 font-medium rounded-lg focus:ring-0 cursor-pointer py-2 pl-3 pr-8"
-                        >
-                            {availableRegions.map(r => <option key={r} value={r}>{r}</option>)}
-                        </select>
+                        <div className="h-6 w-px bg-white/10"></div>
+                        <div className="relative">
+                            <select 
+                                value={region} 
+                                onChange={(e) => setRegion(e.target.value as Region)} 
+                                className="appearance-none bg-white/5 border border-white/10 text-sm text-slate-300 font-medium rounded-lg hover:bg-white/10 hover:border-white/20 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 cursor-pointer py-2 pl-3 pr-8 backdrop-blur-sm transition-all shadow-sm max-w-[200px] truncate"
+                            >
+                                {availableRegions.map(r => <option key={r} value={r} className="bg-slate-900">{r}</option>)}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
                 {/* Content Area */}
-                <main className="flex-1 overflow-auto p-6 lg:p-8 scroll-smooth" id="main-content">
-                    <div className="max-w-7xl mx-auto space-y-8 pb-20">
+                <main className="flex-1 overflow-auto p-6 lg:p-8 scroll-smooth scrollbar-thin scrollbar-thumb-slate-700/30" id="main-content" key={lang}>
+                    <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in">
                         {activeView === 'dashboard' && <Dashboard />}
                         {activeView === 'ip' && <IPRoadmap />}
                         {activeView === 'financials' && <Financials />}
@@ -288,30 +302,29 @@ const MainAppLayout = () => {
                         {activeView === 'video' && <VideoGenerator />}
                         {activeView === 'access_control' && <NDAScreen />}
                         {activeView === 'audit_logs' && <AuditLogViewer />}
-                        {activeView === 'chat' && <GeminiChat activeView={activeView} />}
                         {activeView === 'contact' && (
-                            <div className="bg-slate-800 p-8 rounded-lg border border-slate-700">
+                            <div className="bg-slate-800/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-xl">
                                 <h2 className="text-2xl font-bold text-white mb-6">{t('contact_title')}</h2>
-                                <p className="text-slate-400 mb-8">{t('contact_description')}</p>
+                                <p className="text-slate-400 mb-8 max-w-2xl">{t('contact_description')}</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-sky-400">{t('direct_contact_info')}</h3>
-                                        <div className="p-4 bg-slate-900 rounded-lg">
-                                            <p className="text-slate-400 text-sm">{t('contact_phone')}</p>
-                                            <p className="text-white font-mono">+98 912 345 6789</p>
+                                        <div className="p-5 bg-white/5 border border-white/5 rounded-xl hover:border-white/10 transition-colors">
+                                            <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t('contact_phone')}</p>
+                                            <p className="text-white font-mono text-lg">+98 912 345 6789</p>
                                         </div>
-                                        <div className="p-4 bg-slate-900 rounded-lg">
-                                            <p className="text-slate-400 text-sm">{t('contact_direct_email')}</p>
-                                            <p className="text-white font-mono">gino.ayyoubian@kkm-intl.xyz</p>
+                                        <div className="p-5 bg-white/5 border border-white/5 rounded-xl hover:border-white/10 transition-colors">
+                                            <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t('contact_direct_email')}</p>
+                                            <p className="text-white font-mono text-lg">gino.ayyoubian@kkm-intl.xyz</p>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-sky-400">Social & Web</h3>
-                                        <a href="#" className="block p-4 bg-slate-900 rounded-lg hover:bg-slate-700 transition-colors">
-                                            <p className="text-white font-medium">{t('contact_gino_linkedin')}</p>
-                                        </a>
-                                        <a href="#" className="block p-4 bg-slate-900 rounded-lg hover:bg-slate-700 transition-colors">
-                                            <p className="text-white font-medium">{t('contact_kkm_linkedin')}</p>
+                                        <a href="#" className="block p-5 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-sky-500/30 transition-all group">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-white font-medium">{t('contact_gino_linkedin')}</p>
+                                                <svg className="w-5 h-5 text-slate-500 group-hover:text-sky-400 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
@@ -319,21 +332,6 @@ const MainAppLayout = () => {
                         )}
                     </div>
                 </main>
-
-                {/* Chat Widget Toggle */}
-                <div className="absolute bottom-6 right-6 z-30">
-                    <button 
-                        onClick={() => setIsChatOpen(!isChatOpen)}
-                        className={`p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 ${isChatOpen ? 'bg-red-500 rotate-45' : 'bg-sky-600'}`}
-                    >
-                        {isChatOpen ? <X className="text-white" /> : <MessageSquare className="text-white" />}
-                    </button>
-                </div>
-
-                {/* Floating Chat Window */}
-                <div className={`absolute bottom-24 right-6 w-96 h-[600px] bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 transform transition-all duration-300 origin-bottom-right z-20 ${isChatOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
-                    <GeminiChat activeView={activeView} onClose={() => setIsChatOpen(false)} />
-                </div>
             </div>
         </div>
     );
@@ -341,8 +339,6 @@ const MainAppLayout = () => {
 
 const AppContent = () => {
     const { authStep } = useContext(AppContext)!;
-    // Skip 'language' step (welcome page) logic is handled by setting default state in context, 
-    // but just in case, we render AuthScreen for all auth steps.
     return authStep === 'granted' ? <MainAppLayout /> : <AuthScreen />;
 }
 

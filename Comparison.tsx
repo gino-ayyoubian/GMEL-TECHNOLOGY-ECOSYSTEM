@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { generateTextWithThinking, generateJsonWithThinking } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
@@ -81,7 +82,7 @@ export const Comparison: React.FC = () => {
             }
         } catch (e: any) {
             console.error("Failed to parse comparison JSON:", e);
-            setError(e.message || t('error_comparison_generation'));
+            setError(e.message || t('error_generating_comparison'));
         } finally {
             setIsLoading(false);
         }

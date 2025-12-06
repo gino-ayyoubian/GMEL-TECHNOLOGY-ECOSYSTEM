@@ -6,7 +6,23 @@ export const KKM_LOGO_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQi
 
 export const WATERMARK_TEXT = "All rights are retained by inventor Seyed Gino Ayyoubian and the KKM International Group. Any form of usage or exploitation in any manner is prohibited and subject to legal repercussions.";
 
-// NOTE: The following data is updated to reflect the "GMEL Patent Portfolio Rev 2.0" (Dec 2025).
+// Standardized list of all supported regions
+export const ALL_REGIONS: Region[] = [
+    'Qeshm Free Zone', 
+    'Makoo Free Zone', 
+    'Chabahar Free Zone', 
+    'Iranian Kurdistan', 
+    'Mahabad', 
+    'Kurdistan Region, Iraq', 
+    'Oman', 
+    'Saudi Arabia', 
+    'United Arab Emirates', 
+    'Qatar',
+    'Iceland',
+    'Turkey (Geothermal Belt)',
+    'USA (Salton Sea)',
+    'Germany (Bavaria)'
+];
 
 export const THEMES: Record<string, ThemeConfig> = {
     warm: {
@@ -50,8 +66,8 @@ export const REGION_THEME_MAP: Record<Region, string> = {
     'Qatar': 'warm',
     'Makoo Free Zone': 'cool',
     'Iceland': 'cool',
-    'Turkey (Denizli/Aydin)': 'warm',
-    'USA (California\'s Salton Sea)': 'warm',
+    'Turkey (Geothermal Belt)': 'warm',
+    'USA (Salton Sea)': 'warm',
     'Germany (Bavaria)': 'emerald',
     'Iranian Kurdistan': 'emerald',
     'Mahabad': 'emerald',
@@ -103,29 +119,29 @@ export const PATENT_PORTFOLIO: Patent[] = [
 ];
 
 // Refined Financials based on Rev 2.0 (Lower LCOE implies better margins)
+// Added 'id' field to all financial data for stable reference during translation
 const FINANCIAL_DATA_QESHM: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 550, unit: 'Billion Toman', description: 'Updated CAPEX based on Rev 2.0 efficiency gains.' },
-    { component: 'Annual Revenue (5MW)', value: 410, unit: 'Billion Toman', description: 'Includes Power, Water, and Hydrogen sales.' },
-    { component: 'Payback Period', value: 1.8, unit: 'Years', description: 'Accelerated payback due to multi-output streams.' },
-    { component: 'Return on Investment (ROI)', value: 44.3, unit: 'Percent', description: 'Matches Portfolio ROI projection (5-year).' },
-    { component: '10-Year NPV', value: 3100, unit: 'Billion Toman', description: 'Strong long-term value.' },
+    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 550, unit: 'Billion Toman', description: 'Updated CAPEX based on Rev 2.0 efficiency gains.' },
+    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 410, unit: 'Billion Toman', description: 'Includes Power, Water, and Hydrogen sales.' },
+    { id: 'payback', component: 'Payback Period', value: 1.8, unit: 'Years', description: 'Accelerated payback due to multi-output streams.' },
+    { id: 'roi', component: 'Return on Investment (ROI)', value: 44.3, unit: 'Percent', description: 'Matches Portfolio ROI projection (5-year).' },
+    { id: 'npv', component: '10-Year NPV', value: 3100, unit: 'Billion Toman', description: 'Strong long-term value.' },
 ];
 
 const FINANCIAL_DATA_MAKOO: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 560, unit: 'Billion Toman', description: 'Includes winterization for cold climate operations.' },
-    { component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'High value from heating and agriculture integration.' },
-    { component: 'Payback Period', value: 1.9, unit: 'Years', description: 'Fast return via dual electricity/heat sales.' },
-    { component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'Strong ROI in cold-climate context.' },
-    { component: '10-Year NPV', value: 2950, unit: 'Billion Toman', description: 'Robust project value.' },
+    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 560, unit: 'Billion Toman', description: 'Includes winterization for cold climate operations.' },
+    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 400, unit: 'Billion Toman', description: 'High value from heating and agriculture integration.' },
+    { id: 'payback', component: 'Payback Period', value: 1.9, unit: 'Years', description: 'Fast return via dual electricity/heat sales.' },
+    { id: 'roi', component: 'Return on Investment (ROI)', value: 42, unit: 'Percent', description: 'Strong ROI in cold-climate context.' },
+    { id: 'npv', component: '10-Year NPV', value: 2950, unit: 'Billion Toman', description: 'Robust project value.' },
 ];
 
-// Other regions adjusted slightly for the efficiency bump
 const FINANCIAL_DATA_GENERAL: FinancialData[] = [
-    { component: 'Pilot CAPEX (5MW)', value: 14, unit: 'Million USD', description: 'International standard cost for GMEL pilot.' },
-    { component: 'Annual Revenue (5MW)', value: 9, unit: 'Million USD', description: 'Combined revenue streams.' },
-    { component: 'Payback Period', value: 2.1, unit: 'Years', description: 'Highly competitive payback.' },
-    { component: 'Return on Investment (ROI)', value: 43, unit: 'Percent', description: 'Consistent with global portfolio projections.' },
-    { component: '10-Year NPV', value: 95, unit: 'Million USD', description: 'Significant long-term generation.' },
+    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 14, unit: 'Million USD', description: 'International standard cost for GMEL pilot.' },
+    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 9, unit: 'Million USD', description: 'Combined revenue streams.' },
+    { id: 'payback', component: 'Payback Period', value: 2.1, unit: 'Years', description: 'Highly competitive payback.' },
+    { id: 'roi', component: 'Return on Investment (ROI)', value: 43, unit: 'Percent', description: 'Consistent with global portfolio projections.' },
+    { id: 'npv', component: '10-Year NPV', value: 95, unit: 'Million USD', description: 'Significant long-term generation.' },
 ];
 
 export const getFinancialData = (region: Region): FinancialData[] => {

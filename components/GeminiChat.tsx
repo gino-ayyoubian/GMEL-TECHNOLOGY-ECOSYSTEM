@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useContext, useMemo } from 'react';
 import { ChatMessage, Region, View } from '../types';
 import { continueChat } from '../services/geminiService';
@@ -38,21 +39,11 @@ const regionSpecificContexts: Partial<Record<Region, string>> = {
     'Saudi Arabia': `
 - Aligns with Saudi Vision 2030 and NEOM's sustainability goals. Foundational power source for smart cities, providing 24/7 clean energy. Supports large-scale desalination, district cooling, DLE from Red Sea brine, and advanced manufacturing.
 `,
-    'Mahabad': `
-- Part of the broader Iranian Kurdistan region, with a strong agricultural base.
-- Key Value: Geothermal heat for AgriCells to boost crop yields and enable year-round farming in a mountainous climate. Energy for local mining and food processing industries.
-- Pilot Project: Uses financial model of Iranian Kurdistan (~600 billion Toman CAPEX), focus on direct heat and local grid stability.
+    'Turkey (Geothermal Belt)': `
+- Major geothermal player in the region (Denizli/Aydin). Established infrastructure but potential for efficiency gains via GMEL closed-loop systems.
 `,
-    'Chabahar Free Zone': `
-- Iran's only oceanic port, strategic gateway to Central Asia and Afghanistan. Aligns with major national development plans.
-- Critical need for both power and fresh water to support port expansion and new industries.
-- Pilot Project: Similar financials to Qeshm (~580B Toman CAPEX), focus on energy for port operations, desalination for municipal and industrial use, and potential for green hydrogen/ammonia production for export.
-`,
-    'United Arab Emirates': `
-- Aligns with UAE's Net Zero 2050 strategic initiative. Can provide stable, 24/7 baseload power to complement solar energy, especially for high-demand industries and district cooling. Desalination and DLE are high-value applications.
-`,
-    'Qatar': `
-- Supports Qatar's National Vision 2030 for economic diversification. Baseload clean power for industrial consumers (e.g., Ras Laffan) and critical infrastructure. Potential for geothermal-powered LNG plant efficiency improvements or large-scale desalination.
+    'USA (Salton Sea)': `
+- High potential for Lithium extraction (Lithium Valley). GMEL's DLE technology is highly relevant here.
 `
 };
 

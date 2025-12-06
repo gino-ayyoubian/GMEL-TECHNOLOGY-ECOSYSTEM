@@ -1,10 +1,10 @@
 
 import React, { useContext } from 'react';
-import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
 import { Patent } from '../types';
 import { AppContext } from '../contexts/AppContext';
 
 interface PatentInfographicProps {
+    patents: Patent[];
     selectedPatents?: string[];
     onToggleSelection?: (code: string) => void;
 }
@@ -33,7 +33,7 @@ const getIconForPatent = (code: string) => {
 const PatentNode: React.FC<{ patent: Patent, isSelected?: boolean, onToggle?: (code: string) => void }> = ({ patent, isSelected, onToggle }) => {
     const { setActiveView, setTechnicalTopic } = useContext(AppContext)!;
 
-    const levelColors = {
+    const levelColors: Record<Patent['level'], { border: string; bg: string; progress: string }> = {
         Core: { border: 'border-teal-400', bg: 'bg-teal-500/10', progress: 'bg-teal-400' },
         Derivatives: { border: 'border-sky-400', bg: 'bg-sky-500/10', progress: 'bg-sky-400' },
         Applied: { border: 'border-amber-400', bg: 'bg-amber-500/10', progress: 'bg-amber-400' },
@@ -42,7 +42,7 @@ const PatentNode: React.FC<{ patent: Patent, isSelected?: boolean, onToggle?: (c
     const colors = levelColors[patent.level];
     
     // Check if technical details exist for this patent
-    const hasTechPage = true; // All 14 patents now have tech details
+    const hasTechPage = true; // All patents now have tech details
 
     const handleClick = () => {
         if (hasTechPage) {
@@ -106,12 +106,15 @@ const PatentNode: React.FC<{ patent: Patent, isSelected?: boolean, onToggle?: (c
     );
 };
 
-export const PatentInfographic: React.FC<PatentInfographicProps> = ({ selectedPatents = [], onToggleSelection }) => {
+export const PatentInfographic: React.FC<PatentInfographicProps> = ({ patents, selectedPatents = [], onToggleSelection }) => {
     const patentsByLevel = {
-        Derivatives: PATENT_PORTFOLIO.filter(p => p.level === 'Derivatives'),
-        Applied: PATENT_PORTFOLIO.filter(p => p.level === 'Applied'),
-        Strategic: PATENT_PORTFOLIO.filter(p => p.level === 'Strategic'),
+        Core: patents.filter(p => p.level === 'Core'),
+        Derivatives: patents.filter(p => p.level === 'Derivatives'),
+        Applied: patents.filter(p => p.level === 'Applied'),
+        Strategic: patents.filter(p => p.level === 'Strategic'),
     };
+
+    const corePatent = patentsByLevel.Core[0]; 
 
     return (
         <div className="relative flex flex-col items-center gap-12 py-8">
@@ -132,13 +135,15 @@ export const PatentInfographic: React.FC<PatentInfographicProps> = ({ selectedPa
 
             {/* Core Level */}
             <div className="z-10 w-full flex flex-col items-center">
-                <h3 className="text-sm font-semibold uppercase text-teal-400 tracking-widest mb-4">Core Platform (Rev 2.0)</h3>
+                <h3 className="text-sm font-semibold uppercase text-teal-400 tracking-widest mb-4">Core Platform</h3>
                 <div className="w-64">
-                    <PatentNode 
-                        patent={CORE_PATENT} 
-                        isSelected={selectedPatents.includes(CORE_PATENT.code)}
-                        onToggle={onToggleSelection}
-                    />
+                    {corePatent && (
+                        <PatentNode 
+                            patent={corePatent} 
+                            isSelected={selectedPatents.includes(corePatent.code)}
+                            onToggle={onToggleSelection}
+                        />
+                    )}
                 </div>
             </div>
 

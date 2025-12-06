@@ -9,6 +9,9 @@ import { Feedback } from './shared/Feedback';
 import ExportButtons from './shared/ExportButtons';
 import { canEdit } from '../utils/permissions';
 import { extractJson } from '../utils/helpers';
+import { Spinner } from './shared/Loading';
+import { AuditService } from '../services/auditService';
+import { ALL_REGIONS } from '../constants';
 
 interface GmelPackage {
     recommendedPatents: string[];
@@ -25,19 +28,15 @@ interface VisionaryProposal {
     newPatentIdeas: string[];
 }
 
-const LoadingSpinner: React.FC<{text: string}> = ({ text }) => (
-    <div className="text-center py-10">
-        <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p className="mt-4 text-slate-400">{text}</p>
+const LoadingState: React.FC<{text: string}> = ({ text }) => (
+    <div className="text-center py-12 bg-slate-900/30 rounded-xl border border-dashed border-slate-700/50">
+        <Spinner size="lg" className="text-sky-500 mx-auto" />
+        <p className="mt-4 text-slate-400 font-medium animate-pulse">{text}</p>
     </div>
 );
 
-
 export const Simulations: React.FC = () => {
-    const { region: globalRegion, setError, userRole } = useContext(AppContext)!;
+    const { region: globalRegion, setError, userRole, supportedLangs, lang, currentUser } = useContext(AppContext)!;
     const { t } = useI18n();
     const userCanEdit = canEdit(userRole, 'simulations');
 
@@ -62,39 +61,28 @@ export const Simulations: React.FC = () => {
         setVisionaryProposal(null);
         setVisionarySources([]);
         setVisionaryProjectPlan(null);
-    }, [targetRegion, setError]);
-
-
-    const simulationRegions: Region[] = [
-        'Kurdistan Region, Iraq',
-        'Mahabad',
-        'Iranian Kurdistan',
-        'Qeshm Free Zone',
-        'Makoo Free Zone',
-        'Chabahar Free Zone',
-        'Oman',
-        'Saudi Arabia',
-        'United Arab Emirates',
-        'Qatar'
-    ];
+    }, [targetRegion, lang, setError]);
 
     const handleGenerateGmelPackage = async () => {
         setIsGmelLoading(true);
         setError(null);
         setGmelPackage(null);
-        setIdealProjectPlan(null); // Reset plan on new generation
+        setIdealProjectPlan(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
 
         try {
-            const prompt = t('gmel_package_prompt', { region: targetRegion });
+            const prompt = t('gmel_package_prompt', { region: targetRegion, language: langName });
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.recommendedPatents) {
                 setGmelPackage(parsed);
+                AuditService.log(currentUser || 'user', 'SIMULATION_GMEL_PACKAGE', `Generated for ${targetRegion}`);
             } else {
                 throw new Error("Invalid format received from AI.");
             }
         } catch (e: any) {
             setError(e.message || "Failed to generate GMEL package.");
+            AuditService.log(currentUser || 'user', 'SIMULATION_FAILED', e.message, 'FAILURE');
         } finally {
             setIsGmelLoading(false);
         }
@@ -105,21 +93,24 @@ export const Simulations: React.FC = () => {
         setError(null);
         setVisionaryProposal(null);
         setVisionarySources([]);
-        setVisionaryProjectPlan(null); // Reset plan on new generation
+        setVisionaryProjectPlan(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
 
         try {
-            const prompt = t('visionary_proposal_prompt', { region: targetRegion });
+            const prompt = t('visionary_proposal_prompt', { region: targetRegion, language: langName });
             const result = await generateGroundedText(prompt);
             const parsed = extractJson(result.text);
 
             if (parsed && parsed.proposalTitle) {
                 setVisionaryProposal(parsed);
                 setVisionarySources(result.sources);
+                AuditService.log(currentUser || 'user', 'SIMULATION_VISIONARY', `Generated for ${targetRegion}`);
             } else {
                 throw new Error("Invalid format received from AI for visionary proposal.");
             }
         } catch (e: any) {
             setError(e.message || "Failed to generate visionary proposal.");
+            AuditService.log(currentUser || 'user', 'SIMULATION_FAILED', e.message, 'FAILURE');
         } finally {
             setIsVisionaryLoading(false);
         }
@@ -129,6 +120,7 @@ export const Simulations: React.FC = () => {
         if (!gmelPackage) return;
         setIsIdealPlanLoading(true);
         setIdealProjectPlan(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         try {
             const prompt = t('ideal_plan_prompt', {
                 region: targetRegion,
@@ -136,11 +128,14 @@ export const Simulations: React.FC = () => {
                 synergies: gmelPackage.synergies,
                 valueProp: gmelPackage.primaryValueProposition,
                 profitability: gmelPackage.estimatedProfitability,
+                language: langName
             });
             const result = await generateTextWithThinking(prompt);
             setIdealProjectPlan(result);
+            AuditService.log(currentUser || 'user', 'SIMULATION_BUSINESS_PLAN', `Generated ideal plan for ${targetRegion}`);
         } catch (e: any) {
             setError(e.message || "Failed to generate business plan.");
+            AuditService.log(currentUser || 'user', 'SIMULATION_FAILED', e.message, 'FAILURE');
         } finally {
             setIsIdealPlanLoading(false);
         }
@@ -150,6 +145,7 @@ export const Simulations: React.FC = () => {
         if (!visionaryProposal) return;
         setIsVisionaryPlanLoading(true);
         setVisionaryProjectPlan(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         try {
             const prompt = t('visionary_plan_prompt', {
                 region: targetRegion,
@@ -158,11 +154,14 @@ export const Simulations: React.FC = () => {
                 tech: visionaryProposal.enablingTechnologies.join(', '),
                 impact: visionaryProposal.potentialImpact,
                 patentIdeas: visionaryProposal.newPatentIdeas.join('; '),
+                language: langName
             });
             const result = await generateTextWithThinking(prompt);
             setVisionaryProjectPlan(result);
+            AuditService.log(currentUser || 'user', 'SIMULATION_VISIONARY_PLAN', `Generated visionary plan for ${targetRegion}`);
         } catch (e: any) {
             setError(e.message || "Failed to generate business plan.");
+            AuditService.log(currentUser || 'user', 'SIMULATION_FAILED', e.message, 'FAILURE');
         } finally {
             setIsVisionaryPlanLoading(false);
         }
@@ -170,80 +169,86 @@ export const Simulations: React.FC = () => {
 
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-12 animate-fade-in">
             <div>
                 <h1 className="text-3xl font-bold text-white">{t('simulations_title')}</h1>
-                <p className="text-slate-400 max-w-3xl mt-2">
+                <p className="text-slate-400 max-w-3xl mt-2 leading-relaxed">
                     {t('simulations_description')}
                 </p>
             </div>
 
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                <label htmlFor="simulation-region" className="block text-sm font-medium text-slate-300 mb-2">
-                    Select Region for Simulation & Modeling
+            <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10">
+                <label htmlFor="simulation-region" className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wide">
+                    Target Region for Simulation
                 </label>
                 <select
                     id="simulation-region"
                     value={targetRegion}
                     onChange={(e) => setTargetRegion(e.target.value as Region)}
-                    className="w-full max-w-sm bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-white font-semibold"
+                    className="w-full max-w-sm bg-slate-800 border-slate-700 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-white font-medium py-2.5"
                 >
-                    {simulationRegions.map(r => <option key={r} value={r}>{r}</option>)}
+                    {ALL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
             </div>
 
             {/* Ideal GMEL Project Modeler */}
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-6">
-                <h2 className="text-2xl font-semibold text-white">{t('gmel_modeler_title')}</h2>
-                <p className="text-slate-400 -mt-4">{t('gmel_modeler_description')}</p>
+            <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-lg">
+                <div>
+                    <h2 className="text-2xl font-semibold text-white">{t('gmel_modeler_title')}</h2>
+                    <p className="text-slate-400 mt-1">{t('gmel_modeler_description')}</p>
+                </div>
+                
                 <button
                     onClick={handleGenerateGmelPackage}
                     disabled={isGmelLoading || !userCanEdit}
-                    title={!userCanEdit ? "You have view-only access for this module." : ""}
-                    className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-sky-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed"
                 >
+                    {isGmelLoading && <Spinner size="sm" className="text-white" />}
                     {isGmelLoading ? t('generating') : t('generate_gmel_package')}
                 </button>
 
-                {isGmelLoading && <LoadingSpinner text={t('generating_gmel_package')} />}
+                {isGmelLoading && <LoadingState text={t('generating_gmel_package')} />}
                 
                 {gmelPackage && (
-                    <div className="space-y-4 pt-4 border-t border-slate-700">
+                    <div className="space-y-4 pt-6 border-t border-white/5 animate-pop-in">
                         <div className="flex justify-end">
                             <ExportButtons content={JSON.stringify(gmelPackage, null, 2)} title={`Ideal_GMEL_Package_${targetRegion}`} />
                         </div>
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('recommended_patents')} <SpeakerIcon text={gmelPackage.recommendedPatents.join(', ')} /></h3>
-                            <ul className="list-disc list-inside text-slate-300">
-                                {gmelPackage.recommendedPatents.map(p => <li key={p}>{p}</li>)}
-                            </ul>
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('package_synergies')} <SpeakerIcon text={gmelPackage.synergies} /></h3>
-                            <p className="text-slate-300 whitespace-pre-wrap">{gmelPackage.synergies}</p>
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('primary_value_prop')} <SpeakerIcon text={gmelPackage.primaryValueProposition} /></h3>
-                            <p className="text-slate-300 whitespace-pre-wrap">{gmelPackage.primaryValueProposition}</p>
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('estimated_profitability')} <SpeakerIcon text={gmelPackage.estimatedProfitability} /></h3>
-                            <p className="text-slate-300 whitespace-pre-wrap">{gmelPackage.estimatedProfitability}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('recommended_patents')} <SpeakerIcon text={gmelPackage.recommendedPatents.join(', ')} /></h3>
+                                <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
+                                    {gmelPackage.recommendedPatents.map(p => <li key={p}>{p}</li>)}
+                                </ul>
+                            </div>
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('package_synergies')} <SpeakerIcon text={gmelPackage.synergies} /></h3>
+                                <p className="text-slate-300 text-sm whitespace-pre-wrap">{gmelPackage.synergies}</p>
+                            </div>
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('primary_value_prop')} <SpeakerIcon text={gmelPackage.primaryValueProposition} /></h3>
+                                <p className="text-slate-300 text-sm whitespace-pre-wrap">{gmelPackage.primaryValueProposition}</p>
+                            </div>
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h3 className="font-semibold text-sky-400 mb-2 flex items-center">{t('estimated_profitability')} <SpeakerIcon text={gmelPackage.estimatedProfitability} /></h3>
+                                <p className="text-slate-300 text-sm whitespace-pre-wrap">{gmelPackage.estimatedProfitability}</p>
+                            </div>
                         </div>
                         <Feedback sectionId={`gmel-package-modeler-${targetRegion}`} />
 
-                        <div className="pt-4 border-t border-slate-700">
-                            <button onClick={handleGenerateIdealPlan} disabled={isIdealPlanLoading || !userCanEdit} title={!userCanEdit ? "You have view-only access for this module." : ""} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800 disabled:cursor-not-allowed">
+                        <div className="pt-6 border-t border-white/5">
+                            <button onClick={handleGenerateIdealPlan} disabled={isIdealPlanLoading || !userCanEdit} className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-teal-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed">
+                                {isIdealPlanLoading && <Spinner size="sm" className="text-white" />}
                                 {isIdealPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
                             </button>
-                            {isIdealPlanLoading && <LoadingSpinner text={t('generating_business_plan')} />}
+                            {isIdealPlanLoading && <LoadingState text={t('generating_business_plan')} />}
                             {idealProjectPlan && (
-                                <div className="mt-4 p-4 bg-slate-900 rounded-lg">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="font-semibold text-teal-400">{t('generated_business_plan')}</h3>
+                                <div className="mt-6 p-6 bg-slate-800/80 rounded-xl border border-white/10 animate-fade-in">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-semibold text-teal-400 text-lg">{t('generated_business_plan')}</h3>
                                         <ExportButtons content={idealProjectPlan} title={`Business_Plan_Ideal_${targetRegion}`} />
                                     </div>
-                                    <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm">{idealProjectPlan}</pre>
+                                    <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm leading-relaxed">{idealProjectPlan}</pre>
                                 </div>
                             )}
                         </div>
@@ -252,55 +257,61 @@ export const Simulations: React.FC = () => {
             </div>
             
             {/* Visionary Project Proposal Engine */}
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-6">
-                <h2 className="text-2xl font-semibold text-white">{t('visionary_engine_title')}</h2>
-                <p className="text-slate-400 -mt-4">{t('visionary_engine_description')}</p>
+            <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-lg">
+                <div>
+                    <h2 className="text-2xl font-semibold text-white">{t('visionary_engine_title')}</h2>
+                    <p className="text-slate-400 mt-1">{t('visionary_engine_description')}</p>
+                </div>
+                
                 <button
                     onClick={handleGenerateVisionaryProposal}
                     disabled={isVisionaryLoading || !userCanEdit}
-                    title={!userCanEdit ? "You have view-only access for this module." : ""}
-                    className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors disabled:bg-amber-800 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-amber-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed"
                 >
+                    {isVisionaryLoading && <Spinner size="sm" className="text-white" />}
                     {isVisionaryLoading ? t('generating') : t('generate_visionary_proposal')}
                 </button>
 
-                {isVisionaryLoading && <LoadingSpinner text={t('generating_visionary_proposal')} />}
+                {isVisionaryLoading && <LoadingState text={t('generating_visionary_proposal')} />}
 
                 {visionaryProposal && (
-                    <div className="space-y-4 pt-4 border-t border-slate-700">
+                    <div className="space-y-6 pt-6 border-t border-white/5 animate-pop-in">
                         <div className="flex justify-between items-center">
                             <h3 className="text-xl font-bold text-amber-400">{t('visionary_proposal_for', {region: visionaryProposal.proposalTitle})}</h3>
                             <ExportButtons content={JSON.stringify(visionaryProposal, null, 2)} title={`Visionary_Proposal_${targetRegion}`} />
                         </div>
                         
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('core_concept')} <SpeakerIcon text={visionaryProposal.coreConcept} /></h4>
-                            <p className="text-slate-300 whitespace-pre-wrap">{visionaryProposal.coreConcept}</p>
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('enabling_tech')} <SpeakerIcon text={visionaryProposal.enablingTechnologies.join(', ')} /></h4>
-                            <ul className="list-disc list-inside text-slate-300">
-                                {visionaryProposal.enablingTechnologies.map(p => <li key={p}>{p}</li>)}
-                            </ul>
-                        </div>
-                         <div className="p-4 bg-slate-900 rounded-lg">
-                            <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('transformative_impact')} <SpeakerIcon text={visionaryProposal.potentialImpact} /></h4>
-                            <p className="text-slate-300 whitespace-pre-wrap">{visionaryProposal.potentialImpact}</p>
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-lg">
-                            <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('new_patent_opportunities')} <SpeakerIcon text={visionaryProposal.newPatentIdeas.join(', ')} /></h4>
-                            <ul className="list-disc list-inside text-slate-300">
-                                {visionaryProposal.newPatentIdeas.map(p => <li key={p}>{p}</li>)}
-                            </ul>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('core_concept')} <SpeakerIcon text={visionaryProposal.coreConcept} /></h4>
+                                <p className="text-slate-300 text-sm whitespace-pre-wrap">{visionaryProposal.coreConcept}</p>
+                            </div>
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('enabling_tech')} <SpeakerIcon text={visionaryProposal.enablingTechnologies.join(', ')} /></h4>
+                                <ul className="list-disc list-inside text-slate-300 text-sm">
+                                    {visionaryProposal.enablingTechnologies.map(p => <li key={p}>{p}</li>)}
+                                </ul>
+                            </div>
+                             <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('transformative_impact')} <SpeakerIcon text={visionaryProposal.potentialImpact} /></h4>
+                                <p className="text-slate-300 text-sm whitespace-pre-wrap">{visionaryProposal.potentialImpact}</p>
+                            </div>
+                            <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
+                                <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('new_patent_opportunities')} <SpeakerIcon text={visionaryProposal.newPatentIdeas.join(', ')} /></h4>
+                                <ul className="list-disc list-inside text-slate-300 text-sm">
+                                    {visionaryProposal.newPatentIdeas.map(p => <li key={p}>{p}</li>)}
+                                </ul>
+                            </div>
                         </div>
                         
                         {visionarySources.length > 0 && (
-                            <div className="p-4 bg-slate-900 rounded-lg">
-                                <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
-                                <ul className="list-disc list-inside mt-2 text-xs text-slate-500 space-y-1">
+                            <div className="p-4 bg-slate-900 rounded-lg border border-white/5">
+                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{t('sources')}:</h4>
+                                <ul className="space-y-1">
                                 {visionarySources.map((source, i) => (
-                                    <li key={i}>
-                                        <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                    <li key={i} className="text-xs">
+                                        <a href={source.web?.uri} target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:text-sky-300 hover:underline flex items-center gap-1">
+                                            <span className="w-1 h-1 rounded-full bg-sky-500"></span>
                                             {source.web?.title || source.web?.uri}
                                         </a>
                                     </li>
@@ -310,18 +321,19 @@ export const Simulations: React.FC = () => {
                         )}
                         <Feedback sectionId={`visionary-proposal-${targetRegion}`} />
 
-                        <div className="pt-4 border-t border-slate-700">
-                             <button onClick={handleGenerateVisionaryPlan} disabled={isVisionaryPlanLoading || !userCanEdit} title={!userCanEdit ? "You have view-only access for this module." : ""} className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors disabled:bg-teal-800 disabled:cursor-not-allowed">
+                        <div className="pt-6 border-t border-white/5">
+                             <button onClick={handleGenerateVisionaryPlan} disabled={isVisionaryPlanLoading || !userCanEdit} className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-teal-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed">
+                                {isVisionaryPlanLoading && <Spinner size="sm" className="text-white" />}
                                 {isVisionaryPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
                             </button>
-                             {isVisionaryPlanLoading && <LoadingSpinner text={t('generating_business_plan')} />}
+                             {isVisionaryPlanLoading && <LoadingState text={t('generating_business_plan')} />}
                              {visionaryProjectPlan && (
-                                <div className="mt-4 p-4 bg-slate-900 rounded-lg">
-                                     <div className="flex justify-between items-center mb-2">
-                                        <h3 className="font-semibold text-teal-400">{t('generated_business_plan')}</h3>
+                                <div className="mt-6 p-6 bg-slate-800/80 rounded-xl border border-white/10 animate-fade-in">
+                                     <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-semibold text-teal-400 text-lg">{t('generated_business_plan')}</h3>
                                         <ExportButtons content={visionaryProjectPlan} title={`Business_Plan_Visionary_${targetRegion}`} />
                                     </div>
-                                    <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm">{visionaryProjectPlan}</pre>
+                                    <pre className="text-slate-300 whitespace-pre-wrap font-sans text-sm leading-relaxed">{visionaryProjectPlan}</pre>
                                 </div>
                             )}
                         </div>
@@ -329,5 +341,5 @@ export const Simulations: React.FC = () => {
                 )}
             </div>
         </div>
-    );
+    )
 };

@@ -2,31 +2,42 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
-import { generateTextWithThinking, generateGroundedText, generateFinancialData } from '../services/geminiService';
+import { generateTextWithThinking, generateGroundedText, generateFinancialData, generateLocalizedMilestones } from '../services/geminiService';
 import { Milestone, FinancialData } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import { Spinner, Skeleton } from './shared/Loading';
 import { extractJson } from '../utils/helpers';
+import { Activity } from 'lucide-react';
 
-const DataCard: React.FC<{ title: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, value, description, icon }) => {
+const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
+
+const DataCard: React.FC<{ title: string; subtitle?: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, subtitle, value, description, icon }) => {
   const { theme } = useContext(AppContext)!;
   return (
-    <div className={`group relative bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:${theme.borderAccent} cursor-pointer`}>
-      <div className="flex justify-between items-start">
-          <h3 className={`text-sm font-medium ${theme.textAccent} uppercase tracking-wider`}>{title}</h3>
-          <span className="text-slate-600 group-hover:text-white transition-colors">{icon}</span>
+    <div className={`group relative bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-800/80 hover:shadow-[0_0_30px_-10px_rgba(14,165,233,0.3)] hover:border-sky-500/30 cursor-pointer overflow-hidden`}>
+      {/* Subtle Gradient Background Effect on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+      
+      <div className="flex justify-between items-start relative z-10">
+          <div className="flex-1">
+              <h3 className={`text-sm font-bold ${theme.textAccent} uppercase tracking-wider`}>{title}</h3>
+              {subtitle && <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wide font-medium">{subtitle}</p>}
+          </div>
+          <div className="p-2.5 rounded-xl bg-white/5 text-slate-400 group-hover:text-white group-hover:bg-sky-500/20 transition-all duration-300 shadow-inner">
+            {icon}
+          </div>
       </div>
-      <p className="mt-2 text-4xl font-bold text-white tracking-tight">{value}</p>
-      <p className="mt-2 text-xs text-slate-500 truncate">{description}</p>
+      <p className="mt-4 text-3xl font-extrabold text-white tracking-tight relative z-10">{value}</p>
+      <p className="mt-2 text-xs text-slate-400 truncate relative z-10">{description}</p>
       
       {/* Interactive Tooltip on Hover */}
-      <div className={`opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-64 bg-slate-900 border ${theme.borderAccent} p-3 rounded-lg shadow-2xl z-50 pointer-events-none`}>
-        <p className={`text-xs font-bold ${theme.textAccent} mb-1`}>{title}</p>
+      <div className={`opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-64 bg-slate-950/90 backdrop-blur-md border border-slate-700 p-3 rounded-lg shadow-2xl z-50 pointer-events-none`}>
+        <p className={`text-xs font-bold text-sky-400 mb-1`}>{title}</p>
         <p className="text-xs text-slate-300 leading-relaxed">{description}</p>
-        {/* Tooltip Arrow */}
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-[1px] w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-slate-900"></div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-[1px] w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-slate-950/90"></div>
       </div>
     </div>
   );
@@ -48,14 +59,11 @@ const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => v
         <button
             onClick={handleClick}
             disabled={isLoading}
-            className={`flex items-center justify-center px-4 py-2 ${theme.button} ${theme.buttonHover} text-white font-semibold rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed`}
+            className={`flex items-center justify-center px-4 py-2 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 border border-sky-500/30 text-white font-semibold rounded-lg transition-all shadow-lg shadow-sky-900/20 disabled:opacity-70 disabled:cursor-not-allowed`}
         >
             {isLoading ? (
                 <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+                    <Spinner size="sm" className="mr-3 text-white" />
                     {t('thinking')}
                 </>
             ) : (
@@ -72,17 +80,17 @@ const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => v
 
 const MilestoneCard: React.FC<{ milestone: Milestone; isLast: boolean }> = ({ milestone, isLast }) => {
   const statusColor = {
-    Completed: 'bg-teal-500',
-    'In Progress': 'bg-sky-500',
-    Planned: 'bg-amber-500',
+    Completed: 'bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]',
+    'In Progress': 'bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]',
+    Planned: 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]',
   }[milestone.status];
 
   return (
-    <div className="relative ps-8">
-      <div className={`absolute top-1 start-0 w-3 h-3 rounded-full ${statusColor}`} title={milestone.status}></div>
-      {!isLast && <div className="absolute top-4 start-[5px] w-px h-full bg-slate-600"></div>}
-      <p className="font-semibold text-white">{milestone.title} - <span className="text-slate-400 font-normal">{milestone.date}</span></p>
-      <p className="text-sm text-slate-500 mt-1">{milestone.description}</p>
+    <div className="relative ps-8 group">
+      <div className={`absolute top-1.5 start-0 w-3 h-3 rounded-full ${statusColor} transition-transform group-hover:scale-125`} title={milestone.status}></div>
+      {!isLast && <div className="absolute top-5 start-[5px] w-px h-full bg-slate-700 group-hover:bg-slate-600 transition-colors"></div>}
+      <p className="font-semibold text-white group-hover:text-sky-300 transition-colors">{milestone.title} <span className="text-slate-500 font-normal text-xs ml-2 border border-slate-700 rounded px-1.5 py-0.5">{milestone.date}</span></p>
+      <p className="text-sm text-slate-400 mt-1 leading-relaxed">{milestone.description}</p>
     </div>
   );
 };
@@ -109,24 +117,26 @@ interface ImpactResults {
 const ImpactCard: React.FC<{ title: string; data: ImpactCategory; icon: React.ReactNode }> = ({ title, data, icon }) => {
     const { theme } = useContext(AppContext)!;
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 h-full flex flex-col">
+        <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-white/5 h-full flex flex-col hover:border-white/10 transition-colors">
             <h3 className={`text-xl font-semibold ${theme.textAccent} mb-4 flex items-center gap-3`}>
-                {icon}
+                <div className="p-2 rounded-lg bg-white/5">
+                    {icon}
+                </div>
                 {title}
             </h3>
             <ul className="space-y-3 mb-4">
                 {data.metrics.map((item, index) => (
-                    <li key={index} className="flex justify-between items-baseline">
-                        <span className="text-slate-300">{item.metric}</span>
+                    <li key={index} className="flex justify-between items-baseline border-b border-white/5 pb-2 last:border-0">
+                        <span className="text-slate-400 text-sm">{item.metric}</span>
                         <span className="font-bold text-white text-lg">
                             {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
-                            <span className="text-sm text-slate-400 ml-1">{item.unit}</span>
+                            <span className="text-xs text-slate-500 ml-1 uppercase">{item.unit}</span>
                         </span>
                     </li>
                 ))}
             </ul>
-            <div className="mt-auto pt-4 border-t border-slate-700/50">
-                <p className="text-sm text-slate-400 whitespace-pre-wrap flex items-start">
+            <div className="mt-auto pt-4 border-t border-white/5">
+                <p className="text-sm text-slate-400 whitespace-pre-wrap flex items-start leading-relaxed">
                      <span className="flex-grow">{data.narrative}</span>
                      <SpeakerIcon text={data.narrative} />
                 </p>
@@ -138,12 +148,18 @@ const ImpactCard: React.FC<{ title: string; data: ImpactCategory; icon: React.Re
 
 const ImpactCalculator: React.FC = () => {
     const { t } = useI18n();
-    const { theme } = useContext(AppContext)!;
+    const { theme, lang } = useContext(AppContext)!;
     const [scale, setScale] = useState<number>(5);
     const [results, setResults] = useState<ImpactResults | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     
+    // Clear results on language change
+    useEffect(() => {
+        setResults(null);
+        setError(null);
+    }, [lang]);
+
     const handleCalculate = async () => {
         setIsLoading(true);
         setError(null);
@@ -168,16 +184,17 @@ const ImpactCalculator: React.FC = () => {
     };
     
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in">
             <h2 className="text-3xl font-bold text-white">{t('impact_calculator_title')}</h2>
              <p className="text-slate-400 max-w-3xl">
                 {t('impact_calculator_description')}
             </p>
             
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4 flex flex-col md:flex-row items-center gap-6">
+            <div className="bg-slate-900/60 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-6 flex flex-col md:flex-row items-center gap-8">
                  <div className="flex-grow w-full md:w-auto">
-                    <label htmlFor="scale-slider" className="block text-sm font-medium text-slate-300 mb-2">
-                        {t('project_scale_mw')}: <span className="font-bold text-white text-lg">{scale} MW</span>
+                    <label htmlFor="scale-slider" className="block text-sm font-medium text-slate-300 mb-4 flex justify-between">
+                        {t('project_scale_mw')} 
+                        <span className="font-bold text-sky-400 text-xl">{scale} MW</span>
                     </label>
                     <input 
                         id="scale-slider"
@@ -187,32 +204,34 @@ const ImpactCalculator: React.FC = () => {
                         step="1"
                         value={scale}
                         onChange={(e) => setScale(Number(e.target.value))}
-                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                        className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500 hover:accent-sky-400 transition-all"
                     />
                  </div>
                  <button 
                     onClick={handleCalculate} 
                     disabled={isLoading} 
-                    className={`w-full md:w-auto flex-shrink-0 px-8 py-3 ${theme.button} ${theme.buttonHover} text-white font-bold rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed`}
+                    className={`w-full md:w-auto flex-shrink-0 px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed`}
                 >
-                    {isLoading ? t('calculating') : t('calculate_impact')}
+                    {isLoading ? (
+                        <div className="flex items-center gap-2">
+                            <Spinner size="sm" className="text-white" />
+                            {t('calculating')}
+                        </div>
+                    ) : t('calculate_impact')}
                  </button>
             </div>
             
-            {error && <p className="text-red-400 text-center">{error}</p>}
+            {error && <p className="text-red-400 text-center bg-red-900/10 p-3 rounded-lg border border-red-900/30">{error}</p>}
 
             {isLoading && (
-                <div className="text-center py-10">
-                    <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p className="mt-4 text-slate-400">{t('calculating_impact')}</p>
+                <div className="text-center py-12">
+                    <Spinner size="xl" className="text-sky-500 mx-auto" />
+                    <p className="mt-4 text-slate-400 animate-pulse">{t('calculating_impact')}</p>
                 </div>
             )}
             
             {results && (
-                <div className="space-y-6">
+                <div className="space-y-6 animate-pop-in">
                     <h3 className="text-2xl font-semibold text-white">{t('impact_results_for', { scale })}</h3>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <ImpactCard 
@@ -258,12 +277,12 @@ const GMELStatementBanner = () => {
     if (!isVisible) return null;
 
     return (
-        <div className={`bg-slate-800 border ${theme.borderAccent}/30 rounded-lg p-6 mb-8 relative animate-fade-in-down`}>
+        <div className={`bg-slate-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-6 mb-8 relative animate-pop-in shadow-[0_0_40px_-15px_rgba(14,165,233,0.15)]`}>
             <button onClick={handleDismiss} className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors" aria-label="Dismiss">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <h2 className={`text-2xl font-bold ${theme.textAccent} mb-4`}>{t('gmel_statement_title')}</h2>
-            <div className="max-h-64 overflow-y-auto pr-4 text-slate-300 text-sm space-y-4 whitespace-pre-wrap">
+            <h2 className={`text-2xl font-bold ${theme.textAccent} mb-4 tracking-tight`}>{t('gmel_statement_title')}</h2>
+            <div className="max-h-64 overflow-y-auto pr-4 text-slate-300 text-sm space-y-4 whitespace-pre-wrap leading-relaxed scrollbar-thin">
                 <p>{t('gmel_statement_body')}</p>
             </div>
         </div>
@@ -278,14 +297,43 @@ export const Dashboard: React.FC = () => {
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
-    const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
+    const [financialData, setFinancialData] = useState<FinancialData[]>([]);
     const [isFinancialLoading, setIsFinancialLoading] = useState(false);
+    const [milestones, setMilestones] = useState<Milestone[]>(PROJECT_MILESTONES);
 
+    // Initial Data Fetch & Language Change Handling
     useEffect(() => {
-        setFinancialData(getFinancialData(region));
+        const fetchInitialData = async () => {
+            setFinancialData([]); 
+            setIsFinancialLoading(true);
+            try {
+                // Fetch Financials
+                if (lang === 'en') {
+                    setFinancialData(getFinancialData(region));
+                } else {
+                    const data = await generateFinancialData(region, lang);
+                    setFinancialData(data);
+                }
+
+                // Fetch Milestones
+                const localMilestones = await generateLocalizedMilestones(lang);
+                setMilestones(localMilestones);
+
+            } catch (e: any) {
+                console.error("Failed to fetch initial dashboard data", e);
+                setFinancialData(getFinancialData(region));
+                if (lang !== 'en') {
+                    setError("Could not retrieve localized data. Displaying English fallback.");
+                }
+            } finally {
+                setIsFinancialLoading(false);
+            }
+        };
+
+        fetchInitialData();
         setSummary('');
         setStrategicAnalysis('');
-    }, [region]);
+    }, [region, lang]); 
 
     const handleRefreshData = async () => {
         setIsFinancialLoading(true);
@@ -309,7 +357,9 @@ export const Dashboard: React.FC = () => {
     };
 
     const chartData = useMemo(() => {
-        return financialData.filter(d => d.unit !== 'Years' && d.unit !== 'Countries').map(d => ({
+        return financialData
+            .filter(d => d.id !== 'payback' && d.id !== 'roi') 
+            .map(d => ({
             name: d.component.split(' ')[0],
             fullName: d.component,
             value: d.value,
@@ -318,48 +368,48 @@ export const Dashboard: React.FC = () => {
         }));
     }, [financialData]);
 
-    const cardIcons: { [key: string]: React.ReactNode } = {
-        'Pilot CAPEX (5MW)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
-        'Annual Revenue (5MW)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
-        'Payback Period': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-        'Return on Investment (ROI)': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14v-4" /></svg>,
-        '10-Year NPV': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+    const cardIcons: Record<string, React.ReactNode> = {
+        'capex': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+        'revenue': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
+        'payback': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+        'roi': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M16 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14v-4" /></svg>,
+        'npv': <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+    };
+
+    const getIconForCard = (id: string) => {
+        return cardIcons[id] || cardIcons['revenue']; // Fallback
     };
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div className={`bg-slate-900 border ${theme.borderAccent} p-3 rounded shadow-xl max-w-xs z-50`}>
-                    <p className={`font-bold ${theme.textAccent}`}>{data.fullName}</p>
+                <div className={`bg-slate-900/90 backdrop-blur-md border border-slate-700 p-4 rounded-lg shadow-2xl max-w-xs z-50`}>
+                    <p className={`font-bold text-sky-400 mb-1`}>{data.fullName}</p>
                     <p className="text-white text-lg font-semibold">
                         {data.value.toLocaleString()} <span className="text-sm text-slate-400">{data.unit.replace('Billion Toman', 'B').replace('Million USD', 'M')}</span>
                     </p>
-                    <p className="text-slate-400 text-xs mt-1 italic">{data.description}</p>
-                    <p className="text-slate-500 text-[10px] mt-2">Click to view detailed financials</p>
+                    <p className="text-slate-400 text-xs mt-2 italic border-t border-slate-700 pt-2">{data.description}</p>
                 </div>
             );
         }
         return null;
     };
 
-    const axisUnit = chartData.length > 0 && chartData[0].unit.includes('USD') ? " M" : " B";
+    const axisUnit = chartData.length > 0 && chartData[0].unit?.includes('USD') ? " M" : " B";
   
     return (
     <div className="space-y-8">
       <GMELStatementBanner />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">{t('dashboard_title', { region })}</h1>
           <button
               onClick={handleRefreshData}
               disabled={isFinancialLoading}
-              className={`flex items-center gap-2 px-4 py-2 ${theme.button} ${theme.buttonHover} text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
+              className={`flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 text-white font-medium rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
           >
               {isFinancialLoading ? (
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                  <Spinner size="sm" className="text-sky-400" />
               ) : (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -369,37 +419,55 @@ export const Dashboard: React.FC = () => {
           </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {financialData.map((item, index) => (
-          <DataCard 
-            key={index}
-            title={item.component}
-            value={`${item.value}${item.unit === 'Billion Toman' ? ' B' : ''}${item.unit === 'Years' ? ' Yrs' : ''}`}
-            description={item.description}
-            icon={cardIcons[item.component] || <div />}
-          />
-        ))}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-sky-400" />
+            Geothermal Potential Metrics
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {isFinancialLoading && financialData.length === 0 ? (
+                [...Array(5)].map((_, i) => (
+                    <div key={i} className="bg-slate-900/60 p-6 rounded-2xl border border-white/5 h-36 flex flex-col justify-between">
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-10 w-3/4" />
+                        <Skeleton className="h-3 w-full" />
+                    </div>
+                ))
+            ) : (
+                financialData.map((item, index) => (
+                <DataCard 
+                    key={item.id}
+                    title={item.component}
+                    subtitle="Regional Economic Indicators"
+                    value={`${item.value}${item.unit === 'Billion Toman' ? ' B' : ''}${item.unit === 'Years' ? ' Yrs' : ''}`}
+                    description={item.description}
+                    icon={getIconForCard(item.id)}
+                />
+                ))
+            )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         <div className="lg:col-span-3 space-y-8">
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                <h2 className="text-xl font-semibold mb-4 text-white flex items-center">
+            <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-lg">
+                <h2 className="text-xl font-semibold mb-6 text-white flex items-center">
                     {t('project_summary')}
                     <SpeakerIcon text={summary} />
                 </h2>
                 {isSummaryLoading ? (
-                    <div className="space-y-2">
-                        <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
-                        <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
-                        <div className="h-4 bg-slate-700 rounded w-3/4 animate-pulse"></div>
+                    <div className="space-y-3">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
+                        <Skeleton className="h-4 w-4/6" />
                     </div>
                 ) : summary ? (
-                    <p className="text-slate-400 text-sm mb-6 whitespace-pre-wrap">{summary}</p>
+                    <p className="text-slate-300 text-sm mb-8 leading-relaxed">{summary}</p>
                 ) : (
-                     <div className="text-center py-4">
-                        <p className="text-slate-500 mb-4">Click the button to generate a project summary for {region}.</p>
-                        <button onClick={fetchSummary} className={`px-4 py-2 ${theme.button} ${theme.buttonHover} text-white font-semibold rounded-lg transition-colors`}>{t('generate_summary')}</button>
+                     <div className="text-center py-8 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
+                        <p className="text-slate-400 mb-4 text-sm">Generate a comprehensive AI summary for {region}.</p>
+                        <button onClick={fetchSummary} className={`px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg transition-all shadow-lg shadow-sky-900/20 text-sm`}>{t('generate_summary')}</button>
                     </div>
                 )}
 
@@ -415,40 +483,41 @@ export const Dashboard: React.FC = () => {
 
 
                 {strategicAnalysis && (
-                    <div className={`mt-6 p-4 bg-slate-900 rounded-lg border ${theme.borderAccent}/30`}>
-                         <h3 className={`font-semibold ${theme.textAccent} mb-2 flex items-center`}>
+                    <div className={`mt-8 p-6 bg-slate-800/50 rounded-xl border border-white/5 animate-fade-in`}>
+                         <h3 className={`font-semibold text-amber-400 mb-3 flex items-center`}>
                             {t('generated_strategic_analysis')}
                             <SpeakerIcon text={strategicAnalysis} />
                          </h3>
-                         <p className="text-slate-300 text-sm whitespace-pre-wrap">{strategicAnalysis}</p>
+                         <p className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{strategicAnalysis}</p>
                          <Feedback sectionId={`strategic-analysis-${region}`} />
                     </div>
                 )}
             </div>
-             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+             <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-lg">
                 <h2 className="text-xl font-semibold mb-6 text-white">{t('project_milestones')}</h2>
-                <div className="space-y-6">
-                    {PROJECT_MILESTONES.map((milestone, index) => (
-                        <MilestoneCard key={index} milestone={milestone} isLast={index === PROJECT_MILESTONES.length - 1} />
+                <div className="space-y-8">
+                    {milestones.map((milestone, index) => (
+                        <MilestoneCard key={index} milestone={milestone} isLast={index === milestones.length - 1} />
                     ))}
                 </div>
             </div>
         </div>
 
-        <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg border border-slate-700 h-full">
-            <h2 className="text-xl font-semibold mb-4 text-white">{t('financial_overview')}</h2>
-            <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
+        <div className="lg:col-span-2 bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 h-full shadow-lg flex flex-col">
+            <h2 className="text-xl font-semibold mb-6 text-white">{t('financial_overview')}</h2>
+            <div className="flex-grow flex items-center justify-center" style={{ minHeight: '300px' }}>
+                <ResponsiveContainer width="100%" height={350}>
                     <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
-                        <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} unit={axisUnit} axisLine={false} tickLine={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(148, 163, 184, 0.1)'}} />
-                        <Legend wrapperStyle={{ color: '#94a3b8' }}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} interval={0} />
+                        <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} unit={axisUnit} axisLine={false} tickLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(255, 255, 255, 0.05)'}} />
+                        <Legend wrapperStyle={{ color: '#94a3b8', paddingTop: '10px' }}/>
                         <Bar 
                             dataKey="value" 
                             name={t('financial_chart_legend')}
                             onClick={() => setActiveView('financials')}
+                            radius={[4, 4, 0, 0]}
                         >
                             {chartData.map((entry, index) => (
                                 <Cell 

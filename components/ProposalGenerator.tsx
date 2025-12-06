@@ -3,12 +3,14 @@ import React, { useState, useContext, useEffect } from 'react';
 import { generateGroundedText, generateTextWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
-import { KKM_LOGO_DATA_URL } from '../constants';
+import { KKM_LOGO_DATA_URL, ALL_REGIONS } from '../constants';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
 import { canEdit } from '../utils/permissions';
 import { extractJson } from '../utils/helpers';
+import { Spinner } from './shared/Loading';
+import { AuditService } from '../services/auditService';
 
 interface ProposalData {
     gmel_proposal: {
@@ -29,17 +31,17 @@ interface ProposalData {
 
 const ProposalSection: React.FC<{ title: string; content: string | string[]; }> = ({ title, content }) => {
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-xl border border-white/10 hover:border-sky-500/20 transition-all">
             <h3 className="text-xl font-semibold text-sky-400 mb-3 flex items-center">
                 {title}
                 <SpeakerIcon text={Array.isArray(content) ? content.join(', ') : content} />
             </h3>
             {Array.isArray(content) ? (
-                 <ul className="list-disc list-inside text-slate-300 space-y-1">
-                    {content.map((item, index) => <li key={index}>{item}</li>)}
+                 <ul className="list-disc list-inside text-slate-300 space-y-2">
+                    {content.map((item, index) => <li key={index} className="leading-relaxed">{item}</li>)}
                 </ul>
             ) : (
-                <p className="text-slate-300 whitespace-pre-wrap">{content}</p>
+                <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">{content}</p>
             )}
         </div>
     )
@@ -47,7 +49,7 @@ const ProposalSection: React.FC<{ title: string; content: string | string[]; }> 
 
 
 export const ProposalGenerator: React.FC = () => {
-    const { lang, userRole, setError } = useContext(AppContext)!;
+    const { lang, userRole, setError, supportedLangs, currentUser } = useContext(AppContext)!;
     const { t } = useI18n();
     const userCanEdit = canEdit(userRole, 'proposal_generator');
     const [targetRegion, setTargetRegion] = useState<Region>('Kurdistan Region, Iraq');
@@ -58,17 +60,18 @@ export const ProposalGenerator: React.FC = () => {
     useEffect(() => {
         setProposalData(null);
         setError(null);
-    }, [targetRegion, setError]);
+    }, [targetRegion, lang, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setProposalData(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         
         try {
             // Step 1: Generate the grounded regional analysis.
             setGenerationProgress('Generating Regional Analysis...');
-            const regionalAnalysisPrompt = t('regional_analysis_prompt', { region: targetRegion });
+            const regionalAnalysisPrompt = t('regional_analysis_prompt', { region: targetRegion, language: langName });
             const groundedResult = await generateGroundedText(regionalAnalysisPrompt);
             if (!groundedResult.text) throw new Error("Regional Analysis generation failed.");
             const regionalAnalysisContent = groundedResult.text;
@@ -87,7 +90,7 @@ export const ProposalGenerator: React.FC = () => {
             // Enriched context with specific GMEL details to guide the AI
             const context = `Context: You are writing a section of a formal project proposal for the GMEL (GeoMeta Energy Layer) project, targeting ${targetRegion}. 
             GMEL is a cutting-edge closed-loop geothermal ecosystem featuring superhot rock drilling, proprietary nanofluids, and integrated solutions for desalination, hydrogen production, and lithium extraction.
-            The language must be ${lang}. Use the following regional analysis to inform your writing:\n\n${regionalAnalysisContent}\n\n---\n\n`;
+            The language must be ${langName}. Use the following regional analysis to inform your writing:\n\n${regionalAnalysisContent}\n\n---\n\n`;
 
             const generateSection = async (title: string, prompt: string) => {
                 setGenerationProgress(`Generating ${title}...`);
@@ -102,10 +105,12 @@ export const ProposalGenerator: React.FC = () => {
             baseProposal.risk_and_roadmap = await generateSection('Risk & Roadmap', 'Write the "Risk & Roadmap" section. Analyze the key risks (political, economic, technical) and propose a high-level project implementation roadmap with major phases.');
             
             setProposalData({ gmel_proposal: baseProposal });
+            AuditService.log(currentUser || 'user', 'PROPOSAL_GENERATED', `Generated full proposal for ${targetRegion}`);
 
         } catch(e: any) {
             setError(e.message || t('error_generating_proposal'));
             console.error("Failed to generate proposal:", e);
+            AuditService.log(currentUser || 'user', 'PROPOSAL_GENERATION_FAILED', e.message, 'FAILURE');
         } finally {
             setIsLoading(false);
             setGenerationProgress(null);
@@ -195,42 +200,43 @@ export const ProposalGenerator: React.FC = () => {
     
 
     return (
-        <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-white">{t('proposal_generator_title')}</h1>
-            <p className="text-slate-400 max-w-3xl">
-                {t('proposal_generator_description')}
-            </p>
-            <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4">
+        <div className="space-y-8 animate-fade-in">
+            <div>
+                <h1 className="text-3xl font-bold text-white">{t('proposal_generator_title')}</h1>
+                <p className="text-slate-400 max-w-3xl mt-2 leading-relaxed">
+                    {t('proposal_generator_description')}
+                </p>
+            </div>
+
+            <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 space-y-4 shadow-lg">
                 <div className="max-w-md">
-                    <label htmlFor="target-region" className="block text-sm font-medium text-slate-300">{t('select_proposal_region')}</label>
-                    <select id="target-region" value={targetRegion} onChange={(e) => setTargetRegion(e.target.value as Region)} className="mt-1 w-full bg-slate-700 border-slate-600 rounded-md text-white font-semibold">
-                        <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
-                        <option value="Qeshm Free Zone">Qeshm Free Zone</option>
-                        <option value="Makoo Free Zone">Makoo Free Zone</option>
+                    <label htmlFor="target-region" className="block text-sm font-medium text-slate-300 mb-2">{t('select_proposal_region')}</label>
+                    <select id="target-region" value={targetRegion} onChange={(e) => setTargetRegion(e.target.value as Region)} className="w-full bg-slate-800 border-slate-700 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-white font-medium py-2.5">
+                        {ALL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                 </div>
                  <button 
                     onClick={handleGenerate} 
                     disabled={isLoading || !userCanEdit} 
-                    title={!userCanEdit ? "You have view-only access for this module." : ""}
-                    className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 px-6 rounded-lg transition-all shadow-lg shadow-sky-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed"
                 >
+                    {isLoading && <Spinner size="sm" className="text-white" />}
                     {isLoading ? t('generating_proposal') : t('generate_proposal')}
                 </button>
             </div>
             
             {isLoading && (
-                 <div className="text-center py-10">
-                    <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <p className="mt-4 text-slate-400 font-semibold">{generationProgress || t('generating_proposal')}</p>
-                    <p className="mt-1 text-sm text-slate-500">This may take a minute as multiple AI models collaborate...</p>
+                 <div className="text-center py-16 bg-slate-900/30 rounded-xl border border-dashed border-slate-700/50">
+                    <Spinner size="xl" className="text-sky-500 mx-auto" />
+                    <p className="mt-6 text-lg font-medium text-white">{generationProgress || t('generating_proposal')}</p>
+                    <p className="mt-2 text-sm text-slate-400">This process involves multiple AI models working in parallel. Please wait...</p>
                 </div>
             )}
             
             {proposalData && (
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-semibold text-white">{t('generated_proposal_title', { region: proposalData.gmel_proposal.region })}</h2>
+                <div className="space-y-6 animate-pop-in">
+                    <div className="flex justify-between items-center bg-slate-900/80 p-4 rounded-xl border border-white/10">
+                        <h2 className="text-2xl font-bold text-white tracking-tight">{t('generated_proposal_title', { region: proposalData.gmel_proposal.region })}</h2>
                         {userRole === 'admin' && (
                             <ExportButtons 
                                 content={getProposalAsText()}
@@ -239,15 +245,17 @@ export const ProposalGenerator: React.FC = () => {
                             />
                         )}
                     </div>
-                    <ProposalSection title={t('executive_summary')} content={proposalData.gmel_proposal.executive_summary} />
-                    <ProposalSection title={t('regional_analysis')} content={proposalData.gmel_proposal.regional_analysis} />
-                    <ProposalSection title={t('technical_modeling')} content={proposalData.gmel_proposal.technical_modeling} />
-                    <ProposalSection title={t('financial_analysis')} content={proposalData.gmel_proposal.financial_analysis} />
-                    <ProposalSection title={t('innovation_and_patent_layer')} content={proposalData.gmel_proposal.innovation_and_patent_layer} />
-                    <ProposalSection title={t('strategy_model')} content={proposalData.gmel_proposal.strategy_model} />
-                    <ProposalSection title={t('risk_and_roadmap')} content={proposalData.gmel_proposal.risk_and_roadmap} />
-                    <ProposalSection title={t('gmel_patent_reference')} content={proposalData.gmel_proposal.gmel_patent_reference} />
-                    <ProposalSection title={t('ownership_statement')} content={proposalData.gmel_proposal.ownership_statement} />
+                    <div className="space-y-6">
+                        <ProposalSection title={t('executive_summary')} content={proposalData.gmel_proposal.executive_summary} />
+                        <ProposalSection title={t('regional_analysis')} content={proposalData.gmel_proposal.regional_analysis} />
+                        <ProposalSection title={t('technical_modeling')} content={proposalData.gmel_proposal.technical_modeling} />
+                        <ProposalSection title={t('financial_analysis')} content={proposalData.gmel_proposal.financial_analysis} />
+                        <ProposalSection title={t('innovation_and_patent_layer')} content={proposalData.gmel_proposal.innovation_and_patent_layer} />
+                        <ProposalSection title={t('strategy_model')} content={proposalData.gmel_proposal.strategy_model} />
+                        <ProposalSection title={t('risk_and_roadmap')} content={proposalData.gmel_proposal.risk_and_roadmap} />
+                        <ProposalSection title={t('gmel_patent_reference')} content={proposalData.gmel_proposal.gmel_patent_reference} />
+                        <ProposalSection title={t('ownership_statement')} content={proposalData.gmel_proposal.ownership_statement} />
+                    </div>
                 </div>
             )}
 

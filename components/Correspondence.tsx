@@ -1,4 +1,5 @@
-import React, { useState, useContext, useRef } from 'react';
+
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { generateText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -18,6 +19,11 @@ export const Correspondence: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [letterNumber, setLetterNumber] = useState(`KKM-GMEL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);
     const letterRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setGeneratedLetter('');
+        setError(null);
+    }, [lang, setError]); // Added lang to clear on language change
 
     const handleGenerate = async () => {
         if (!recipient || !subject || !prompt) return;

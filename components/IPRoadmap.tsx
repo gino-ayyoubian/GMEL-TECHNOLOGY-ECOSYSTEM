@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useContext, useEffect, useRef } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { generateGroundedText } from '../services/geminiService';
+import { generateGroundedText, generateLocalizedPatents } from '../services/geminiService';
 import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
@@ -10,6 +10,8 @@ import { PatentInfographic } from './PatentInfographic';
 import ExportButtons from './shared/ExportButtons';
 import { AppContext } from '../contexts/AppContext';
 import { extractJson } from '../utils/helpers';
+import { Spinner } from './shared/Loading';
+import { AuditService } from '../services/auditService';
 
 interface PatentOverlap {
     patent_identifier: string;
@@ -28,7 +30,7 @@ interface AnalysisResult {
 }
 
 const CompetitiveAnalysis: React.FC = () => {
-    const { lang, setError } = useContext(AppContext)!;
+    const { lang, setError, currentUser } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -55,48 +57,45 @@ const CompetitiveAnalysis: React.FC = () => {
             const parsed = extractJson(result.text);
             if (parsed && parsed.potential_overlaps && parsed.legal_strategy) {
                 setAnalysis(parsed);
+                AuditService.log(currentUser || 'user', 'PATENT_ANALYSIS', 'Successfully generated competitive analysis');
             } else {
                 console.warn("Could not parse JSON from patent analysis response. Displaying raw text.");
                 setAnalysis({
                     potential_overlaps: [],
                     legal_strategy: result.text || t('no_overlaps_found')
                 });
+                AuditService.log(currentUser || 'user', 'PATENT_ANALYSIS', 'Generated unstructured analysis');
             }
         } catch (e: any) {
             setError(e.message || "Failed to generate patent analysis.");
+            AuditService.log(currentUser || 'user', 'PATENT_ANALYSIS_FAILED', e.message, 'FAILURE');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10">
             <h2 className="text-2xl font-semibold text-white">{t('competitive_patent_analysis_title')}</h2>
             <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('competitive_patent_analysis_desc')}</p>
             <button
                 onClick={handleRunAnalysis}
                 disabled={isLoading}
-                className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800/50 disabled:cursor-not-allowed"
             >
+                {isLoading && <Spinner size="sm" className="text-white" />}
                 {isLoading ? t('analyzing_patents') : t('run_patent_analysis_button')}
             </button>
-
-            {isLoading && (
-                 <div className="text-center py-10">
-                    <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <p className="mt-4 text-slate-400">{t('analyzing_patents')}</p>
-                </div>
-            )}
             
             {analysis && (
-                <div className="mt-6 space-y-6">
+                <div className="mt-6 space-y-6 animate-fade-in">
                     <ExportButtons content={JSON.stringify(analysis, null, 2)} title="Competitive_Patent_Analysis" />
                     {analysis.potential_overlaps.length > 0 && (
                         <div>
                             <h3 className="text-xl font-semibold text-white mb-4">{t('potential_overlaps_title')}</h3>
                             <div className="space-y-4">
                                 {analysis.potential_overlaps.map((overlap, index) => (
-                                    <div key={index} className="bg-slate-900/70 p-4 rounded-lg border border-slate-700">
+                                    <div key={index} className="bg-slate-900/80 p-4 rounded-lg border border-white/5 hover:border-sky-500/30 transition-colors">
                                         <h4 className="font-bold text-sky-400">{overlap.title}</h4>
                                         <p className="text-sm text-slate-400">
                                             <span className="font-semibold">Assignee:</span> {overlap.assignee} | <span className="font-semibold">Date:</span> {overlap.publication_date || 'N/A'}
@@ -110,8 +109,8 @@ const CompetitiveAnalysis: React.FC = () => {
                                             </a>
                                         )}
                                         <p className="text-sm mt-2 text-slate-300">{overlap.summary}</p>
-                                        <p className="text-sm mt-2 p-2 bg-amber-900/50 rounded border border-amber-700/50">
-                                            <span className="font-semibold text-amber-300">Potential Overlap with {overlap.potential_overlap_with_gmel}:</span> {overlap.overlap_description}
+                                        <p className="text-sm mt-2 p-2 bg-amber-900/20 rounded border border-amber-500/20">
+                                            <span className="font-semibold text-amber-300">Potential Overlap with {overlap.potential_overlap_with_gmel}:</span> <span className="text-slate-300">{overlap.overlap_description}</span>
                                         </p>
                                     </div>
                                 ))}
@@ -123,7 +122,7 @@ const CompetitiveAnalysis: React.FC = () => {
                             {t('legal_strategy_title')}
                             <SpeakerIcon text={analysis.legal_strategy} />
                         </h3>
-                         <p className="text-slate-300 whitespace-pre-wrap">{analysis.legal_strategy}</p>
+                         <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">{analysis.legal_strategy}</p>
                     </div>
                     <Feedback sectionId="competitive-patent-analysis" />
                 </div>
@@ -148,7 +147,7 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
         Strategic: 'bg-purple-400',
     };
 
-    const hasTechPage = true; // All patents now have tech pages in Rev 2.0
+    const hasTechPage = true; 
 
     const handleNavigate = () => {
         if (hasTechPage) {
@@ -158,7 +157,7 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
     };
 
     return (
-        <div className={`group flex flex-col bg-slate-800 p-4 rounded-lg border-l-4 transition-all duration-200 ${isSelected ? 'ring-2 ring-sky-400' : levelColors[patent.level]} h-full relative`}>
+        <div className={`group flex flex-col bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border-l-4 transition-all duration-300 hover:-translate-y-1 ${isSelected ? 'ring-2 ring-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]' : levelColors[patent.level]} h-full relative`}>
             <div className="flex-grow">
                 <div 
                     className={`flex justify-between items-start ${hasTechPage ? 'cursor-pointer hover:opacity-80' : ''}`}
@@ -169,7 +168,6 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
                 </div>
                 <p className="text-sm text-slate-400 mt-2 line-clamp-3">{patent.application}</p>
                 
-                {/* Tooltip on Hover */}
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute left-0 bottom-full mb-2 w-full bg-slate-900 border border-slate-600 p-3 rounded shadow-xl z-20 pointer-events-none">
                     <p className="text-xs text-white">{patent.application}</p>
                     {hasTechPage && <p className="text-[10px] text-sky-400 mt-1 italic">Click title to view technical details</p>}
@@ -189,8 +187,8 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
                     </label>
                     <span className="font-semibold text-slate-300 text-xs">{patent.progress}%</span>
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div className={`${progressColor[patent.level]} h-2 rounded-full`} style={{ width: `${patent.progress}%` }}></div>
+                <div className="w-full bg-slate-700 rounded-full h-1.5">
+                    <div className={`${progressColor[patent.level]} h-1.5 rounded-full`} style={{ width: `${patent.progress}%` }}></div>
                 </div>
             </div>
         </div>
@@ -217,7 +215,7 @@ const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({
     
     return (
          <div 
-            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in" 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" 
             onClick={onClose}
             role="dialog"
             aria-modal="true"
@@ -225,28 +223,28 @@ const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({
         >
             <div 
                 ref={modalRef}
-                className="bg-slate-800 border border-slate-700 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col outline-none" 
+                className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col outline-none shadow-2xl" 
                 onClick={e => e.stopPropagation()}
                 tabIndex={-1}
             >
-                <div className="flex justify-between items-center p-4 border-b border-slate-700">
+                <div className="flex justify-between items-center p-6 border-b border-white/5">
                     <h2 id="modal-title" className="text-xl font-bold text-white">{t('patent_comparison_title')}</h2>
                     <button 
                         onClick={onClose} 
-                        className="text-slate-400 hover:text-white p-2 rounded focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
                         aria-label="Close"
                     >
                         &times;
                     </button>
                 </div>
-                <div className="overflow-auto" tabIndex={0} role="region" aria-label={t('patent_comparison_title')}>
+                <div className="overflow-auto p-6 scrollbar-thin" tabIndex={0} role="region" aria-label={t('patent_comparison_title')}>
                      <table className="w-full text-sm text-left text-slate-400">
                         <caption className="sr-only">{t('patent_comparison_title')} Table</caption>
-                        <thead className="text-xs text-slate-300 uppercase bg-slate-700/50 sticky top-0">
+                        <thead className="text-xs text-slate-300 uppercase bg-slate-800/50">
                             <tr>
-                                <th scope="col" className="px-6 py-3 w-1/6 min-w-[150px] bg-slate-800/90 backdrop-blur">{t('metric')}</th>
-                                {patents.map(p => (
-                                    <th key={p.code} scope="col" className="px-6 py-3 min-w-[200px] bg-slate-800/90 backdrop-blur">
+                                <th scope="col" className="px-6 py-3 w-1/6 min-w-[150px] rounded-tl-lg">{t('metric')}</th>
+                                {patents.map((p, idx) => (
+                                    <th key={p.code} scope="col" className={`px-6 py-3 min-w-[200px] ${idx === patents.length -1 ? 'rounded-tr-lg' : ''}`}>
                                         {p.title}
                                     </th>
                                 ))}
@@ -254,21 +252,19 @@ const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({
                         </thead>
                         <tbody>
                             {fields.map(field => (
-                                <tr key={field} className="bg-slate-800 border-b border-slate-700 hover:bg-slate-700/50">
-                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap capitalize sticky left-0 bg-slate-800">{field}</th>
+                                <tr key={field} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap capitalize bg-slate-900/50">{field}</th>
                                     {patents.map(p => (
                                         <td key={p.code} className="px-6 py-4 align-top">
-                                            {field === 'progress' ? `${p[field]}%` : (
-                                                field === 'application' ? (
-                                                    <div className="group relative" tabIndex={0} role="note" aria-label="Application details">
-                                                        <span className="truncate block max-w-[200px] cursor-help border-b border-dotted border-slate-600">{p[field]}</span>
-                                                        <div className="opacity-0 group-hover:opacity-100 group-focus:opacity-100 absolute left-0 bottom-full mb-2 w-64 p-2 bg-slate-900 border border-slate-600 rounded shadow-lg text-xs z-10 pointer-events-none transition-opacity">
-                                                            {p[field]}
-                                                        </div>
+                                            {field === 'progress' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-full bg-slate-700 rounded-full h-1.5 max-w-[100px]">
+                                                        <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${p[field]}%` }}></div>
                                                     </div>
-                                                ) : (
-                                                    p[field] || 'N/A'
-                                                )
+                                                    <span className="text-xs">{p[field]}%</span>
+                                                </div>
+                                            ) : (
+                                                p[field] || 'N/A'
                                             )}
                                         </td>
                                     ))}
@@ -284,6 +280,7 @@ const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({
 
 export const IPRoadmap: React.FC = () => {
     const { t } = useI18n();
+    const { lang } = useContext(AppContext)!;
     const [searchQuery, setSearchQuery] = useState('');
     const [levelFilter, setLevelFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -291,12 +288,28 @@ export const IPRoadmap: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'graph'>('grid');
     const [comparisonSelection, setComparisonSelection] = useState<string[]>([]);
     const [showComparisonModal, setShowComparisonModal] = useState(false);
+    
+    const [patents, setPatents] = useState<Patent[]>([CORE_PATENT, ...PATENT_PORTFOLIO]);
+    const [isPatentsLoading, setIsPatentsLoading] = useState(false);
 
-
-    const allPatents = useMemo(() => [CORE_PATENT, ...PATENT_PORTFOLIO], []);
+    useEffect(() => {
+        const fetchPatents = async () => {
+            setIsPatentsLoading(true);
+            try {
+                const localizedPatents = await generateLocalizedPatents(lang);
+                setPatents(localizedPatents);
+            } catch (e) {
+                console.error("Failed to fetch localized patents:", e);
+                setPatents([CORE_PATENT, ...PATENT_PORTFOLIO]); 
+            } finally {
+                setIsPatentsLoading(false);
+            }
+        };
+        fetchPatents();
+    }, [lang]);
 
     const filteredAndSortedPatents = useMemo(() => {
-        let patents = allPatents.filter(p => {
+        let filtered = patents.filter(p => {
             const searchMatch = searchQuery.length > 2 ? 
                 p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -306,17 +319,16 @@ export const IPRoadmap: React.FC = () => {
             return searchMatch && levelMatch && statusMatch;
         });
 
-        patents.sort((a, b) => {
+        filtered.sort((a, b) => {
             if (sortBy === 'title') return a.title.localeCompare(b.title);
             if (sortBy === 'status') return a.status.localeCompare(b.status);
             if (sortBy === 'progress') return b.progress - a.progress;
-            // Default sort by level
             const levelOrder = { 'Core': 0, 'Derivatives': 1, 'Applied': 2, 'Strategic': 3 };
             return levelOrder[a.level] - levelOrder[b.level];
         });
 
-        return patents;
-    }, [searchQuery, levelFilter, statusFilter, sortBy, allPatents]);
+        return filtered;
+    }, [searchQuery, levelFilter, statusFilter, sortBy, patents]);
     
     const handleSelectForComparison = (code: string) => {
         setComparisonSelection(prev => 
@@ -325,34 +337,35 @@ export const IPRoadmap: React.FC = () => {
     };
 
     const patentsForComparison = useMemo(() => 
-        allPatents.filter(p => comparisonSelection.includes(p.code)),
-        [comparisonSelection, allPatents]
+        patents.filter(p => comparisonSelection.includes(p.code)),
+        [comparisonSelection, patents]
     );
 
     return (
-        <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-white">{t('ip_roadmap_title')}</h1>
-            <p className="text-slate-400 max-w-3xl">{t('ip_roadmap_description')}</p>
-
-            {/* View Mode Toggle */}
-            <div className="flex justify-center bg-slate-800 p-1 rounded-lg max-w-xs mx-auto">
-                <button
-                    onClick={() => setViewMode('grid')}
-                    className={`px-4 py-2 text-sm font-semibold rounded-md w-1/2 ${viewMode === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-slate-700'}`}
-                >
-                    {t('grid_view')}
-                </button>
-                <button
-                    onClick={() => setViewMode('graph')}
-                    className={`px-4 py-2 text-sm font-semibold rounded-md w-1/2 ${viewMode === 'graph' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-slate-700'}`}
-                >
-                    {t('graph_view')}
-                </button>
+        <div className="space-y-8 animate-fade-in">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">{t('ip_roadmap_title')}</h1>
+                    <p className="text-slate-400 mt-1">{t('ip_roadmap_description')}</p>
+                </div>
+                <div className="flex bg-slate-900 p-1 rounded-lg border border-white/10">
+                    <button
+                        onClick={() => setViewMode('grid')}
+                        className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${viewMode === 'grid' ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                    >
+                        {t('grid_view')}
+                    </button>
+                    <button
+                        onClick={() => setViewMode('graph')}
+                        className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${viewMode === 'graph' ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                    >
+                        {t('graph_view')}
+                    </button>
+                </div>
             </div>
             
-            {/* Common Comparison Control (visible in both views if selection exists) */}
             {comparisonSelection.length > 0 && (
-                <div className="fixed bottom-8 right-8 z-50 flex items-center gap-4 bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-2xl animate-fade-in-up">
+                <div className="fixed bottom-8 right-8 z-50 flex items-center gap-4 bg-slate-900/90 backdrop-blur-xl border border-sky-500/30 p-4 rounded-xl shadow-2xl animate-pop-in">
                     <div className="flex flex-col">
                         <p className="text-sm font-bold text-white">Compare {comparisonSelection.length} Patents</p>
                         <p className="text-xs text-slate-400">Select at least 2</p>
@@ -361,13 +374,13 @@ export const IPRoadmap: React.FC = () => {
                         <button 
                             onClick={() => setShowComparisonModal(true)} 
                             disabled={comparisonSelection.length < 2}
-                            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-bold transition-colors shadow-lg"
+                            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg"
                         >
                             {t('compare_selected')}
                         </button>
                         <button 
                             onClick={() => setComparisonSelection([])} 
-                            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors"
+                            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm transition-colors border border-white/10"
                             aria-label="Clear selection"
                         >
                             &times;
@@ -376,18 +389,23 @@ export const IPRoadmap: React.FC = () => {
                 </div>
             )}
 
-            {viewMode === 'grid' && (
+            {isPatentsLoading ? (
+                <div className="flex justify-center py-20">
+                    <div className="text-center">
+                        <Spinner size="xl" className="text-sky-500 mx-auto" />
+                        <p className="mt-4 text-slate-400 animate-pulse">Updating Roadmap Language...</p>
+                    </div>
+                </div>
+            ) : viewMode === 'grid' ? (
                 <>
-                    {/* Filtering and Sorting Controls */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-800 rounded-lg">
+                    <div className="p-4 bg-slate-900/60 backdrop-blur-md rounded-xl border border-white/10">
                         <input
                             type="text"
                             placeholder={t('search_placeholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-slate-700 border-slate-600 rounded-md text-slate-200 placeholder-slate-400 focus:ring-sky-500 focus:border-sky-500"
+                            className="w-full bg-slate-800 border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all py-2 px-4"
                         />
-                        {/* Additional filters can be added here */}
                     </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredAndSortedPatents.map(patent => (
@@ -400,11 +418,10 @@ export const IPRoadmap: React.FC = () => {
                         ))}
                     </div>
                 </>
-            )}
-
-            {viewMode === 'graph' && (
-                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 overflow-x-auto min-h-[600px]">
+            ) : (
+                <div className="bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-white/10 overflow-x-auto min-h-[600px]">
                     <PatentInfographic 
+                        patents={patents}
                         selectedPatents={comparisonSelection}
                         onToggleSelection={handleSelectForComparison}
                     />

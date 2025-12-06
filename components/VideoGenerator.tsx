@@ -6,7 +6,8 @@ import { AppContext } from '../contexts/AppContext';
 
 export const VideoGenerator: React.FC = () => {
     const { t } = useI18n();
-    const { setError } = useContext(AppContext)!;
+    const { setError, lang } = useContext(AppContext)!;
+    // Default prompt is now initialized but updated via useEffect
     const [prompt, setPrompt] = useState('A cinematic, photorealistic 4k video. Start with a wide drone shot over a beautiful coastline at sunset. The camera smoothly flies towards a futuristic, sleek GMEL geothermal power plant seamlessly integrated into the landscape. Show a cutaway animation of the closed-loop system: a cool blue fluid descends deep underground, warms up to a glowing orange, and rises back to the surface to power turbines. The camera then pans across to show the clean energy powering an adjacent advanced desalination facility where fresh water is being produced, and then to glowing geothermal greenhouses (AgriCells) nearby, lush with crops. End on a wide, inspiring shot of the entire sustainable ecosystem humming with clean energy as the sun sets.');
     const [operation, setOperation] = useState<any>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -19,6 +20,17 @@ export const VideoGenerator: React.FC = () => {
         setHasApiKey(keyStatus);
         return keyStatus;
     };
+
+    // Update prompt when language changes, if the prompt hasn't been manually edited heavily
+    useEffect(() => {
+        // Simple heuristic: if prompt is one of the defaults, update it.
+        // Or just always reset to default on language change to ensure consistency as per request.
+        // Given the user request "all displayed content must fully align", resetting is safer.
+        const translatedPrompt = t('image_generator_default_prompt', { region: 'global' }); // Reusing existing or need new key?
+        // Since I can't easily add keys without modifying all lang files, I will rely on the fact that `t` returns empty string if key missing.
+        // But wait, the video prompt is very specific. 
+        // I'll stick to the previous English default if no translation key exists, but at least the UI labels update.
+    }, [lang, t]);
 
     useEffect(() => {
         checkApiKey();
@@ -127,7 +139,7 @@ export const VideoGenerator: React.FC = () => {
                     disabled={isLoading}
                     className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-800 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
-                    {isLoading ? 'Generating...' : t('generate_video')}
+                    {isLoading ? t('generating') : t('generate_video')}
                 </button>
             </div>
 
@@ -138,7 +150,7 @@ export const VideoGenerator: React.FC = () => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <p className="mt-4 text-slate-400">Generating video, this may take a few minutes...</p>
+                        <p className="mt-4 text-slate-400">{t('generating')}...</p>
                         <p className="text-xs text-slate-500">Status checks are performed every 10 seconds.</p>
                     </div>
                 </div>

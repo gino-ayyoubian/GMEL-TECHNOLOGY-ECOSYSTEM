@@ -11,7 +11,8 @@ export interface Patent {
 }
 
 export interface FinancialData {
-  component: string;
+  id: string; // Stable ID for logic (e.g., 'capex', 'revenue')
+  component: string; // Display label (translated)
   value: number;
   unit: string;
   description: string;
@@ -36,8 +37,8 @@ export type Region =
   | 'United Arab Emirates' 
   | 'Qatar'
   | 'Iceland'
-  | 'Turkey (Denizli/Aydin)'
-  | 'USA (California\'s Salton Sea)'
+  | 'Turkey (Geothermal Belt)'
+  | 'USA (Salton Sea)'
   | 'Germany (Bavaria)';
 
 export type UserRole = 'admin' | 'manager' | 'guest' | 'member' | 'team' | 'client';

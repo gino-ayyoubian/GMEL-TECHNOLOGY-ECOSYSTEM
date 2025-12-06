@@ -9,6 +9,7 @@ import ExportButtons from './shared/ExportButtons';
 import { AppContext } from '../contexts/AppContext';
 import { canEdit } from '../utils/permissions';
 import { extractJson } from '../utils/helpers';
+import { ALL_REGIONS } from '../constants';
 
 interface StrategyResult {
     optimal_patent_package: string;
@@ -20,7 +21,7 @@ interface StrategyResult {
 
 export const StrategyModeler: React.FC = () => {
     const { t } = useI18n();
-    const { setError, userRole } = useContext(AppContext)!;
+    const { setError, userRole, supportedLangs, lang } = useContext(AppContext)!;
     const userCanEdit = canEdit(userRole, 'strategy_modeler');
     const [targetRegion, setTargetRegion] = useState<Region>('Iranian Kurdistan');
     const [strategy, setStrategy] = useState<StrategyResult | null>(null);
@@ -29,15 +30,16 @@ export const StrategyModeler: React.FC = () => {
     useEffect(() => {
         setStrategy(null);
         setError(null);
-    }, [targetRegion, setError]);
+    }, [targetRegion, lang, setError]); // Added lang to clear on language change
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
         setStrategy(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
 
         try {
-            const prompt = t('strategy_modeler_prompt', { region: targetRegion });
+            const prompt = t('strategy_modeler_prompt', { region: targetRegion, language: langName });
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.optimal_patent_package) {
@@ -83,14 +85,7 @@ export const StrategyModeler: React.FC = () => {
                         onChange={(e) => setTargetRegion(e.target.value as Region)}
                         className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 text-white font-semibold"
                     >
-                        <option value="Iranian Kurdistan">Iranian Kurdistan</option>
-                        <option value="Kurdistan Region, Iraq">Kurdistan Region, Iraq</option>
-                        <option value="Qeshm Free Zone">Qeshm Free Zone</option>
-                        <option value="Makoo Free Zone">Makoo Free Zone</option>
-                        <option value="Chabahar Free Zone">Chabahar Free Zone</option>
-                        <option value="Mahabad">Mahabad</option>
-                        <option value="Oman">Oman</option>
-                        <option value="Saudi Arabia">Saudi Arabia</option>
+                        {ALL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                 </div>
                 <button
