@@ -10,6 +10,7 @@ import { AuditService } from '../services/auditService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FinancialData, Region } from '../types';
 import { ALL_REGIONS } from '../constants';
+import { Info } from 'lucide-react';
 
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
@@ -39,6 +40,13 @@ const REGION_METADATA: Record<string, { potential: 'High' | 'Medium' | 'Low', st
     'Qeshm Free Zone': { potential: 'Medium', stability: 'Medium', infrastructure: 'Developing' },
     'Makoo Free Zone': { potential: 'Medium', stability: 'Medium', infrastructure: 'Developing' },
     'Kurdistan Region, Iraq': { potential: 'Medium', stability: 'Medium', infrastructure: 'Basic' },
+    'Chabahar Free Zone': { potential: 'Medium', stability: 'Medium', infrastructure: 'Developing' },
+    'Iranian Kurdistan': { potential: 'Medium', stability: 'Medium', infrastructure: 'Basic' },
+    'Mahabad': { potential: 'Medium', stability: 'Medium', infrastructure: 'Developing' },
+    'Oman': { potential: 'High', stability: 'High', infrastructure: 'Ready' },
+    'Saudi Arabia': { potential: 'High', stability: 'High', infrastructure: 'Ready' },
+    'United Arab Emirates': { potential: 'Medium', stability: 'High', infrastructure: 'Ready' },
+    'Qatar': { potential: 'Low', stability: 'High', infrastructure: 'Ready' }
 };
 
 interface ComparisonResult {
@@ -125,6 +133,8 @@ export const Benchmark: React.FC = () => {
 
             filteredRegions.forEach(regionName => {
                 const coords = regionCoordinates[regionName];
+                const meta = REGION_METADATA[regionName] || { potential: 'Unknown', stability: 'Unknown', infrastructure: 'Unknown' };
+                
                 if (coords) {
                     const marker = L.marker(coords).addTo(mapRef.current);
                     
@@ -132,6 +142,24 @@ export const Benchmark: React.FC = () => {
                     marker.on('click', () => {
                         setSelectedMapRegion(regionName);
                         mapRef.current.setView(coords, 6);
+                    });
+
+                    // Enhanced Tooltip on Hover
+                    const tooltipContent = `
+                        <div class="p-3 min-w-[150px]">
+                            <h3 class="font-bold text-sky-400 text-xs uppercase tracking-wider mb-2" style="margin-bottom: 8px;">${regionName}</h3>
+                            <div style="display: grid; grid-template-columns: auto auto; gap: 4px; font-size: 10px; color: #cbd5e1;">
+                                <span>Potential:</span> <span style="color: white; font-weight: 500;">${meta.potential}</span>
+                                <span>Stability:</span> <span style="color: white; font-weight: 500;">${meta.stability}</span>
+                                <span>Infra:</span> <span style="color: white; font-weight: 500;">${meta.infrastructure}</span>
+                            </div>
+                        </div>
+                    `;
+                    marker.bindTooltip(tooltipContent, {
+                        className: 'leaflet-tooltip-dark',
+                        direction: 'top',
+                        offset: [0, -35],
+                        opacity: 1
                     });
 
                     // Highlight selected regions visually
@@ -236,6 +264,19 @@ export const Benchmark: React.FC = () => {
         return null;
     };
 
+    const SourceTooltip = () => (
+        <div className="relative group inline-flex items-center ml-2 align-middle">
+            <Info className="w-4 h-4 text-slate-500 hover:text-sky-400 cursor-help transition-colors" />
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 scale-95 group-hover:scale-100 origin-bottom">
+                <p className="text-xs text-slate-300 leading-relaxed">
+                    <span className="font-bold text-sky-400 block mb-1">Data Source:</span>
+                    Metrics are synthesized from AI analysis of publicly available data (World Bank, IGA), regional energy reports, and internal KKM simulations.
+                </p>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-slate-900/95"></div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="space-y-8 animate-fade-in">
             <h1 className="text-3xl font-bold text-white">{t('benchmark_title')}</h1>
@@ -332,7 +373,10 @@ export const Benchmark: React.FC = () => {
                 <div className="space-y-8">
                     {/* Financial Chart */}
                     <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
-                        <h2 className="text-xl font-semibold text-white mb-6">Financial Metrics Comparison</h2>
+                        <div className="flex items-center mb-6">
+                            <h2 className="text-xl font-semibold text-white">Financial Metrics Comparison</h2>
+                            <SourceTooltip />
+                        </div>
                         {isFinancialLoading ? (
                             <div className="h-64 flex items-center justify-center">
                                 <Spinner size="lg" />
@@ -365,8 +409,9 @@ export const Benchmark: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="flex flex-col h-full">
-                                    <div className="px-6 py-4 bg-slate-800/50 border-b border-white/5">
+                                    <div className="px-6 py-4 bg-slate-800/50 border-b border-white/5 flex items-center">
                                         <h3 className="font-bold text-white">Metrics Head-to-Head</h3>
+                                        <SourceTooltip />
                                     </div>
                                     <div className="overflow-auto">
                                         <table className="min-w-full divide-y divide-white/5">

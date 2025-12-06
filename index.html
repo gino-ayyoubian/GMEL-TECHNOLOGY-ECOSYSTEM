@@ -87,6 +87,24 @@
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--glass-border);
       }
+
+      /* Custom Leaflet Tooltip for Dark Mode */
+      .leaflet-tooltip-dark {
+        background-color: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f8fafc;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        border: none;
+      }
+      .leaflet-tooltip-dark::before {
+        border-top-color: rgba(15, 23, 42, 0.95);
+      }
+      .leaflet-tooltip-top {
+        margin-top: -6px;
+      }
     </style>
   <script type="importmap">
 {
