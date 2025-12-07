@@ -75,11 +75,11 @@ export const REGION_THEME_MAP: Record<Region, string> = {
 };
 
 export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole, regions?: Region[] }> = {
-  'GMEL-KKM-admin': { password: '84375690', role: 'admin' },
-  'GMEL-Operations-Lead': { password: '287230', role: 'manager' },
-  'GMEL-Strategic-Partner': { password: 'invest_gmel_2025', role: 'partner', regions: ['Qeshm Free Zone', 'Makoo Free Zone', 'Oman'] },
-  'GMEL-Gov-Regulator': { password: 'compliance_auth', role: 'regulator' },
-  'GMEL-Public-Guest': { password: 'public_view', role: 'guest' }
+  'GMEL-KKM-Admin': { password: '84375690', role: 'admin' },
+  'GMEL-KKM-Manager': { password: '287230', role: 'manager' },
+  'GMEL-KKM-Partner': { password: 'invest_gmel_2025', role: 'partner', regions: ['Qeshm Free Zone', 'Makoo Free Zone', 'Oman'] },
+  'GMEL-KKM-Regulator': { password: 'compliance_auth', role: 'regulator' },
+  'GMEL-KKM-Guest': { password: 'public_view', role: 'guest' }
 };
 
 // --- Rev 2.0 Portfolio Data ---

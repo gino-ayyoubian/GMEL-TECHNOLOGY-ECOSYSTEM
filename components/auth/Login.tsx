@@ -73,6 +73,7 @@ export const Login: React.FC = () => {
     // Autocomplete State
     const [showSuggestions, setShowSuggestions] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const passwordRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Handle clicking outside to close dropdown
@@ -126,11 +127,15 @@ export const Login: React.FC = () => {
         }
     };
 
-    const handlePersonaSelect = (user: string, pass: string) => {
+    const handlePersonaSelect = (user: string) => {
         setUserId(user);
-        setPassword(pass);
+        setPassword(''); // Clear password to ensure manual entry
         setError('');
         setShowSuggestions(false);
+        // Focus password field for better UX
+        setTimeout(() => {
+            passwordRef.current?.focus();
+        }, 50);
     };
 
     // Group roles for side panel display
@@ -188,7 +193,7 @@ export const Login: React.FC = () => {
                                         <button
                                             key={uid}
                                             type="button"
-                                            onClick={() => handlePersonaSelect(uid, creds.password)}
+                                            onClick={() => handlePersonaSelect(uid)}
                                             className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
                                         >
                                             <div className={`p-1.5 rounded-lg ${def.tier === 'Tier 1' ? 'bg-red-500/10 text-red-400' : 'bg-sky-500/10 text-sky-400'}`}>
@@ -197,6 +202,7 @@ export const Login: React.FC = () => {
                                             <div>
                                                 <p className="text-sm font-bold text-white">{uid}</p>
                                                 <p className="text-[10px] text-slate-400 uppercase tracking-wide">{def.title}</p>
+                                                <p className="text-[10px] text-sky-400 font-mono mt-0.5">PIN: {creds.password}</p>
                                             </div>
                                         </button>
                                     );
@@ -210,6 +216,7 @@ export const Login: React.FC = () => {
                             <Lock className="w-5 h-5" />
                         </div>
                         <input
+                            ref={passwordRef}
                             id="password"
                             type="password"
                             value={password}
@@ -287,7 +294,7 @@ export const Login: React.FC = () => {
                                     {roles.map((roleDef: any) => (
                                         <div 
                                             key={roleDef.id} 
-                                            onClick={() => handlePersonaSelect(roleDef.id, roleDef.password)} 
+                                            onClick={() => handlePersonaSelect(roleDef.id)} 
                                             className={`group relative p-4 rounded-xl border border-white/5 bg-slate-800/40 hover:bg-slate-800/80 hover:border-sky-500/30 cursor-pointer transition-all duration-200 ${userId === roleDef.id ? 'ring-1 ring-sky-500/50 bg-slate-800' : ''}`}
                                         >
                                             <div className="flex justify-between items-start mb-2">
@@ -300,7 +307,8 @@ export const Login: React.FC = () => {
                                             </div>
                                             
                                             <h5 className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors">{roleDef.title}</h5>
-                                            <p className="text-[10px] text-slate-500 font-mono mb-2">{roleDef.id}</p>
+                                            <p className="text-[10px] text-slate-500 font-mono mb-1">{roleDef.id}</p>
+                                            <p className="text-[10px] text-sky-400 font-mono mb-2">PIN: {roleDef.password}</p>
                                             <p className="text-xs text-slate-400 leading-relaxed border-t border-white/5 pt-2 mt-2">
                                                 {roleDef.description}
                                             </p>

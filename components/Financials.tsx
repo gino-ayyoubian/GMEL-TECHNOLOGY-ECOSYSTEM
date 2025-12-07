@@ -121,10 +121,6 @@ const IPOAnalysis: React.FC = () => {
     );
 };
 
-// ... Rest of the file uses similar updates (Skeleton, Spinner, bg-slate-900/60 backdrop-blur-xl)
-// To save space in this response, assume the patterns above are applied to RevenueStreamsAnalysis, FundingSourcesAnalysis, and the main component.
-// I will provide the full content for the main component below to ensure it compiles correctly.
-
 interface RevenueStream {
     stream: string;
     percentage: number;
@@ -242,10 +238,15 @@ const RevenueStreamsAnalysis: React.FC = () => {
 }
 
 const FundingSourcesAnalysis: React.FC = () => {
-    const { region, setError, supportedLangs, lang } = useContext(AppContext)!;
+    const { region, setError, supportedLangs, lang, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
     const [fundingData, setFundingData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    // RESTRICTION: Only Admin can see Funding Sources
+    if (userRole !== 'admin') {
+        return null;
+    }
 
     useEffect(() => {
         setFundingData(null);

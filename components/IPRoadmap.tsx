@@ -30,10 +30,15 @@ interface AnalysisResult {
 }
 
 const CompetitiveAnalysis: React.FC = () => {
-    const { lang, setError, currentUser } = useContext(AppContext)!;
+    const { lang, setError, currentUser, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    // RESTRICTION: Only Admin can see/run competitive analysis
+    if (userRole !== 'admin') {
+        return null;
+    }
 
     useEffect(() => {
         setAnalysis(null);
@@ -133,7 +138,9 @@ const CompetitiveAnalysis: React.FC = () => {
 
 const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, isSelected: boolean }> = ({ patent, onSelect, isSelected }) => {
     const { t } = useI18n();
-    const { setActiveView, setTechnicalTopic } = useContext(AppContext)!;
+    const { setActiveView, setTechnicalTopic, userRole } = useContext(AppContext)!;
+    const isAdmin = userRole === 'admin';
+
     const levelColors: Record<Patent['level'], string> = {
         Core: 'border-teal-400 bg-teal-500/10',
         Derivatives: 'border-sky-400 bg-sky-500/10',
@@ -173,6 +180,8 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
                     {hasTechPage && <p className="text-[10px] text-sky-400 mt-1 italic">Click title to view technical details</p>}
                 </div>
             </div>
+            
+            {/* Status Section */}
             <div className="mt-4 flex-shrink-0">
                  <div className="flex justify-between items-center mb-1">
                      <label htmlFor={`compare-${patent.code}`} className="flex items-center text-xs text-slate-400 cursor-pointer hover:text-white transition-colors select-none" onClick={(e) => e.stopPropagation()}>
@@ -185,11 +194,22 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
                         />
                         <span className="ml-2">{t('add_to_compare')}</span>
                     </label>
-                    <span className="font-semibold text-slate-300 text-xs">{patent.progress}%</span>
+                    {/* RESTRICTION: Only Admin sees progress % */}
+                    {isAdmin && <span className="font-semibold text-slate-300 text-xs">{patent.progress}%</span>}
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-1.5">
-                    <div className={`${progressColor[patent.level]} h-1.5 rounded-full`} style={{ width: `${patent.progress}%` }}></div>
-                </div>
+                
+                {/* RESTRICTION: Only Admin sees progress bar */}
+                {isAdmin ? (
+                    <div className="w-full bg-slate-700 rounded-full h-1.5">
+                        <div className={`${progressColor[patent.level]} h-1.5 rounded-full`} style={{ width: `${patent.progress}%` }}></div>
+                    </div>
+                ) : (
+                    <div className="mt-2 text-right">
+                        <span className="inline-flex items-center rounded-md bg-white/10 px-2 py-1 text-xs font-medium text-sky-300 ring-1 ring-inset ring-sky-500/30">
+                            {patent.status}
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -197,7 +217,14 @@ const PatentCard: React.FC<{ patent: Patent, onSelect: (code: string) => void, i
 
 const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({ patents, onClose }) => {
     const { t } = useI18n();
-    const fields: (keyof Patent)[] = ['code', 'level', 'application', 'status', 'path', 'kpi', 'progress'];
+    const { userRole } = useContext(AppContext)!;
+    const isAdmin = userRole === 'admin';
+    
+    // RESTRICTION: Hide 'progress' and 'kpi' if not admin
+    const fields: (keyof Patent)[] = isAdmin 
+        ? ['code', 'level', 'application', 'status', 'path', 'kpi', 'progress']
+        : ['code', 'level', 'application', 'status', 'path'];
+
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
