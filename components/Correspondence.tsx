@@ -3,7 +3,7 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { generateText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../hooks/useI18n';
 import { KKM_LOGO_DATA_URL } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
