@@ -1,4 +1,3 @@
-
 import React, { useState, useContext, useEffect } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { generateJsonWithThinking, generateGroundedText, generateTextWithThinking } from '../services/geminiService';
@@ -26,7 +25,7 @@ interface VisionaryProposal {
     coreConcept: string;
     enablingTechnologies: string[];
     potentialImpact: string;
-    newPatentIdeas: string[];
+    newPatentIdeas: (string | { patentId?: string; title: string; description?: string; targetTrait?: string })[];
 }
 
 export const Simulations: React.FC = () => {
@@ -150,7 +149,7 @@ export const Simulations: React.FC = () => {
                 concept: visionaryProposal.coreConcept,
                 tech: visionaryProposal.enablingTechnologies.join(', '),
                 impact: visionaryProposal.potentialImpact,
-                patentIdeas: visionaryProposal.newPatentIdeas.join('; '),
+                patentIdeas: visionaryProposal.newPatentIdeas.map(p => (typeof p === 'object' && p !== null && p.title) ? p.title : String(p)).join('; '),
                 language: langName
             });
             const result = await generateTextWithThinking(prompt);
@@ -302,9 +301,21 @@ export const Simulations: React.FC = () => {
                                 <p className="text-slate-300 text-sm whitespace-pre-wrap">{visionaryProposal.potentialImpact}</p>
                             </div>
                             <div className="p-5 bg-slate-800/50 rounded-xl border border-white/5">
-                                <h4 className="font-semibold text-amber-300 mb-2 flex items-center">{t('new_patent_opportunities')} <SpeakerIcon text={visionaryProposal.newPatentIdeas.join(', ')} /></h4>
-                                <ul className="list-disc list-inside text-slate-300 text-sm">
-                                    {visionaryProposal.newPatentIdeas.map(p => <li key={p}>{p}</li>)}
+                                <h4 className="font-semibold text-amber-300 mb-2 flex items-center">
+                                    {t('new_patent_opportunities')} 
+                                    <SpeakerIcon text={visionaryProposal.newPatentIdeas.map(p => (typeof p === 'object' && p !== null && p.title) ? p.title : String(p)).join(', ')} />
+                                </h4>
+                                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2">
+                                    {visionaryProposal.newPatentIdeas.map((p, index) => {
+                                        if (typeof p === 'object' && p !== null && p.title) {
+                                            return (
+                                                <li key={p.patentId || p.title || index}>
+                                                    <strong className="text-white">{p.title} ({p.patentId || 'N/A'}):</strong> {p.description || 'No description.'}
+                                                </li>
+                                            );
+                                        }
+                                        return <li key={index}>{String(p)}</li>;
+                                    })}
                                 </ul>
                             </div>
                         </div>
