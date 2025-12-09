@@ -57,6 +57,9 @@ export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash'
           model: modelName,
           contents: prompt,
         });
+        if (!response.text) {
+             throw new Error("The model returned an empty response.");
+        }
         return response.text;
     });
   } catch (error) {
@@ -205,6 +208,17 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
           },
         });
         
+        if (!response.text) {
+            const finishReason = response.candidates?.[0]?.finishReason;
+            if (finishReason === 'SAFETY') {
+                throw new Error("The request was blocked for safety reasons.");
+            }
+            if (finishReason && finishReason !== 'STOP') {
+                throw new Error(`The model failed to generate a response. Reason: ${finishReason}.`);
+            }
+            throw new Error("Received an empty response from the model.");
+        }
+
         const text = response.text;
         const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
@@ -241,6 +255,9 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
                     },
                 },
             });
+            if (!response.text) {
+                 throw new Error("Model returned empty text for JSON data.");
+            }
             return response.text.trim();
         });
         return JSON.parse(jsonStr);
@@ -296,6 +313,7 @@ export const generateFinancialData = async (region: string, lang: string): Promi
             }
           },
         });
+        if (!response.text) throw new Error("Empty response for financial data.");
         return response.text.trim();
     });
     
@@ -341,6 +359,7 @@ export const generateBenchmarkComparison = async (region1: string, region2: stri
                     thinkingConfig: { thinkingBudget: 32768 }
                 }
             });
+            if (!response.text) throw new Error("Empty response for benchmark comparison.");
             return response.text.trim();
         });
         return JSON.parse(jsonStr);
@@ -383,7 +402,7 @@ export const generateLocalizedPatents = async (lang: string): Promise<Patent[]> 
                 contents: prompt,
                 config: { responseMimeType: "application/json" }
             });
-            return response.text.trim();
+            return response.text ? response.text.trim() : "[]";
         });
 
         const translatedData = JSON.parse(jsonStr);
@@ -414,7 +433,7 @@ export const generateLocalizedMilestones = async (lang: string): Promise<Milesto
                 contents: prompt,
                 config: { responseMimeType: "application/json" }
             });
-            return response.text.trim();
+            return response.text ? response.text.trim() : "[]";
         });
 
         const translatedData = JSON.parse(jsonStr);
@@ -519,6 +538,7 @@ export const continueChat = async (history: ChatMessage[]): Promise<string> => {
                 history: geminiHistory,
             });
             const response: GenerateContentResponse = await chat.sendMessage({ message: lastMessage.text });
+            if (!response.text) throw new Error("Empty chat response.");
             return response.text;
         });
     } catch (error) {
