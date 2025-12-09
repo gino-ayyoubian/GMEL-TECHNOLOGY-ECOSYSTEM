@@ -62,7 +62,7 @@ const ROLE_DEFINITIONS: Record<UserRole, RoleDefinition> = {
 };
 
 export const Login: React.FC = () => {
-    const { setCurrentUser, setUserRole, setAuthStep, setAllowedRegions, setRegion } = useContext(AppContext)!;
+    const { setCurrentUser, setUserRole, setAuthStep, setAllowedRegions, setRegion, setSessionToken } = useContext(AppContext)!;
     const { t } = useI18n();
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
@@ -88,8 +88,8 @@ export const Login: React.FC = () => {
                 setShowSuggestions(false);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -103,6 +103,7 @@ export const Login: React.FC = () => {
             if (result.success && result.userRole) {
                 setCurrentUser(userId);
                 setUserRole(result.userRole);
+                if (result.token) setSessionToken(result.token);
 
                 if (result.regions && result.regions.length > 0) {
                     setAllowedRegions(result.regions);
@@ -118,7 +119,7 @@ export const Login: React.FC = () => {
                     setAuthStep('2fa');
                 }
             } else {
-                setError(t('login_error'));
+                setError(result.error || t('login_error'));
             }
         } catch (e) {
             setError(t('login_error'));
@@ -138,8 +139,10 @@ export const Login: React.FC = () => {
         }, 50);
     };
 
-    // Group roles for side panel display
+    // Group roles for side panel display, excluding admin
     const groupedRoles = Object.entries(USER_CREDENTIALS).reduce((acc, [key, creds]) => {
+        if (creds.role === 'admin') return acc; // Hide Admin from UI
+        
         const roleDef = ROLE_DEFINITIONS[creds.role];
         if (!roleDef) return acc;
         if (!acc[roleDef.category]) acc[roleDef.category] = [];
@@ -162,7 +165,7 @@ export const Login: React.FC = () => {
                 <form onSubmit={handleLogin} className="space-y-5">
                     {/* User ID Field with Autocomplete */}
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-sky-500 transition-colors">
+                        <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-sky-500 transition-colors">
                             <User className="w-5 h-5" />
                         </div>
                         <input
@@ -176,25 +179,27 @@ export const Login: React.FC = () => {
                             }}
                             onFocus={() => setShowSuggestions(true)}
                             placeholder={t('user_id_placeholder')}
-                            className={`w-full bg-slate-800/50 border rounded-xl py-3 pl-10 pr-10 text-white placeholder-slate-500 transition-all ${error ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
+                            className={`w-full bg-slate-800/50 border rounded-xl py-3 ps-10 pe-10 text-white placeholder-slate-500 transition-all ${error ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
                             required
                             autoComplete="off"
                         />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                        <div className="absolute inset-y-0 end-0 pe-3 flex items-center pointer-events-none text-slate-500">
                             <ChevronDown className={`w-4 h-4 transition-transform ${showSuggestions ? 'rotate-180' : ''}`} />
                         </div>
 
                         {/* Dropdown List */}
                         {showSuggestions && (
                             <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto scrollbar-thin animate-pop-in">
-                                {Object.entries(USER_CREDENTIALS).map(([uid, creds]) => {
+                                {Object.entries(USER_CREDENTIALS)
+                                    .filter(([_, creds]) => creds.role !== 'admin') // Exclude admin
+                                    .map(([uid, creds]) => {
                                     const def = ROLE_DEFINITIONS[creds.role];
                                     return (
                                         <button
                                             key={uid}
                                             type="button"
                                             onClick={() => handlePersonaSelect(uid)}
-                                            className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
+                                            className="w-full text-start px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
                                         >
                                             <div className={`p-1.5 rounded-lg ${def.tier === 'Tier 1' ? 'bg-red-500/10 text-red-400' : 'bg-sky-500/10 text-sky-400'}`}>
                                                 {def.icon}
@@ -202,7 +207,6 @@ export const Login: React.FC = () => {
                                             <div>
                                                 <p className="text-sm font-bold text-white">{uid}</p>
                                                 <p className="text-[10px] text-slate-400 uppercase tracking-wide">{def.title}</p>
-                                                <p className="text-[10px] text-sky-400 font-mono mt-0.5">PIN: {creds.password}</p>
                                             </div>
                                         </button>
                                     );
@@ -212,7 +216,7 @@ export const Login: React.FC = () => {
                     </div>
 
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-sky-500 transition-colors">
+                        <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-sky-500 transition-colors">
                             <Lock className="w-5 h-5" />
                         </div>
                         <input
@@ -225,7 +229,7 @@ export const Login: React.FC = () => {
                                 if (error) setError('');
                             }}
                             placeholder="Password"
-                            className={`w-full bg-slate-800/50 border rounded-xl py-3 pl-10 pr-3 text-white placeholder-slate-500 transition-all ${error ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
+                            className={`w-full bg-slate-800/50 border rounded-xl py-3 ps-10 pe-3 text-white placeholder-slate-500 transition-all ${error ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
                             required
                         />
                     </div>
@@ -289,7 +293,7 @@ export const Login: React.FC = () => {
 
                         return (
                             <div key={category}>
-                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 pl-1 border-l-2 border-sky-500/20">{category}</h4>
+                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 pl-1 border-l-2 border-sky-500/20 rtl:border-l-0 rtl:border-r-2">{category}</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {roles.map((roleDef: any) => (
                                         <div 
@@ -308,14 +312,14 @@ export const Login: React.FC = () => {
                                             
                                             <h5 className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors">{roleDef.title}</h5>
                                             <p className="text-[10px] text-slate-500 font-mono mb-1">{roleDef.id}</p>
-                                            <p className="text-[10px] text-sky-400 font-mono mb-2">PIN: {roleDef.password}</p>
+                                            
                                             <p className="text-xs text-slate-400 leading-relaxed border-t border-white/5 pt-2 mt-2">
                                                 {roleDef.description}
                                             </p>
                                             
                                             {/* Selection Indicator */}
                                             {userId === roleDef.id && (
-                                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_8px_rgba(14,165,233,0.5)]"></div>
+                                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_8px_rgba(14,165,233,0.5)] rtl:right-auto rtl:left-2"></div>
                                             )}
                                         </div>
                                     ))}

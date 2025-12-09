@@ -10,6 +10,7 @@ import ExportButtons from './shared/ExportButtons';
 import { canEdit } from '../utils/permissions';
 import { extractJson } from '../utils/helpers';
 import { Spinner } from './shared/Loading';
+import { SkeletonLoader } from './shared/SkeletonLoader';
 import { AuditService } from '../services/auditService';
 import { ALL_REGIONS } from '../constants';
 
@@ -28,16 +29,10 @@ interface VisionaryProposal {
     newPatentIdeas: string[];
 }
 
-const LoadingState: React.FC<{text: string}> = ({ text }) => (
-    <div className="text-center py-12 bg-slate-900/30 rounded-xl border border-dashed border-slate-700/50">
-        <Spinner size="lg" className="text-sky-500 mx-auto" />
-        <p className="mt-4 text-slate-400 font-medium animate-pulse">{text}</p>
-    </div>
-);
-
 export const Simulations: React.FC = () => {
     const { region: globalRegion, setError, userRole, supportedLangs, lang, currentUser } = useContext(AppContext)!;
     const { t } = useI18n();
+    // Use the strict View based permission check
     const userCanEdit = canEdit(userRole, 'simulations');
 
     const [targetRegion, setTargetRegion] = useState<Region>(globalRegion);
@@ -64,6 +59,7 @@ export const Simulations: React.FC = () => {
     }, [targetRegion, lang, setError]);
 
     const handleGenerateGmelPackage = async () => {
+        if (!userCanEdit) return;
         setIsGmelLoading(true);
         setError(null);
         setGmelPackage(null);
@@ -89,6 +85,7 @@ export const Simulations: React.FC = () => {
     };
     
     const handleGenerateVisionaryProposal = async () => {
+        if (!userCanEdit) return;
         setIsVisionaryLoading(true);
         setError(null);
         setVisionaryProposal(null);
@@ -117,7 +114,7 @@ export const Simulations: React.FC = () => {
     };
     
     const handleGenerateIdealPlan = async () => {
-        if (!gmelPackage) return;
+        if (!gmelPackage || !userCanEdit) return;
         setIsIdealPlanLoading(true);
         setIdealProjectPlan(null);
         const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
@@ -142,7 +139,7 @@ export const Simulations: React.FC = () => {
     };
     
     const handleGenerateVisionaryPlan = async () => {
-        if (!visionaryProposal) return;
+        if (!visionaryProposal || !userCanEdit) return;
         setIsVisionaryPlanLoading(true);
         setVisionaryProjectPlan(null);
         const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
@@ -191,7 +188,6 @@ export const Simulations: React.FC = () => {
                 </select>
             </div>
 
-            {/* Ideal GMEL Project Modeler */}
             <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-lg">
                 <div>
                     <h2 className="text-2xl font-semibold text-white">{t('gmel_modeler_title')}</h2>
@@ -201,13 +197,18 @@ export const Simulations: React.FC = () => {
                 <button
                     onClick={handleGenerateGmelPackage}
                     disabled={isGmelLoading || !userCanEdit}
+                    title={!userCanEdit ? "Editing restricted for this role" : ""}
                     className="flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-sky-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                     {isGmelLoading && <Spinner size="sm" className="text-white" />}
                     {isGmelLoading ? t('generating') : t('generate_gmel_package')}
                 </button>
 
-                {isGmelLoading && <LoadingState text={t('generating_gmel_package')} />}
+                {isGmelLoading && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                        <SkeletonLoader variant="card" count={4} height="150px" />
+                    </div>
+                )}
                 
                 {gmelPackage && (
                     <div className="space-y-4 pt-6 border-t border-white/5 animate-pop-in">
@@ -241,7 +242,7 @@ export const Simulations: React.FC = () => {
                                 {isIdealPlanLoading && <Spinner size="sm" className="text-white" />}
                                 {isIdealPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
                             </button>
-                            {isIdealPlanLoading && <LoadingState text={t('generating_business_plan')} />}
+                            {isIdealPlanLoading && <div className="mt-6"><SkeletonLoader variant="text" count={10} /></div>}
                             {idealProjectPlan && (
                                 <div className="mt-6 p-6 bg-slate-800/80 rounded-xl border border-white/10 animate-fade-in">
                                     <div className="flex justify-between items-center mb-4">
@@ -256,7 +257,6 @@ export const Simulations: React.FC = () => {
                 )}
             </div>
             
-            {/* Visionary Project Proposal Engine */}
             <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-lg">
                 <div>
                     <h2 className="text-2xl font-semibold text-white">{t('visionary_engine_title')}</h2>
@@ -266,13 +266,18 @@ export const Simulations: React.FC = () => {
                 <button
                     onClick={handleGenerateVisionaryProposal}
                     disabled={isVisionaryLoading || !userCanEdit}
+                    title={!userCanEdit ? "Editing restricted for this role" : ""}
                     className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-amber-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                     {isVisionaryLoading && <Spinner size="sm" className="text-white" />}
                     {isVisionaryLoading ? t('generating') : t('generate_visionary_proposal')}
                 </button>
 
-                {isVisionaryLoading && <LoadingState text={t('generating_visionary_proposal')} />}
+                {isVisionaryLoading && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                        <SkeletonLoader variant="card" count={4} height="150px" />
+                    </div>
+                )}
 
                 {visionaryProposal && (
                     <div className="space-y-6 pt-6 border-t border-white/5 animate-pop-in">
@@ -326,7 +331,7 @@ export const Simulations: React.FC = () => {
                                 {isVisionaryPlanLoading && <Spinner size="sm" className="text-white" />}
                                 {isVisionaryPlanLoading ? t('generating_business_plan') : t('generate_business_plan')}
                             </button>
-                             {isVisionaryPlanLoading && <LoadingState text={t('generating_business_plan')} />}
+                             {isVisionaryPlanLoading && <div className="mt-6"><SkeletonLoader variant="text" count={10} /></div>}
                              {visionaryProjectPlan && (
                                 <div className="mt-6 p-6 bg-slate-800/80 rounded-xl border border-white/10 animate-fade-in">
                                      <div className="flex justify-between items-center mb-4">

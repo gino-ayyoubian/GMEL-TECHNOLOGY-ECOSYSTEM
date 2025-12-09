@@ -1,8 +1,9 @@
 
-import React, { useState, createContext, useEffect, useMemo } from 'react';
+import React, { useState, createContext, useEffect, useMemo, useCallback } from 'react';
 import { Region, View, UserRole, ThemeConfig } from '../types';
 import { Language, locales } from '../hooks/useI18n';
 import { THEMES, REGION_THEME_MAP } from '../constants';
+import { AuthService } from '../services/authService';
 
 export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted' | 'resetPassword';
 
@@ -31,6 +32,8 @@ interface AppContextType {
   error: string | null;
   setError: (message: string | null) => void;
   theme: ThemeConfig;
+  sessionToken: string | null;
+  setSessionToken: (token: string | null) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -45,19 +48,21 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
     }
 };
 
+const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // FIX: Default authStep changed from 'language' to 'login' to skip the welcome page.
     const [authStep, setAuthStepState] = useState<AuthStep>(getInitialState('gmel_auth_step', 'login'));
     const [currentUser, setCurrentUserState] = useState<string | null>(getInitialState('gmel_current_user', null));
     const [userRole, setUserRoleState] = useState<UserRole | null>(getInitialState('gmel_user_role', null));
     const [region, setRegion] = useState<Region>('Qeshm Free Zone');
     const [lang, setLangState] = useState<Language>(getInitialState('gmel_lang', 'en'));
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [activeView, setActiveView] = useState<View>('dashboard');
+    const [activeView, setActiveView] = useState<View>('financials');
     const [technicalTopic, setTechnicalTopic] = useState<string | null>(null);
     const [allowedRegions, setAllowedRegionsState] = useState<Region[] | null>(getInitialState('gmel_allowed_regions', null));
     const [error, setError] = useState<string | null>(null);
+    const [sessionToken, setSessionTokenState] = useState<string | null>(getInitialState('gmel_session_token', null));
+    const [lastActivity, setLastActivity] = useState<number>(Date.now());
 
     const theme = useMemo(() => {
         const themeName = REGION_THEME_MAP[region] || 'warm';
@@ -88,6 +93,49 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         sessionStorage.setItem('gmel_allowed_regions', JSON.stringify(regions));
         setAllowedRegionsState(regions);
     };
+
+    const setSessionToken = (token: string | null) => {
+        sessionStorage.setItem('gmel_session_token', JSON.stringify(token));
+        setSessionTokenState(token);
+        if (token) setLastActivity(Date.now());
+    };
+
+    // Session Timeout Logic
+    const handleLogout = useCallback(() => {
+        if (sessionToken) {
+            AuthService.logout(sessionToken);
+        }
+        setSessionToken(null);
+        setCurrentUser(null);
+        setUserRole(null);
+        setAllowedRegions(null);
+        setAuthStep('login');
+        setError("Session expired due to inactivity. Please log in again.");
+    }, [sessionToken]);
+
+    const resetInactivityTimer = useCallback(() => {
+        setLastActivity(Date.now());
+    }, []);
+
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const interval = setInterval(() => {
+            const now = Date.now();
+            if (now - lastActivity > SESSION_TIMEOUT_MS) {
+                handleLogout();
+            }
+        }, 10000); // Check every 10 seconds
+
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+        events.forEach(event => window.addEventListener(event, resetInactivityTimer));
+
+        return () => {
+            clearInterval(interval);
+            events.forEach(event => window.removeEventListener(event, resetInactivityTimer));
+        };
+    }, [currentUser, lastActivity, handleLogout, resetInactivityTimer]);
+
 
     const supportedLangs = [
         { code: 'en' as Language, name: 'English' },
@@ -225,6 +273,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         error,
         setError,
         theme,
+        sessionToken, setSessionToken
     };
 
     return (

@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -27,7 +28,6 @@ const regionCoordinates: Record<Region, [number, number]> = {
     'Germany (Bavaria)': [48.7904, 11.4979]
 };
 
-// FIX: Added missing infrastructurePoints definition referenced in component
 const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; name: string; description: string; type: string }[]>> = {
     'Qeshm Free Zone': [
         { lat: 26.7550, lng: 55.9989, name: 'Qeshm International Airport', description: 'Provides air logistics for personnel and high-value cargo.', type: 'airport' },
@@ -79,6 +79,54 @@ const infrastructurePoints: Partial<Record<Region, { lat: number; lng: number; n
     ]
 };
 
+// Helper function to generate mock GeoJSON zones
+const generateGeothermalZones = (lat: number, lng: number) => {
+    // Generate slight offsets to create "natural" looking zones
+    const offset = (scale: number) => (Math.random() - 0.5) * scale;
+
+    const createPolygon = (centerLat: number, centerLng: number, radius: number) => {
+        const coords = [];
+        const steps = 12; // Number of points in the polygon
+        for (let i = 0; i <= steps; i++) {
+            const angle = (i / steps) * 2 * Math.PI;
+            const latOffset = radius * Math.cos(angle) + offset(radius * 0.2);
+            const lngOffset = radius * Math.sin(angle) + offset(radius * 0.2);
+            coords.push([centerLng + lngOffset, centerLat + latOffset]);
+        }
+        return [coords];
+    };
+
+    return {
+        type: "FeatureCollection",
+        features: [
+            {
+                type: "Feature",
+                properties: { potential: "High", description: "Hot Spring/Active Zone" },
+                geometry: {
+                    type: "Polygon",
+                    coordinates: createPolygon(lat + offset(0.02), lng + offset(0.02), 0.03)
+                }
+            },
+            {
+                type: "Feature",
+                properties: { potential: "Medium", description: "Intermediate Gradient" },
+                geometry: {
+                    type: "Polygon",
+                    coordinates: createPolygon(lat - offset(0.03), lng - offset(0.03), 0.06)
+                }
+            },
+            {
+                type: "Feature",
+                properties: { potential: "Low", description: "Standard Gradient" },
+                geometry: {
+                    type: "Polygon",
+                    coordinates: createPolygon(lat + offset(0.05), lng - offset(0.05), 0.08)
+                }
+            }
+        ]
+    };
+};
+
 export const SiteAnalysis: React.FC = () => {
     const { region } = useContext(AppContext)!;
     const { t } = useI18n();
@@ -87,6 +135,7 @@ export const SiteAnalysis: React.FC = () => {
     const markerRef = useRef<any>(null); // To hold the region marker instance
     const userMarkerRef = useRef<any>(null); // To hold user location marker
     const infrastructureLayerRef = useRef<any>(null); // To hold infrastructure markers
+    const geoJsonLayerRef = useRef<any>(null); // To hold Geothermal Potential zones
 
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -125,12 +174,13 @@ export const SiteAnalysis: React.FC = () => {
     // Map updates when region changes
     useEffect(() => {
         if (mapRef.current && regionCoordinates[region]) {
-            mapRef.current.setView(regionCoordinates[region], 10);
+            const [lat, lng] = regionCoordinates[region];
+            mapRef.current.setView([lat, lng], 10);
 
             if (markerRef.current) {
                 mapRef.current.removeLayer(markerRef.current);
             }
-            markerRef.current = L.marker(regionCoordinates[region]).addTo(mapRef.current)
+            markerRef.current = L.marker([lat, lng]).addTo(mapRef.current)
                 .bindPopup(`<b>${region}</b>`)
                 .openPopup();
             
@@ -150,6 +200,35 @@ export const SiteAnalysis: React.FC = () => {
                         .bindPopup(popupContent);
                 });
             }
+
+            // Add Geothermal Potential Zones
+            if (geoJsonLayerRef.current) {
+                mapRef.current.removeLayer(geoJsonLayerRef.current);
+            }
+
+            const zoneData = generateGeothermalZones(lat, lng);
+            
+            geoJsonLayerRef.current = L.geoJSON(zoneData, {
+                style: (feature: any) => {
+                    switch (feature.properties.potential) {
+                        case 'High': return { color: '#ef4444', weight: 0, fillOpacity: 0.5 }; // Red
+                        case 'Medium': return { color: '#f97316', weight: 0, fillOpacity: 0.35 }; // Orange
+                        case 'Low': return { color: '#eab308', weight: 0, fillOpacity: 0.2 }; // Yellow
+                        default: return { color: '#ffffff', weight: 0, fillOpacity: 0.1 };
+                    }
+                },
+                onEachFeature: (feature: any, layer: any) => {
+                    layer.bindPopup(
+                        `<div style="font-family: sans-serif; padding: 4px;">
+                            <strong style="color: ${feature.properties.potential === 'High' ? '#ef4444' : feature.properties.potential === 'Medium' ? '#f97316' : '#ca8a04'}">
+                                ${feature.properties.potential} Potential
+                            </strong>
+                            <br/>
+                            <span style="font-size: 12px; color: #334155;">${feature.properties.description}</span>
+                        </div>`
+                    );
+                }
+            }).addTo(mapRef.current);
         }
     }, [region]);
 
@@ -189,7 +268,14 @@ export const SiteAnalysis: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow min-h-0">
                 {/* Map Container */}
                 <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex flex-col relative">
-                     <h2 className="text-xl font-semibold text-white mb-4">{t('generated_map_title', { region })}</h2>
+                     <h2 className="text-xl font-semibold text-white mb-4 flex justify-between items-center">
+                        {t('generated_map_title', { region })}
+                        <div className="flex gap-2 text-xs">
+                            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500/50 border border-red-500"></span> High</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-orange-500/50 border border-orange-500"></span> Medium</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-500/50 border border-yellow-500"></span> Low</span>
+                        </div>
+                     </h2>
                      <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-lg z-0"></div>
                      <button onClick={handleLocate} title="Find my location" className="absolute top-20 right-6 z-10 p-2 bg-slate-700 text-white rounded-md shadow-lg hover:bg-slate-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

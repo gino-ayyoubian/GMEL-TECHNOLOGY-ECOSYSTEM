@@ -2,9 +2,8 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../../contexts/AppContext';
 import { useI18n } from '../../hooks/useI18n';
-import { USER_CREDENTIALS } from '../../constants';
+import { AuthService } from '../../services/authService';
 
-const RESET_CODE = '654321';
 const MAX_ATTEMPTS = 3;
 
 export const PasswordReset: React.FC = () => {
@@ -21,29 +20,7 @@ export const PasswordReset: React.FC = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [attempts, setAttempts] = useState(0);
-
-    // Helper to simulate network requests with potential server errors
-    const simulateNetworkRequest = (callback: () => void) => {
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                // Simulate a random server glitch (10% chance) to demonstrate error handling
-                if (Math.random() < 0.1) {
-                    reject(new Error("Simulated Server Error"));
-                } else {
-                    callback();
-                    resolve();
-                }
-            }, 800);
-        });
-    };
-
-    const handleNetworkError = (err: any) => {
-        if (err instanceof Error && err.message === 'Simulated Server Error') {
-            setError(t('error_server_busy'));
-        } else {
-            setError(t('error_network_error'));
-        }
-    };
+    const [sentCode, setSentCode] = useState<string | null>(null); // For demo purposes
 
     // Step 1: Request Code
     const handleIdSubmit = async (e: React.FormEvent) => {
@@ -52,20 +29,23 @@ export const PasswordReset: React.FC = () => {
         setError('');
         setSuccessMessage('');
         
-        try {
-            await simulateNetworkRequest(() => {
-                if (USER_CREDENTIALS[userId]) {
-                    setSuccessMessage(t('password_reset_prompt_step2'));
-                    setStep(2);
-                } else {
-                    setError(t('error_user_not_found'));
-                }
-            });
-        } catch (err) {
-            handleNetworkError(err);
-        } finally {
+        // Simulate checking if user exists in the auth service (simple check by attempting to send code)
+        // In a real app, this might just send email without confirming user existence for security (enumeration prevention)
+        // But for this internal tool, we check validity.
+        setTimeout(() => {
+            const users = AuthService.getUsers();
+            const userExists = users.find(u => u.id === userId && u.isActive);
+
+            if (userExists) {
+                const c = AuthService.send2FACode(userId);
+                setSentCode(c);
+                setSuccessMessage(t('password_reset_prompt_step2'));
+                setStep(2);
+            } else {
+                setError(t('error_user_not_found'));
+            }
             setIsLoading(false);
-        }
+        }, 800);
     };
 
     // Step 2: Verify Code
@@ -79,28 +59,17 @@ export const PasswordReset: React.FC = () => {
             return;
         }
 
-        // Specific local validation
-        if (code.length !== 6) {
-            setError(t('error_code_length'));
-            return;
-        }
-
         setIsLoading(true);
-        try {
-            await simulateNetworkRequest(() => {
-                if (code === RESET_CODE) {
-                    setSuccessMessage(t('code_verified'));
-                    setStep(3);
-                } else {
-                    setAttempts(prev => prev + 1);
-                    setError(t('error_invalid_reset_code'));
-                }
-            });
-        } catch (err) {
-            handleNetworkError(err);
-        } finally {
+        setTimeout(() => {
+            if (AuthService.verify2FACode(userId, code)) {
+                setSuccessMessage(t('code_verified'));
+                setStep(3);
+            } else {
+                setAttempts(prev => prev + 1);
+                setError(t('error_invalid_reset_code'));
+            }
             setIsLoading(false);
-        }
+        }, 800);
     };
 
     // Step 3: Secure Reset
@@ -114,7 +83,6 @@ export const PasswordReset: React.FC = () => {
             return;
         }
         
-        // Refined password validation
         if (newPassword.length < 8) {
              setError(t('error_weak_password'));
              return;
@@ -126,23 +94,23 @@ export const PasswordReset: React.FC = () => {
         }
 
         setIsLoading(true);
-        try {
-            await simulateNetworkRequest(() => {
+        setTimeout(() => {
+            const success = AuthService.resetPassword(userId, newPassword);
+            if (success) {
                 setSuccessMessage(t('password_reset_success'));
                 setTimeout(() => {
                     setAuthStep('login');
                 }, 2000);
-            });
-        } catch (err) {
-            handleNetworkError(err);
-        } finally {
+            } else {
+                setError("Failed to reset password. Please try again.");
+            }
             setIsLoading(false);
-        }
+        }, 1000);
     };
 
     if (attempts >= MAX_ATTEMPTS) {
         return (
-            <div className="w-full bg-slate-800 p-8 rounded-lg border border-red-500/50 text-center">
+            <div className="w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-red-500/50 text-center shadow-2xl">
                 <div className="text-red-400 font-bold mb-4">{t('error_too_many_attempts')}</div>
                 <button onClick={() => setAuthStep('login')} className="text-sm text-slate-400 hover:text-white transition-colors">
                     &larr; {t('back_to_login')}
@@ -152,7 +120,7 @@ export const PasswordReset: React.FC = () => {
     }
 
     return (
-        <div className="w-full bg-slate-800 p-8 rounded-lg border border-slate-700">
+        <div className="w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl">
             <h2 className="text-xl font-bold text-white text-center mb-4">{t('password_reset_title')}</h2>
             
             {successMessage && !error && <div className="bg-green-500/10 border border-green-500/50 text-green-400 text-sm rounded p-3 mb-4 text-center animate-fade-in">{successMessage}</div>}
@@ -169,12 +137,12 @@ export const PasswordReset: React.FC = () => {
                             value={userId}
                             onChange={(e) => setUserId(e.target.value)}
                             placeholder={t('user_id_placeholder')}
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all"
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all"
                             required
                             autoFocus
                         />
                     </div>
-                    <button type="submit" disabled={isLoading} className="w-full flex justify-center py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 rounded-md font-semibold text-white transition-colors">
+                    <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 rounded-xl font-bold text-white transition-colors shadow-lg">
                         {isLoading ? (
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -188,6 +156,12 @@ export const PasswordReset: React.FC = () => {
             {step === 2 && (
                  <form onSubmit={handleCodeSubmit} className="space-y-4">
                     <p className="text-slate-400 text-center text-sm">{t('password_reset_prompt_step2')}</p>
+                    {/* Demo Hint */}
+                    <div className="text-center">
+                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded border border-slate-700">
+                            Demo Code: <span className="font-mono text-sky-400 font-bold">{sentCode}</span>
+                        </span>
+                    </div>
                     <div>
                         <label htmlFor="resetCode" className="sr-only">{t('reset_code')}</label>
                         <input 
@@ -196,13 +170,13 @@ export const PasswordReset: React.FC = () => {
                             value={code} 
                             onChange={e => setCode(e.target.value)} 
                             placeholder={t('verification_code_placeholder')} 
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white text-center tracking-widest placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white text-center tracking-[0.5em] placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all font-mono" 
                             required 
                             autoFocus
                             maxLength={6}
                         />
                     </div>
-                    <button type="submit" disabled={isLoading} className="w-full flex justify-center py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 rounded-md font-semibold text-white transition-colors">
+                    <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 rounded-xl font-bold text-white transition-colors shadow-lg">
                         {isLoading ? (
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -224,7 +198,7 @@ export const PasswordReset: React.FC = () => {
                             value={verifyUserId} 
                             onChange={e => setVerifyUserId(e.target.value)} 
                             placeholder={t('user_id_placeholder')} 
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
                             required 
                         />
                     </div>
@@ -236,7 +210,7 @@ export const PasswordReset: React.FC = () => {
                             value={newPassword} 
                             onChange={e => setNewPassword(e.target.value)} 
                             placeholder={t('new_password')} 
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
                             required 
                         />
                     </div>
@@ -248,11 +222,11 @@ export const PasswordReset: React.FC = () => {
                             value={confirmPassword} 
                             onChange={e => setConfirmPassword(e.target.value)} 
                             placeholder={t('confirm_new_password')} 
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
                             required 
                         />
                     </div>
-                    <button type="submit" disabled={isLoading} className="w-full flex justify-center py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 rounded-md font-semibold text-white transition-colors">
+                    <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 rounded-xl font-bold text-white transition-colors shadow-lg">
                         {isLoading ? (
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -263,7 +237,7 @@ export const PasswordReset: React.FC = () => {
                 </form>
             )}
 
-            <div className="text-center mt-6 pt-4 border-t border-slate-700">
+            <div className="text-center mt-6 pt-4 border-t border-white/5">
                 <button onClick={() => setAuthStep('login')} className="text-sm text-slate-400 hover:text-white transition-colors">
                     &larr; {t('back_to_login')}
                 </button>

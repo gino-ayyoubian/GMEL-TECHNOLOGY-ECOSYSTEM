@@ -59,7 +59,7 @@ export interface ChatMessage {
     text: string;
 }
 
-export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'site' | 'comparison' | 'tech_comparison' | 'simulations' | 'strategy_modeler' | 'correspondence' | 'proposal_generator' | 'image' | 'video' | 'chat' | 'contact' | 'access_control' | 'audit_logs';
+export type View = 'dashboard' | 'ip' | 'financials' | 'technical' | 'benchmark' | 'site' | 'comparison' | 'tech_comparison' | 'simulations' | 'strategy_modeler' | 'correspondence' | 'proposal_generator' | 'image' | 'video' | 'chat' | 'contact' | 'access_control' | 'audit_logs' | 'user_management';
 
 export interface AuditLogEntry {
     timestamp: string;

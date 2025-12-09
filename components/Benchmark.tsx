@@ -1,18 +1,17 @@
-
 import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { generateBenchmarkComparison, generateFinancialData } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
-import { Spinner, Skeleton } from './shared/Loading';
+import { Spinner } from './shared/Loading';
+import { SkeletonLoader } from './shared/SkeletonLoader';
 import { AuditService } from '../services/auditService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FinancialData, Region } from '../types';
 import { ALL_REGIONS } from '../constants';
 import { Info } from 'lucide-react';
 
-// Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
 
 const regionCoordinates: Partial<Record<Region, [number, number]>> = {
@@ -61,7 +60,6 @@ interface ComparisonResult {
     sources: string[];
 }
 
-// Helper to safely render content that might be an object
 const renderCellContent = (content: any): string => {
     if (typeof content === 'object' && content !== null) {
         if (typeof content.value === 'string') {
@@ -85,19 +83,15 @@ export const Benchmark: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
-    // Filter State
     const [filterPotential, setFilterPotential] = useState<string>('All');
     const [filterStability, setFilterStability] = useState<string>('All');
     const [filterInfrastructure, setFilterInfrastructure] = useState<string>('All');
     
-    // Map Interaction State
     const [selectedMapRegion, setSelectedMapRegion] = useState<Region | null>(null);
 
-    // Financial Chart State
     const [financialComparisonData, setFinancialComparisonData] = useState<any[]>([]);
     const [isFinancialLoading, setIsFinancialLoading] = useState(false);
 
-    // Filtered Regions List
     const filteredRegions = useMemo(() => {
         return ALL_REGIONS.filter(region => {
             const meta = REGION_METADATA[region];
@@ -109,10 +103,9 @@ export const Benchmark: React.FC = () => {
         });
     }, [filterPotential, filterStability, filterInfrastructure]);
 
-     // Map initialization
     useEffect(() => {
         if (mapContainerRef.current && !mapRef.current) {
-            mapRef.current = L.map(mapContainerRef.current).setView([30, 20], 2); // Global view
+            mapRef.current = L.map(mapContainerRef.current).setView([30, 20], 2); 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(mapRef.current);
@@ -125,7 +118,6 @@ export const Benchmark: React.FC = () => {
         };
     }, []);
 
-    // Update map markers based on filtered regions
     useEffect(() => {
         if (mapRef.current) {
             markersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
@@ -138,13 +130,11 @@ export const Benchmark: React.FC = () => {
                 if (coords) {
                     const marker = L.marker(coords).addTo(mapRef.current);
                     
-                    // Interaction: Click to select
                     marker.on('click', () => {
                         setSelectedMapRegion(regionName);
                         mapRef.current.setView(coords, 6);
                     });
 
-                    // Enhanced Tooltip on Hover
                     const tooltipContent = `
                         <div class="p-3 min-w-[150px]">
                             <h3 class="font-bold text-sky-400 text-xs uppercase tracking-wider mb-2" style="margin-bottom: 8px;">${regionName}</h3>
@@ -162,11 +152,10 @@ export const Benchmark: React.FC = () => {
                         opacity: 1
                     });
 
-                    // Highlight selected regions visually
                     if (regionName === region1) {
-                        marker._icon.style.filter = "hue-rotate(140deg) brightness(1.2)"; // Blue/Cyan
+                        marker._icon.style.filter = "hue-rotate(140deg) brightness(1.2)"; 
                     } else if (regionName === region2) {
-                        marker._icon.style.filter = "hue-rotate(280deg) brightness(1.2)"; // Orange/Red
+                        marker._icon.style.filter = "hue-rotate(280deg) brightness(1.2)"; 
                     }
 
                     markersRef.current.push(marker);
@@ -191,9 +180,9 @@ export const Benchmark: React.FC = () => {
                 return {
                     name: item1?.component.split('(')[0] || metricId.toUpperCase(),
                     [r1]: item1?.value || 0,
-                    [`${r1}_unit`]: item1?.unit || '', // Store unit for tooltip
+                    [`${r1}_unit`]: item1?.unit || '', 
                     [r2]: item2?.value || 0,
-                    [`${r2}_unit`]: item2?.unit || '', // Store unit for tooltip
+                    [`${r2}_unit`]: item2?.unit || '', 
                 };
             });
             setFinancialComparisonData(chartData);
@@ -213,7 +202,6 @@ export const Benchmark: React.FC = () => {
         setError(null);
         setComparisonResult(null);
         
-        // Parallel fetch for text comparison and financials
         fetchFinancialComparison(region1, region2);
 
         const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
@@ -284,7 +272,6 @@ export const Benchmark: React.FC = () => {
                 {t('benchmark_description')}
             </p>
 
-            {/* Filter Section */}
             <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-4">Region Filters</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -318,11 +305,9 @@ export const Benchmark: React.FC = () => {
                 </div>
             </div>
 
-            {/* Interactive Map */}
             <div className="relative bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-white/10 h-[500px]">
                 <div ref={mapContainerRef} className="w-full h-full rounded-lg z-0"></div>
                 
-                {/* Map Overlay Card */}
                 {selectedMapRegion && (
                     <div className="absolute top-6 right-6 z-[400] w-72 bg-slate-900/95 backdrop-blur-xl border border-sky-500/30 rounded-xl p-5 shadow-2xl animate-pop-in">
                         <div className="flex justify-between items-start mb-3">
@@ -344,7 +329,6 @@ export const Benchmark: React.FC = () => {
                 )}
             </div>
 
-            {/* Selection & Compare Controls */}
             <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-center gap-6">
                 <div className="w-full md:w-1/3">
                     <label className="block text-xs font-bold text-sky-500 mb-2 uppercase text-center">Region A</label>
@@ -368,19 +352,15 @@ export const Benchmark: React.FC = () => {
             
             {error && <p className="text-red-400 text-center bg-red-900/10 p-3 rounded-lg border border-red-900/30">{error}</p>}
 
-            {/* Results Section */}
             {(comparisonResult || isLoading) && (
                 <div className="space-y-8">
-                    {/* Financial Chart */}
                     <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-lg">
                         <div className="flex items-center mb-6">
                             <h2 className="text-xl font-semibold text-white">Financial Metrics Comparison</h2>
                             <SourceTooltip />
                         </div>
                         {isFinancialLoading ? (
-                            <div className="h-64 flex items-center justify-center">
-                                <Spinner size="lg" />
-                            </div>
+                            <SkeletonLoader variant="chart" />
                         ) : (
                             <div style={{ width: '100%', height: 350 }}>
                                 <ResponsiveContainer>
@@ -390,22 +370,19 @@ export const Benchmark: React.FC = () => {
                                         <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
                                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(255, 255, 255, 0.05)'}} />
                                         <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
-                                        {/* Use theme colors: Primary for Region 1, Secondary/Contrast for Region 2 */}
-                                        <Bar dataKey={region1} fill={theme.chartColors[0]} name={region1} radius={[4, 4, 0, 0]} maxBarSize={60} />
-                                        <Bar dataKey={region2} fill={theme.chartColors[2] || theme.chartColors[1]} name={region2} radius={[4, 4, 0, 0]} maxBarSize={60} />
+                                        <Bar dataKey={region1} fill="#0ea5e9" name={region1} radius={[4, 4, 0, 0]} maxBarSize={60} />
+                                        <Bar dataKey={region2} fill="#f59e0b" name={region2} radius={[4, 4, 0, 0]} maxBarSize={60} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         )}
                     </div>
 
-                    {/* Comparison Table & Narrative */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="bg-slate-900/60 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden shadow-lg h-full">
                             {isLoading ? (
-                                <div className="p-6 space-y-4">
-                                    <Skeleton className="h-8 w-1/2" />
-                                    <Skeleton className="h-64 w-full" />
+                                <div className="p-6">
+                                    <SkeletonLoader variant="table" />
                                 </div>
                             ) : (
                                 <div className="flex flex-col h-full">
@@ -439,11 +416,7 @@ export const Benchmark: React.FC = () => {
 
                         <div className="space-y-6">
                             {isLoading ? (
-                                <div className="space-y-4">
-                                    <Skeleton className="h-40 w-full" />
-                                    <Skeleton className="h-40 w-full" />
-                                    <Skeleton className="h-40 w-full" />
-                                </div>
+                                <SkeletonLoader variant="card" count={3} />
                             ) : comparisonResult ? (
                                 <>
                                     <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-xl border border-white/10">
@@ -472,7 +445,6 @@ export const Benchmark: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Sources & Methodology */}
                     {comparisonResult && (
                         <div className="bg-slate-900/40 backdrop-blur-sm p-5 rounded-xl border border-white/10 mt-8 flex flex-col gap-3">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">

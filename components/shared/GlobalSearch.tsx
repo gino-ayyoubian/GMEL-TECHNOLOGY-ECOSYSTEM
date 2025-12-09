@@ -94,15 +94,15 @@ export const GlobalSearch: React.FC = () => {
                 setIsOpen(false);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
     return (
         <div className="relative w-full max-w-lg" ref={searchContainerRef}>
             <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-slate-500 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                     </svg>
                 </div>
@@ -112,11 +112,11 @@ export const GlobalSearch: React.FC = () => {
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     onFocus={() => setIsOpen(true)}
-                    className="block w-full bg-slate-700 border-slate-600 rounded-md py-2 pl-10 pr-3 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="block w-full bg-slate-700 border-slate-600 rounded-md py-2 ps-10 pe-3 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
             </div>
             {isOpen && (
-                <div className="absolute top-full mt-2 w-full max-h-[70vh] overflow-y-auto bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50">
+                <div className="absolute top-full mt-2 w-full max-h-[70vh] overflow-y-auto bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-[100]">
                     {query.trim() ? (
                         filteredResults.length > 0 ? (
                             <ul>

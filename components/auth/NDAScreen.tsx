@@ -1,3 +1,4 @@
+
 import React, { useState, useContext } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { AppContext } from '../../contexts/AppContext';
@@ -27,45 +28,44 @@ export const NDAScreen: React.FC = () => {
         return false;
     };
     
-    const handleSignAndArchive = () => {
+    const handleSignAndSend = () => {
         setIsLoading(true);
 
+        // Prepare data for email
+        const subject = `NDA Acceptance - ${entityType === 'individual' ? fullName : companyName}`;
+        const body = `
+NDA ACCEPTANCE NOTIFICATION
+
+The following user has agreed to the Non-Disclosure Agreement (NDA) for the GMEL Vision platform.
+
+USER DETAILS:
+-------------
+User ID: ${currentUser}
+Type: ${entityType.toUpperCase()}
+Name: ${entityType === 'individual' ? fullName : companyName}
+ID/Registration No: ${nationalId}
+Phone: ${phone}
+Email: ${email}
+Language: ${lang}
+Date: ${new Date().toLocaleString()}
+
+AGREEMENT STATUS:
+-----------------
+The user has reviewed and explicitly accepted the terms of the Non-Disclosure Agreement.
+        `.trim();
+
+        // Construct mailto link
+        const mailtoLink = `mailto:info@kkm-intl.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        // Trigger email client
+        window.location.href = mailtoLink;
+
+        // Proceed after short delay, assuming user took action
+        // No local storage of this data.
         setTimeout(() => {
-            const simpleHash = (s: string) => {
-                let hash = 0;
-                for (let i = 0; i < s.length; i++) {
-                    const char = s.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash;
-                }
-                return `0x${Math.abs(hash).toString(16)}`;
-            };
-            
-            const signerDetails = entityType === 'individual'
-                ? { type: 'Individual', name: fullName, national_id: nationalId, phone, email }
-                : { type: 'Legal Entity', company_name: companyName, registration_id: nationalId, phone, email };
-
-            const proof = {
-                "signer_username": currentUser,
-                "signer_details": signerDetails,
-                "document_details": { "document_id": `NDA-GMEL-${new Date().getFullYear()}-001`, "document_hash": simpleHash(t('nda_body')), "language": lang },
-                "signature_details": { "signature_method": "GMEL-SecureSign (Electronic Consent)", "timestamp_utc": new Date().toISOString(), "ip_address": "79.1.2.3" },
-                "legal_traceability": { "evidence_package_id": `sig-${simpleHash(currentUser + new Date().toISOString())}` }
-            };
-
-            const blob = new Blob([JSON.stringify(proof, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `NDA_Signature_Log_${currentUser}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
             grantAccess();
             setIsLoading(false);
-        }, 1000);
+        }, 1500);
     };
 
     return (
@@ -108,20 +108,25 @@ export const NDAScreen: React.FC = () => {
                 </label>
             </div>
             <button 
-                onClick={handleSignAndArchive} 
+                onClick={handleSignAndSend} 
                 disabled={!isFormValid() || isLoading} 
                 className="mt-6 w-full flex justify-center items-center py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 disabled:text-slate-400 disabled:cursor-not-allowed rounded-md font-semibold text-white transition-colors"
             >
                 {isLoading ? (
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                   </svg>
+                    <div className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                       </svg>
+                       <span>Sending to HQ...</span>
+                    </div>
                 ) : (
                     t('sign_and_activate')
                 )}
             </button>
-            <p className="text-xs text-slate-500 text-center mt-2">A JSON file with your signature log will be downloaded for your records.</p>
+            <p className="text-xs text-slate-500 text-center mt-2">
+                Confirmation details will be sent to the company email. No sensitive data is stored on this device.
+            </p>
         </div>
     );
 };

@@ -85,10 +85,10 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({ content, title, isJson, h
 
     return (
         <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-semibold">EXPORT (ADMIN):</span>
-            <button onClick={handlePdf} className="px-2 py-1 text-xs rounded bg-slate-700 hover:bg-red-700 transition-colors" title="Export as PDF">PDF</button>
-            <button onClick={handleWord} className="px-2 py-1 text-xs rounded bg-slate-700 hover:bg-blue-700 transition-colors" title="Export as Word">Word</button>
-            <button onClick={handleTxt} className="px-2 py-1 text-xs rounded bg-slate-700 hover:bg-gray-600 transition-colors" title="Export as Text">TXT</button>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mr-2">Admin Tools:</span>
+            <button onClick={handlePdf} className="px-2 py-1 text-xs rounded bg-slate-700/50 hover:bg-red-900/50 hover:text-red-200 border border-slate-600 transition-colors" title="Export as PDF">PDF</button>
+            <button onClick={handleWord} className="px-2 py-1 text-xs rounded bg-slate-700/50 hover:bg-blue-900/50 hover:text-blue-200 border border-slate-600 transition-colors" title="Export as Word">DOC</button>
+            <button onClick={handleTxt} className="px-2 py-1 text-xs rounded bg-slate-700/50 hover:bg-slate-600 border border-slate-600 transition-colors" title="Export as Text">TXT</button>
         </div>
     );
 };

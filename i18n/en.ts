@@ -61,8 +61,29 @@ export const environmental_impact = "Environmental Impact";
 export const social_impact = "Social Impact";
 
 // Dashboard
-export const gmel_statement_title = "GMEL Vision Statement";
-export const gmel_statement_body = "The GeoMeta Energy Layer (GMEL) represents a paradigm shift in geothermal energy extraction, utilizing closed-loop systems and advanced nanofluids to unlock sustainable baseload power globally.";
+export const gmel_statement_title = "GMEL Manifesto: Inventor's Vision (Gino Ayyoubian)";
+export const gmel_statement_body = `GeoMeta Energy Layer – Beyond Energy, Toward Intelligence
+
+1. Genesis
+GMEL emerged from a fundamental question: Can energy be not only extracted but also understood? We envision an ecosystem where the Earth, data, and human cognition coexist within a single, living network. In this vision, energy is not just fuel—it’s the language of the planet, waiting to be translated into data, insight, and purposeful action.
+
+2. Definition & Core Essence
+GMEL is a multi-dimensional ecosystem integrating geothermal systems with digital and cognitive layers. Every molecule of energy and bit of data interacts within a self-aware system designed for optimization. It is a thinking infrastructure where Earth sciences, AI, and sustainable economics converge.
+
+3. Foundational Principles
+• Geo-Digital Synergy: Every natural source has a digital twin.
+• Data as the Second Energy: Data is treated as an extractable resource, equal to power.
+• Cognitive Sustainability: Sustainability depends on the system’s evolving intelligence.
+
+4. Architecture
+Functions through three layers: Geo (Physical systems like CLG), Meta (Digital simulation), and Cognitive (Strategic intelligence). All layers communicate through the MetaFlow System, visualized by the G-Control Engine.
+
+5. Mission
+To demonstrate that AI and Earth can coevolve—forming a unified, intelligent layer of sustainable development. Our vision is to redefine energy generation as a process of meaning extraction—transforming geothermal power into geo-intelligence.
+
+--
+Developed by KKM International Group & The Central Knowledge Cell of Gino Ayyoubian.`;
+
 export const dashboard_title = "Dashboard - {region}";
 export const project_summary = "Project Summary";
 export const generate_summary = "Generate Summary";

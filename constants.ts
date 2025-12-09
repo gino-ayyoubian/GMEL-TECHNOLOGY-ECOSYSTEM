@@ -77,7 +77,7 @@ export const REGION_THEME_MAP: Record<Region, string> = {
 export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole, regions?: Region[] }> = {
   'GMEL-KKM-Admin': { password: '84375690', role: 'admin' },
   'GMEL-KKM-Manager': { password: '287230', role: 'manager' },
-  'GMEL-KKM-Partner': { password: 'invest_gmel_2025', role: 'partner', regions: ['Qeshm Free Zone', 'Makoo Free Zone', 'Oman'] },
+  'GMEL-KKM-Partner': { password: 'Gmel-investors', role: 'partner', regions: ['Qeshm Free Zone', 'Makoo Free Zone', 'Oman', 'Iranian Kurdistan'] },
   'GMEL-KKM-Regulator': { password: 'compliance_auth', role: 'regulator' },
   'GMEL-KKM-Guest': { password: 'public_view', role: 'guest' }
 };

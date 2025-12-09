@@ -10,6 +10,7 @@ import { AppContext } from '../contexts/AppContext';
 import { canEdit } from '../utils/permissions';
 import { extractJson } from '../utils/helpers';
 import { ALL_REGIONS } from '../constants';
+import { SkeletonLoader } from './shared/SkeletonLoader';
 
 interface StrategyResult {
     optimal_patent_package: string;
@@ -22,7 +23,9 @@ interface StrategyResult {
 export const StrategyModeler: React.FC = () => {
     const { t } = useI18n();
     const { setError, userRole, supportedLangs, lang } = useContext(AppContext)!;
+    // Use strict View-based permission
     const userCanEdit = canEdit(userRole, 'strategy_modeler');
+    
     const [targetRegion, setTargetRegion] = useState<Region>('Iranian Kurdistan');
     const [strategy, setStrategy] = useState<StrategyResult | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -30,9 +33,10 @@ export const StrategyModeler: React.FC = () => {
     useEffect(() => {
         setStrategy(null);
         setError(null);
-    }, [targetRegion, lang, setError]); // Added lang to clear on language change
+    }, [targetRegion, lang, setError]);
 
     const handleGenerate = async () => {
+        if (!userCanEdit) return;
         setIsLoading(true);
         setError(null);
         setStrategy(null);
@@ -92,24 +96,20 @@ export const StrategyModeler: React.FC = () => {
                     onClick={handleGenerate}
                     disabled={isLoading || !userCanEdit}
                     title={!userCanEdit ? "You have view-only access for this module." : ""}
-                    className="w-full md:w-auto flex-shrink-0 px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed"
+                    className="w-full md:w-auto flex-shrink-0 px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
                 >
                     {isLoading ? t('generating_strategy') : t('generate_jv_strategy')}
                 </button>
             </div>
 
             {isLoading && (
-                <div className="text-center py-10">
-                    <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p className="mt-4 text-slate-400">{t('generating_strategy')}</p>
+                <div className="space-y-6">
+                    <SkeletonLoader variant="card" count={5} height="180px" />
                 </div>
             )}
 
             {strategy && (
-                <div className="space-y-6">
+                <div className="space-y-6 animate-fade-in">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-white">{t('jv_strategy_for', { region: targetRegion })}</h2>
                         <ExportButtons content={JSON.stringify(strategy, null, 2)} title={`JV_Strategy_${targetRegion}`} />

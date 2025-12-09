@@ -8,7 +8,8 @@ import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
-import { Spinner, Skeleton } from './shared/Loading';
+import { Spinner } from './shared/Loading';
+import { SkeletonLoader } from './shared/SkeletonLoader';
 import { extractJson } from '../utils/helpers';
 import { Activity } from 'lucide-react';
 
@@ -18,7 +19,6 @@ const DataCard: React.FC<{ title: string; subtitle?: string; value: string; desc
   const { theme } = useContext(AppContext)!;
   return (
     <div className={`group relative bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-800/80 hover:shadow-[0_0_30px_-10px_rgba(14,165,233,0.3)] hover:border-sky-500/30 cursor-pointer overflow-hidden`}>
-      {/* Subtle Gradient Background Effect on Hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
       
       <div className="flex justify-between items-start relative z-10">
@@ -33,7 +33,6 @@ const DataCard: React.FC<{ title: string; subtitle?: string; value: string; desc
       <p className="mt-4 text-3xl font-extrabold text-white tracking-tight relative z-10">{value}</p>
       <p className="mt-2 text-xs text-slate-400 truncate relative z-10">{description}</p>
       
-      {/* Interactive Tooltip on Hover */}
       <div className={`opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-64 bg-slate-950/90 backdrop-blur-md border border-slate-700 p-3 rounded-lg shadow-2xl z-50 pointer-events-none`}>
         <p className={`text-xs font-bold text-sky-400 mb-1`}>{title}</p>
         <p className="text-xs text-slate-300 leading-relaxed">{description}</p>
@@ -46,7 +45,6 @@ const DataCard: React.FC<{ title: string; subtitle?: string; value: string; desc
 const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => void }> = ({ prompt, onResult }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useI18n();
-    const { theme } = useContext(AppContext)!;
 
     const handleClick = async () => {
         setIsLoading(true);
@@ -94,8 +92,6 @@ const MilestoneCard: React.FC<{ milestone: Milestone; isLast: boolean }> = ({ mi
     </div>
   );
 };
-
-// --- Impact Calculator Components ---
 
 interface ImpactMetric {
     metric: string;
@@ -148,13 +144,12 @@ const ImpactCard: React.FC<{ title: string; data: ImpactCategory; icon: React.Re
 
 const ImpactCalculator: React.FC = () => {
     const { t } = useI18n();
-    const { theme, lang } = useContext(AppContext)!;
+    const { lang } = useContext(AppContext)!;
     const [scale, setScale] = useState<number>(5);
     const [results, setResults] = useState<ImpactResults | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     
-    // Clear results on language change
     useEffect(() => {
         setResults(null);
         setError(null);
@@ -224,9 +219,8 @@ const ImpactCalculator: React.FC = () => {
             {error && <p className="text-red-400 text-center bg-red-900/10 p-3 rounded-lg border border-red-900/30">{error}</p>}
 
             {isLoading && (
-                <div className="text-center py-12">
-                    <Spinner size="xl" className="text-sky-500 mx-auto" />
-                    <p className="mt-4 text-slate-400 animate-pulse">{t('calculating_impact')}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <SkeletonLoader variant="card" count={3} height="200px" />
                 </div>
             )}
             
@@ -277,13 +271,20 @@ const GMELStatementBanner = () => {
     if (!isVisible) return null;
 
     return (
-        <div className={`bg-slate-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-6 mb-8 relative animate-pop-in shadow-[0_0_40px_-15px_rgba(14,165,233,0.15)]`}>
+        <div className={`bg-[#0f172a] bg-gradient-to-r from-slate-900 to-slate-950 border border-sky-500/30 rounded-2xl p-8 mb-8 relative animate-pop-in shadow-[0_0_50px_-20px_rgba(14,165,233,0.3)] overflow-hidden`}>
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
             <button onClick={handleDismiss} className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors" aria-label="Dismiss">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <h2 className={`text-2xl font-bold ${theme.textAccent} mb-4 tracking-tight`}>{t('gmel_statement_title')}</h2>
-            <div className="max-h-64 overflow-y-auto pr-4 text-slate-300 text-sm space-y-4 whitespace-pre-wrap leading-relaxed scrollbar-thin">
-                <p>{t('gmel_statement_body')}</p>
+            
+            <h2 className={`text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-300 mb-6 tracking-tight font-serif`}>
+                {t('gmel_statement_title')}
+            </h2>
+            
+            <div className="max-h-96 overflow-y-auto pr-4 text-slate-300 text-sm leading-7 space-y-4 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-sky-900 scrollbar-track-transparent font-light tracking-wide text-justify border-l-2 border-sky-500/30 pl-6">
+                {t('gmel_statement_body')}
             </div>
         </div>
     );
@@ -301,13 +302,11 @@ export const Dashboard: React.FC = () => {
     const [isFinancialLoading, setIsFinancialLoading] = useState(false);
     const [milestones, setMilestones] = useState<Milestone[]>(PROJECT_MILESTONES);
 
-    // Initial Data Fetch & Language Change Handling
     useEffect(() => {
         const fetchInitialData = async () => {
             setFinancialData([]); 
             setIsFinancialLoading(true);
             try {
-                // Fetch Financials
                 if (lang === 'en') {
                     setFinancialData(getFinancialData(region));
                 } else {
@@ -315,7 +314,6 @@ export const Dashboard: React.FC = () => {
                     setFinancialData(data);
                 }
 
-                // Fetch Milestones
                 const localMilestones = await generateLocalizedMilestones(lang);
                 setMilestones(localMilestones);
 
@@ -377,7 +375,7 @@ export const Dashboard: React.FC = () => {
     };
 
     const getIconForCard = (id: string) => {
-        return cardIcons[id] || cardIcons['revenue']; // Fallback
+        return cardIcons[id] || cardIcons['revenue'];
     };
 
     const CustomTooltip = ({ active, payload, label }: any) => {
@@ -406,7 +404,7 @@ export const Dashboard: React.FC = () => {
           <button
               onClick={handleRefreshData}
               disabled={isFinancialLoading}
-              className={`flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 text-white font-medium rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 text-white font-medium rounded-lg transition-all text-sm disabled:opacity-70 disabled:cursor-not-allowed ${isFinancialLoading ? 'animate-pulse border-sky-500/30' : ''}`}
           >
               {isFinancialLoading ? (
                   <Spinner size="sm" className="text-sky-400" />
@@ -423,14 +421,15 @@ export const Dashboard: React.FC = () => {
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-sky-400" />
             Geothermal Potential Metrics
+            {isFinancialLoading && financialData.length > 0 && <Spinner size="sm" className="ml-2 text-slate-400" />}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 ${isFinancialLoading && financialData.length > 0 ? 'opacity-60 transition-opacity duration-300' : ''}`}>
             {isFinancialLoading && financialData.length === 0 ? (
                 [...Array(5)].map((_, i) => (
-                    <div key={i} className="bg-slate-900/60 p-6 rounded-2xl border border-white/5 h-36 flex flex-col justify-between">
-                        <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-10 w-3/4" />
-                        <Skeleton className="h-3 w-full" />
+                    <div key={i} className="bg-slate-900/60 p-6 rounded-2xl border border-white/5 h-48 flex flex-col justify-between">
+                        <SkeletonLoader variant="text" />
+                        <SkeletonLoader variant="rect" height="40px" className="mt-4" />
+                        <SkeletonLoader variant="text" width="80%" className="mt-2" />
                     </div>
                 ))
             ) : (
@@ -456,12 +455,7 @@ export const Dashboard: React.FC = () => {
                     <SpeakerIcon text={summary} />
                 </h2>
                 {isSummaryLoading ? (
-                    <div className="space-y-3">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-5/6" />
-                        <Skeleton className="h-4 w-4/6" />
-                    </div>
+                    <SkeletonLoader variant="text" count={4} />
                 ) : summary ? (
                     <p className="text-slate-300 text-sm mb-8 leading-relaxed">{summary}</p>
                 ) : (

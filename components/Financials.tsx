@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { jsPDF } from 'jspdf';
@@ -12,7 +11,8 @@ import { Feedback } from './shared/Feedback';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
 import { extractJson } from '../utils/helpers';
-import { Spinner, Skeleton } from './shared/Loading';
+import { Spinner } from './shared/Loading';
+import { SkeletonLoader } from './shared/SkeletonLoader';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6', '#10b981', '#6366f1'];
 
@@ -82,17 +82,24 @@ const IPOAnalysis: React.FC = () => {
         <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-xl font-semibold mb-2 text-white">{t('ipo_analysis_title')}</h2>
             <p className="text-sm text-slate-400 mb-6">{t('ipo_analysis_desc')}</p>
-            {!ipoData && (
+            {!ipoData && !isLoading && (
                 <button 
                     onClick={handleGenerate} 
-                    disabled={isLoading} 
                     className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                    {isLoading && <Spinner size="sm" className="text-white" />}
-                    {isLoading ? t('analyzing') : t('generate_ipo_analysis')}
+                    {t('generate_ipo_analysis')}
                 </button>
             )}
             
+            {isLoading && (
+                <div className="mt-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <SkeletonLoader variant="card" height="120px" count={3} />
+                    </div>
+                    <SkeletonLoader variant="text" count={3} />
+                </div>
+            )}
+
             {ipoData && (
                  <div className="mt-6 space-y-6 animate-fade-in">
                     <ExportButtons content={JSON.stringify(ipoData, null, 2)} title={`IPO_Forecast_${region}`} />
@@ -157,6 +164,12 @@ const RevenueStreamsAnalysis: React.FC = () => {
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.table && parsed.narrative) {
+                // Sanitize numeric values to avoid .toFixed() errors on strings
+                parsed.table = parsed.table.map((item: any) => ({
+                    ...item,
+                    percentage: typeof item.percentage === 'string' ? parseFloat(item.percentage.replace(/[^0-9.-]/g, '')) || 0 : Number(item.percentage) || 0,
+                    value: typeof item.value === 'string' ? parseFloat(item.value.replace(/[^0-9.-]/g, '')) || 0 : Number(item.value) || 0,
+                }));
                 setData(parsed);
             } else {
                 throw new Error("Invalid format received from AI.");
@@ -172,15 +185,23 @@ const RevenueStreamsAnalysis: React.FC = () => {
         <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-xl font-semibold mb-2 text-white">{t('revenue_streams_title')}</h2>
             <p className="text-sm text-slate-400 mb-6">{t('revenue_streams_desc', { region })}</p>
-            {!data && (
+            {!data && !isLoading && (
                 <button 
                     onClick={handleGenerate} 
-                    disabled={isLoading} 
                     className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                    {isLoading && <Spinner size="sm" className="text-white" />}
-                    {isLoading ? t('analyzing') : t('generate_revenue_breakdown')}
+                    {t('generate_revenue_breakdown')}
                 </button>
+            )}
+
+            {isLoading && (
+                <div className="mt-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <SkeletonLoader variant="circle" width="250px" height="250px" className="mx-auto" />
+                        <SkeletonLoader variant="text" count={6} />
+                    </div>
+                    <SkeletonLoader variant="table" />
+                </div>
             )}
 
             {data && (
@@ -221,8 +242,12 @@ const RevenueStreamsAnalysis: React.FC = () => {
                                     {data.table.map((row, index) => (
                                         <tr key={index} className="hover:bg-slate-800/30 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap font-medium text-white">{row.stream}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-slate-300">{row.percentage.toFixed(1)}%</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sky-400 font-mono">{row.value.toFixed(1)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                                                {typeof row.percentage === 'number' ? row.percentage.toFixed(1) : row.percentage}%
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sky-400 font-mono">
+                                                {typeof row.value === 'number' ? row.value.toFixed(1) : row.value}
+                                            </td>
                                             <td className="px-6 py-4 text-slate-400 text-sm">{row.assumptions}</td>
                                         </tr>
                                     ))}
@@ -243,7 +268,6 @@ const FundingSourcesAnalysis: React.FC = () => {
     const [fundingData, setFundingData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // RESTRICTION: Only Admin can see Funding Sources
     if (userRole !== 'admin') {
         return null;
     }
@@ -295,14 +319,20 @@ const FundingSourcesAnalysis: React.FC = () => {
         <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-2xl font-bold text-white">{t('funding_sources_title')}</h2>
             <p className="text-slate-400 mt-2 mb-6 max-w-3xl">{t('funding_sources_desc')}</p>
-            <button 
-                onClick={handleGenerate} 
-                disabled={isLoading} 
-                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-                {isLoading && <Spinner size="sm" className="text-white" />}
-                {isLoading ? t('analyzing') : t('research_funding')}
-            </button>
+            {!fundingData && !isLoading && (
+                <button 
+                    onClick={handleGenerate} 
+                    className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                    {t('research_funding')}
+                </button>
+            )}
+
+            {isLoading && (
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <SkeletonLoader variant="card" count={3} height="300px" />
+                </div>
+            )}
             
             {fundingData && (
                 <div className="mt-8 space-y-6 animate-fade-in">
@@ -327,7 +357,6 @@ export const Financials: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
     
-    // Initial fetch logic to support language changes
     useEffect(() => {
         const fetchInitialData = async () => {
             if (lang === 'en') {
@@ -338,7 +367,7 @@ export const Financials: React.FC = () => {
                     setFinancialData(data);
                 } catch (e) {
                     console.error("Failed to translate financials", e);
-                    setFinancialData(getFinancialData(region)); // Fallback
+                    setFinancialData(getFinancialData(region));
                 }
             }
         };
@@ -408,12 +437,6 @@ export const Financials: React.FC = () => {
             }));
     }, [financialData]);
 
-    const pieData = useMemo(() => {
-        return financialData
-            .filter(d => ['capex', 'revenue'].includes(d.id))
-            .map(d => ({ name: d.component, value: d.value }));
-    }, [financialData]);
-
     
     const projectionData = useMemo(() => {
         const data = [];
@@ -422,7 +445,7 @@ export const Financials: React.FC = () => {
         const optimisticInvestment = customInitialInvestment * 0.9;
         const pessimisticInvestment = customInitialInvestment * 1.1;
 
-        for (let i = 0; i < 11; i++) { // From year 0 to 10
+        for (let i = 0; i < 11; i++) {
             data.push({ 
                 year: i,
                 baseline: (customAnnualRevenue * i) - customInitialInvestment,
@@ -563,16 +586,15 @@ export const Financials: React.FC = () => {
             <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
                  <h2 className="text-xl font-semibold mb-4 text-white">{t('market_analysis_for', { region })}</h2>
                  <p className="text-sm text-slate-400 mb-6">{t('market_analysis_description')}</p>
-                 {!analysis.text && (
+                 {!analysis.text && !isLoading && (
                     <button 
                         onClick={handleAnalysis} 
-                        disabled={isLoading} 
                         className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                        {isLoading && <Spinner size="sm" className="text-white" />}
-                        {isLoading ? t('analyzing') : t('generate_analysis')}
+                        {t('generate_analysis')}
                     </button>
                  )}
+                 {isLoading && <SkeletonLoader variant="text" count={6} />}
                  {analysis.text && (
                      <div className="mt-6 p-6 bg-slate-800/50 rounded-xl border border-white/5 animate-fade-in">
                          <ExportButtons content={analysis.text} title={`Market_Analysis_${region}`} />

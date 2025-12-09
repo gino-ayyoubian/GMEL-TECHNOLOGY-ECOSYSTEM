@@ -51,7 +51,9 @@ const ProposalSection: React.FC<{ title: string; content: string | string[]; }> 
 export const ProposalGenerator: React.FC = () => {
     const { lang, userRole, setError, supportedLangs, currentUser } = useContext(AppContext)!;
     const { t } = useI18n();
+    // Use strict View-based permission
     const userCanEdit = canEdit(userRole, 'proposal_generator');
+    
     const [targetRegion, setTargetRegion] = useState<Region>('Kurdistan Region, Iraq');
     const [proposalData, setProposalData] = useState<ProposalData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +65,7 @@ export const ProposalGenerator: React.FC = () => {
     }, [targetRegion, lang, setError]);
 
     const handleGenerate = async () => {
+        if (!userCanEdit) return;
         setIsLoading(true);
         setError(null);
         setProposalData(null);
@@ -218,6 +221,7 @@ export const ProposalGenerator: React.FC = () => {
                  <button 
                     onClick={handleGenerate} 
                     disabled={isLoading || !userCanEdit} 
+                    title={!userCanEdit ? "Restricted for current role" : ""}
                     className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 px-6 rounded-lg transition-all shadow-lg shadow-sky-900/20 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                     {isLoading && <Spinner size="sm" className="text-white" />}
