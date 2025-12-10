@@ -5,7 +5,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { AuthService } from '../../services/authService';
 import { USER_CREDENTIALS } from '../../constants';
 import { UserRole } from '../../types';
-import { ShieldCheck, Briefcase, Eye, Lock, User, Activity, Globe, Server, ChevronDown, Scale, TrendingUp } from 'lucide-react';
+import { ShieldCheck, Briefcase, Eye, Lock, User, ChevronDown, Scale, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 
 // --- Enterprise Role Definitions ---
 
@@ -61,11 +61,47 @@ const ROLE_DEFINITIONS: Record<UserRole, RoleDefinition> = {
     }
 };
 
+const PasswordStrengthMeter: React.FC<{ password: string }> = ({ password }) => {
+    const calculateStrength = (pass: string) => {
+        let score = 0;
+        if (!pass) return 0;
+        if (pass.length > 6) score++;
+        if (pass.length > 10) score++;
+        if (/[A-Z]/.test(pass)) score++;
+        if (/[0-9]/.test(pass)) score++;
+        if (/[^A-Za-z0-9]/.test(pass)) score++;
+        return score;
+    };
+
+    const strength = calculateStrength(password);
+    const colors = ['bg-slate-700', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-emerald-500'];
+    const labels = ['None', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+
+    return (
+        <div className="w-full mt-2 transition-all duration-300 ease-in-out opacity-100">
+            <div className="flex gap-1 h-1 mb-1">
+                {[...Array(5)].map((_, i) => (
+                    <div 
+                        key={i} 
+                        className={`h-full flex-1 rounded-full transition-all duration-500 ease-out ${i < strength ? colors[strength] : 'bg-slate-700'}`} 
+                    />
+                ))}
+            </div>
+            <div className="flex justify-end">
+                <p className={`text-[10px] font-medium transition-colors duration-300 ${strength > 3 ? 'text-green-400' : strength > 1 ? 'text-yellow-400' : 'text-slate-500'}`}>
+                    {password ? labels[strength] : ''}
+                </p>
+            </div>
+        </div>
+    );
+};
+
 export const Login: React.FC = () => {
     const { setCurrentUser, setUserRole, setAuthStep, setAllowedRegions, setRegion, setSessionToken } = useContext(AppContext)!;
     const { t } = useI18n();
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPersonas, setShowPersonas] = useState(false);
@@ -92,10 +128,25 @@ export const Login: React.FC = () => {
         return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
+    const validateEmail = (email: string) => {
+        return String(email)
+            .toLowerCase()
+            .match(
+                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
+
+        // Email Validation Logic
+        if (userId.includes('@') && !validateEmail(userId)) {
+            setError('Please enter a valid email address format.');
+            setIsLoading(false);
+            return;
+        }
 
         try {
             const result = await AuthService.login(userId, password);
@@ -126,6 +177,15 @@ export const Login: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSocialLogin = (provider: string) => {
+        // Simulation of social login
+        setIsLoading(true);
+        setTimeout(() => {
+            setIsLoading(false);
+            alert(`${provider} login is currently simulated. Please use Enterprise credentials for the full demo experience.`);
+        }, 1000);
     };
 
     const handlePersonaSelect = (user: string) => {
@@ -179,9 +239,9 @@ export const Login: React.FC = () => {
                             }}
                             onFocus={() => setShowSuggestions(true)}
                             placeholder={t('user_id_placeholder')}
-                            className={`w-full bg-slate-800/50 border rounded-xl py-3 ps-10 pe-10 text-white placeholder-slate-500 transition-all ${error ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
+                            className={`w-full bg-slate-800/50 border rounded-xl py-3 ps-10 pe-10 text-white placeholder-slate-500 transition-all ${error && userId ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
                             required
-                            autoComplete="off"
+                            autoComplete="username"
                         />
                         <div className="absolute inset-y-0 end-0 pe-3 flex items-center pointer-events-none text-slate-500">
                             <ChevronDown className={`w-4 h-4 transition-transform ${showSuggestions ? 'rotate-180' : ''}`} />
@@ -231,12 +291,34 @@ export const Login: React.FC = () => {
                             placeholder="Password"
                             className={`w-full bg-slate-800/50 border rounded-xl py-3 ps-10 pe-3 text-white placeholder-slate-500 transition-all ${error ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50'}`}
                             required
+                            autoComplete="current-password"
                         />
                     </div>
+                    {/* Visual Password Strength Indicator */}
+                    {password && <PasswordStrengthMeter password={password} />}
                     
+                    <div className="flex items-center justify-between text-sm">
+                        <label className="flex items-center space-x-2 cursor-pointer group">
+                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${rememberMe ? 'bg-sky-500 border-sky-500' : 'bg-slate-800 border-slate-600 group-hover:border-slate-500'}`}>
+                                {rememberMe && <CheckCircle2 className="w-3 h-3 text-white" />}
+                            </div>
+                            <input 
+                                type="checkbox" 
+                                checked={rememberMe} 
+                                onChange={(e) => setRememberMe(e.target.checked)} 
+                                className="hidden" 
+                            />
+                            <span className="text-slate-400 group-hover:text-slate-300 transition-colors">Remember me</span>
+                        </label>
+                        
+                        <button type="button" onClick={() => setAuthStep('resetPassword')} className="text-sky-400 hover:text-sky-300 transition-colors text-xs font-medium">
+                            {t('forgot_password')}
+                        </button>
+                    </div>
+
                     {error && (
                         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center flex items-center justify-center gap-2 animate-shake">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                            <AlertCircle className="w-4 h-4" />
                             {error}
                         </div>
                     )}
@@ -244,7 +326,7 @@ export const Login: React.FC = () => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full flex justify-center items-center py-3 px-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white shadow-lg shadow-sky-900/20 transition-all transform active:scale-95"
+                        className="w-full flex justify-center items-center py-3 px-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white shadow-lg shadow-sky-900/20 transition-all transform active:scale-[0.98]"
                     >
                         {isLoading ? (
                              <div className="flex items-center gap-2">
@@ -259,11 +341,38 @@ export const Login: React.FC = () => {
                         )}
                     </button>
                 </form>
-                
-                <div className="text-center mt-6">
-                    <button onClick={() => setAuthStep('resetPassword')} className="text-xs text-slate-500 hover:text-sky-400 transition-colors">
-                        {t('forgot_password')}
-                    </button>
+
+                {/* Social Login Section */}
+                <div className="mt-8">
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-slate-700/50"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-3 bg-[#0f172a] text-slate-500 rounded-full border border-slate-800">Or continue with</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-2 gap-3">
+                        <button 
+                            onClick={() => handleSocialLogin('Google')}
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-700 rounded-xl bg-slate-800/30 hover:bg-slate-800 text-slate-300 hover:text-white transition-all hover:border-slate-500 active:scale-95"
+                        >
+                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                            </svg>
+                            <span className="text-sm font-medium">Google</span>
+                        </button>
+                        <button 
+                            onClick={() => handleSocialLogin('GitHub')}
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-700 rounded-xl bg-slate-800/30 hover:bg-slate-800 text-slate-300 hover:text-white transition-all hover:border-slate-500 active:scale-95"
+                        >
+                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.05-.015-2.055-3.33.72-4.035-1.605-4.035-1.605-.54-1.38-1.335-1.755-1.335-1.755-1.08-.735.09-.72.09-.72 1.2.09 1.83 1.23 1.83 1.23 1.065 1.815 2.805 1.29 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.285 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                            <span className="text-sm font-medium">GitHub</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-white/5 lg:hidden">

@@ -1,5 +1,5 @@
 
-import React, { useState, createContext, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, createContext, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Region, View, UserRole, ThemeConfig } from '../types';
 import { Language, locales } from '../hooks/useI18n';
 import { THEMES, REGION_THEME_MAP } from '../constants';
@@ -62,7 +62,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [allowedRegions, setAllowedRegionsState] = useState<Region[] | null>(getInitialState('gmel_allowed_regions', null));
     const [error, setError] = useState<string | null>(null);
     const [sessionToken, setSessionTokenState] = useState<string | null>(getInitialState('gmel_session_token', null));
-    const [lastActivity, setLastActivity] = useState<number>(Date.now());
+    
+    // Use useRef for activity tracking to avoid re-renders on every mouse move
+    const lastActivityRef = useRef<number>(Date.now());
 
     const theme = useMemo(() => {
         const themeName = REGION_THEME_MAP[region] || 'warm';
@@ -97,7 +99,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const setSessionToken = (token: string | null) => {
         sessionStorage.setItem('gmel_session_token', JSON.stringify(token));
         setSessionTokenState(token);
-        if (token) setLastActivity(Date.now());
+        if (token) lastActivityRef.current = Date.now();
     };
 
     // Session Timeout Logic
@@ -114,7 +116,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }, [sessionToken]);
 
     const resetInactivityTimer = useCallback(() => {
-        setLastActivity(Date.now());
+        lastActivityRef.current = Date.now();
     }, []);
 
     useEffect(() => {
@@ -122,7 +124,8 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         const interval = setInterval(() => {
             const now = Date.now();
-            if (now - lastActivity > SESSION_TIMEOUT_MS) {
+            // Check against ref instead of state
+            if (now - lastActivityRef.current > SESSION_TIMEOUT_MS) {
                 handleLogout();
             }
         }, 10000); // Check every 10 seconds
@@ -134,7 +137,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             clearInterval(interval);
             events.forEach(event => window.removeEventListener(event, resetInactivityTimer));
         };
-    }, [currentUser, lastActivity, handleLogout, resetInactivityTimer]);
+    }, [currentUser, handleLogout, resetInactivityTimer]);
 
 
     const supportedLangs = [

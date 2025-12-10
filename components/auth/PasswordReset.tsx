@@ -6,6 +6,41 @@ import { AuthService } from '../../services/authService';
 
 const MAX_ATTEMPTS = 3;
 
+const PasswordStrengthMeter: React.FC<{ password: string }> = ({ password }) => {
+    const calculateStrength = (pass: string) => {
+        let score = 0;
+        if (!pass) return 0;
+        if (pass.length > 6) score++;
+        if (pass.length > 10) score++;
+        if (/[A-Z]/.test(pass)) score++;
+        if (/[0-9]/.test(pass)) score++;
+        if (/[^A-Za-z0-9]/.test(pass)) score++;
+        return score;
+    };
+
+    const strength = calculateStrength(password);
+    const colors = ['bg-slate-700', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-emerald-500'];
+    const labels = ['None', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+
+    return (
+        <div className="w-full mt-2 mb-2 transition-all duration-300">
+            <div className="flex gap-1 h-1 mb-1">
+                {[...Array(5)].map((_, i) => (
+                    <div 
+                        key={i} 
+                        className={`h-full flex-1 rounded-full transition-all duration-300 ease-out ${i < strength ? colors[strength] : 'bg-slate-700'}`} 
+                    />
+                ))}
+            </div>
+            <div className="flex justify-end">
+                <p className={`text-[10px] font-medium transition-colors ${strength > 3 ? 'text-green-400' : strength > 1 ? 'text-yellow-400' : 'text-slate-500'}`}>
+                    {password ? labels[strength] : ''}
+                </p>
+            </div>
+        </div>
+    );
+};
+
 export const PasswordReset: React.FC = () => {
     const { setAuthStep } = useContext(AppContext)!;
     const { t } = useI18n();
@@ -30,8 +65,6 @@ export const PasswordReset: React.FC = () => {
         setSuccessMessage('');
         
         // Simulate checking if user exists in the auth service (simple check by attempting to send code)
-        // In a real app, this might just send email without confirming user existence for security (enumeration prevention)
-        // But for this internal tool, we check validity.
         setTimeout(() => {
             const users = AuthService.getUsers();
             const userExists = users.find(u => u.id === userId && u.isActive);
@@ -110,7 +143,7 @@ export const PasswordReset: React.FC = () => {
 
     if (attempts >= MAX_ATTEMPTS) {
         return (
-            <div className="w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-red-500/50 text-center shadow-2xl">
+            <div className="w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-red-500/50 text-center shadow-2xl animate-fade-in">
                 <div className="text-red-400 font-bold mb-4">{t('error_too_many_attempts')}</div>
                 <button onClick={() => setAuthStep('login')} className="text-sm text-slate-400 hover:text-white transition-colors">
                     &larr; {t('back_to_login')}
@@ -120,7 +153,7 @@ export const PasswordReset: React.FC = () => {
     }
 
     return (
-        <div className="w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl">
+        <div className="w-full max-w-md mx-auto bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl animate-fade-in">
             <h2 className="text-xl font-bold text-white text-center mb-4">{t('password_reset_title')}</h2>
             
             {successMessage && !error && <div className="bg-green-500/10 border border-green-500/50 text-green-400 text-sm rounded p-3 mb-4 text-center animate-fade-in">{successMessage}</div>}
@@ -213,6 +246,7 @@ export const PasswordReset: React.FC = () => {
                             className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-all" 
                             required 
                         />
+                        <PasswordStrengthMeter password={newPassword} />
                     </div>
                     <div>
                         <label htmlFor="confirmPassword" className="block text-xs font-medium text-slate-400 mb-1">{t('confirm_new_password')}</label>
