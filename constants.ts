@@ -134,6 +134,14 @@ const FINANCIAL_DATA_MAKOO: FinancialData[] = [
     { id: 'npv', component: '10-Year NPV', value: 2950, unit: 'Billion Toman', description: 'Robust project value.' },
 ];
 
+const FINANCIAL_DATA_KURDISTAN: FinancialData[] = [
+    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 633, unit: 'Billion Toman', description: 'Adjusted for logistics in mountainous terrain.' },
+    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 480, unit: 'Billion Toman', description: 'Enhanced by direct industrial heat sales.' },
+    { id: 'payback', component: 'Payback Period', value: 1.5, unit: 'Years', description: 'Rapid return due to high local energy demand.' },
+    { id: 'roi', component: 'Return on Investment (ROI)', value: 48, unit: 'Percent', description: 'Exceptional ROI from dual-output efficiency.' },
+    { id: 'npv', component: '10-Year NPV', value: 3400, unit: 'Billion Toman', description: 'Strategic long-term asset value.' },
+];
+
 const FINANCIAL_DATA_GENERAL: FinancialData[] = [
     { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 14, unit: 'Million USD', description: 'International standard cost for GMEL pilot.' },
     { id: 'revenue', component: 'Annual Revenue (5MW)', value: 9, unit: 'Million USD', description: 'Combined revenue streams.' },
@@ -149,12 +157,12 @@ export const getFinancialData = (region: Region): FinancialData[] => {
         case 'Makoo Free Zone': return FINANCIAL_DATA_MAKOO;
         case 'Iranian Kurdistan': return FINANCIAL_DATA_MAKOO; // Similar terrain
         case 'Mahabad': return FINANCIAL_DATA_MAKOO;
-        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_GENERAL;
+        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_KURDISTAN; // Specific data
         case 'Oman': return FINANCIAL_DATA_GENERAL;
         case 'Saudi Arabia': return FINANCIAL_DATA_GENERAL;
         case 'United Arab Emirates': return FINANCIAL_DATA_GENERAL;
         case 'Qatar': return FINANCIAL_DATA_GENERAL;
-        default: return FINANCIAL_DATA_QESHM;
+        default: return FINANCIAL_DATA_GENERAL;
     }
 };
 

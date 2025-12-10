@@ -1,6 +1,6 @@
 
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
+import { generateGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
@@ -238,8 +238,9 @@ export const SiteAnalysis: React.FC = () => {
         setAnalysis({text: '', sources: []});
 
         try {
-            const analysisPrompt = t('site_analysis_prompt', { region });
-            const analysisResult = await generateMapsGroundedText(analysisPrompt);
+            // Using search grounding to find geological data that maps cannot provide directly
+            const analysisPrompt = `Perform a geological fracture analysis and geothermal potential assessment for ${region}. Focus on subterranean faults, heat flow data, and rock formations suitable for closed-loop systems. Cite sources.`;
+            const analysisResult = await generateGroundedText(analysisPrompt);
             if (analysisResult.text) {
                 setAnalysis(analysisResult);
             } else {
@@ -320,25 +321,14 @@ export const SiteAnalysis: React.FC = () => {
                                     <div className="mt-4">
                                         <h4 className="text-sm font-semibold text-slate-400">{t('sources')}:</h4>
                                         <ul className="list-disc list-inside mt-2 text-xs text-slate-500 space-y-1">
-                                            {analysis.sources.map((chunk: any, i: number) => {
-                                                if (chunk.maps?.uri) {
+                                            {analysis.sources.map((source: any, i: number) => {
+                                                if (source.web?.uri) {
                                                     return (
-                                                        <li key={`map-source-${i}`}>
-                                                            <a href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
-                                                                {chunk.maps.title || 'Google Maps Source'}
+                                                        <li key={`web-source-${i}`}>
+                                                            <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
+                                                                {source.web.title || 'Source'}
                                                             </a>
                                                         </li>
-                                                    );
-                                                }
-                                                if (chunk.maps?.placeAnswerSources) {
-                                                    return chunk.maps.placeAnswerSources.map((source: any, j: number) => 
-                                                        source.reviewSnippets?.map((snippet: any, k: number) => (
-                                                             <li key={`review-${i}-${j}-${k}`}>
-                                                                <a href={snippet.uri} target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 hover:underline">
-                                                                    {snippet.title || 'Review Snippet'}
-                                                                </a>: "{snippet.content}"
-                                                            </li>
-                                                        ))
                                                     );
                                                 }
                                                 return null;

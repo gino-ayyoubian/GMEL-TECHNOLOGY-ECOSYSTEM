@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { generateBenchmarkComparison, generateFinancialData } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -77,8 +78,8 @@ export const Benchmark: React.FC = () => {
     const mapRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
     
-    const [region1, setRegion1] = useState<Region>('Qeshm Free Zone');
-    const [region2, setRegion2] = useState<Region>('Iceland');
+    const [region1, setRegion1] = useState<Region | ''>('');
+    const [region2, setRegion2] = useState<Region | ''>('');
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -194,6 +195,10 @@ export const Benchmark: React.FC = () => {
     };
 
     const handleCompare = async () => {
+        if (!region1 || !region2) {
+            setError("Please select both regions.");
+            return;
+        }
         if (region1 === region2) {
             setError(t('error_select_different_regions'));
             return;
@@ -333,11 +338,12 @@ export const Benchmark: React.FC = () => {
                 <div className="w-full md:w-1/3">
                     <label className="block text-xs font-bold text-sky-500 mb-2 uppercase text-center">Region A</label>
                     <select value={region1} onChange={e => setRegion1(e.target.value as Region)} className="w-full bg-slate-800 border-sky-900/50 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 text-sm text-white font-semibold py-3 text-center">
+                        <option value="">Select Region</option>
                         {filteredRegions.map(r => <option key={`r1-${r}`} value={r}>{r}</option>)}
                     </select>
                 </div>
                 
-                <button onClick={handleCompare} disabled={isLoading} className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-900/40 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105">
+                <button onClick={handleCompare} disabled={isLoading || !region1 || !region2} className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-900/40 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105">
                     {isLoading && <Spinner size="sm" className="text-white" />}
                     {isLoading ? t('analyzing') : "COMPARE NOW"}
                 </button>
@@ -345,12 +351,19 @@ export const Benchmark: React.FC = () => {
                 <div className="w-full md:w-1/3">
                     <label className="block text-xs font-bold text-amber-500 mb-2 uppercase text-center">Region B</label>
                     <select value={region2} onChange={e => setRegion2(e.target.value as Region)} className="w-full bg-slate-800 border-amber-900/50 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-sm text-white font-semibold py-3 text-center">
+                        <option value="">Select Region</option>
                         {filteredRegions.map(r => <option key={`r2-${r}`} value={r}>{r}</option>)}
                     </select>
                 </div>
             </div>
             
             {error && <p className="text-red-400 text-center bg-red-900/10 p-3 rounded-lg border border-red-900/30">{error}</p>}
+
+            {!comparisonResult && !isLoading && (
+                <div className="text-center py-12 bg-slate-900/40 border border-white/5 border-dashed rounded-xl">
+                    <p className="text-slate-400">Select two regions above and click "COMPARE NOW" to generate analysis.</p>
+                </div>
+            )}
 
             {(comparisonResult || isLoading) && (
                 <div className="space-y-8">
