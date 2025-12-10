@@ -2,7 +2,7 @@
 import React, { useState, createContext, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Region, View, UserRole, ThemeConfig } from '../types';
 import { Language, locales } from '../hooks/useI18n';
-import { THEMES, REGION_THEME_MAP } from '../constants';
+import { THEMES, REGION_THEME_MAP, ALL_REGIONS } from '../constants';
 import { AuthService } from '../services/authService';
 
 export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted' | 'resetPassword';
@@ -54,10 +54,22 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [authStep, setAuthStepState] = useState<AuthStep>(getInitialState('gmel_auth_step', 'login'));
     const [currentUser, setCurrentUserState] = useState<string | null>(getInitialState('gmel_current_user', null));
     const [userRole, setUserRoleState] = useState<UserRole | null>(getInitialState('gmel_user_role', null));
-    const [region, setRegion] = useState<Region>('Qeshm Free Zone');
-    const [lang, setLangState] = useState<Language>(getInitialState('gmel_lang', 'en'));
+    
+    // Check URL parameters for deep linking initialization
+    const params = new URLSearchParams(window.location.search);
+    const initialView = params.get('view') as View || 'dashboard';
+    const initialRegion = (params.get('region') as Region) && ALL_REGIONS.includes(params.get('region') as Region) 
+        ? (params.get('region') as Region) 
+        : 'Qeshm Free Zone';
+    const initialLang = (params.get('lang') as Language) && ['en', 'fa', 'ku', 'ar'].includes(params.get('lang') as string)
+        ? (params.get('lang') as Language)
+        : getInitialState('gmel_lang', 'en');
+
+    const [region, setRegionState] = useState<Region>(initialRegion);
+    const [lang, setLangState] = useState<Language>(initialLang);
+    const [activeView, setActiveViewState] = useState<View>(initialView);
+
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [activeView, setActiveView] = useState<View>('financials');
     const [technicalTopic, setTechnicalTopic] = useState<string | null>(null);
     const [allowedRegions, setAllowedRegionsState] = useState<Region[] | null>(getInitialState('gmel_allowed_regions', null));
     const [error, setError] = useState<string | null>(null);
@@ -70,6 +82,22 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const themeName = REGION_THEME_MAP[region] || 'warm';
         return THEMES[themeName];
     }, [region]);
+
+    // Update URL when state changes (Deep Linking)
+    useEffect(() => {
+        if (authStep === 'granted') {
+            const params = new URLSearchParams();
+            params.set('view', activeView);
+            params.set('region', region);
+            params.set('lang', lang);
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            try {
+                window.history.replaceState(null, '', newUrl);
+            } catch (e) {
+                console.warn("Could not update URL history (likely running in sandboxed/blob environment):", e);
+            }
+        }
+    }, [activeView, region, lang, authStep]);
 
     const setAuthStep = (step: AuthStep) => {
         sessionStorage.setItem('gmel_auth_step', JSON.stringify(step));
@@ -89,6 +117,14 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const setLang = (newLang: Language) => {
         sessionStorage.setItem('gmel_lang', JSON.stringify(newLang));
         setLangState(newLang);
+    };
+
+    const setRegion = (newRegion: Region) => {
+        setRegionState(newRegion);
+    };
+
+    const setActiveView = (newView: View) => {
+        setActiveViewState(newView);
     };
 
     const setAllowedRegions = (regions: Region[] | null) => {

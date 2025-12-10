@@ -30,7 +30,7 @@ import { Spinner } from './components/shared/Loading';
 import { 
   LayoutDashboard, FileText, Activity, Globe, Map, Scale, 
   FlaskConical, PenTool, Lightbulb, Video, MessageSquare, 
-  Menu, X, ShieldCheck, Mail, FileCode, Cpu, LogOut, ClipboardList, Lock, UserCog
+  Menu, X, ShieldCheck, Mail, FileCode, Cpu, LogOut, ClipboardList, Lock, UserCog, Share2, Check
 } from 'lucide-react';
 import { View, Region } from './types';
 import { hasPermission } from './utils/permissions';
@@ -80,6 +80,29 @@ export const LanguageSwitcher = () => {
                 </div>
             )}
         </div>
+    );
+};
+
+const ShareButton = () => {
+    const [copied, setCopied] = useState(false);
+
+    const handleShare = () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
+
+    return (
+        <button
+            onClick={handleShare}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/30 text-sky-400 transition-all text-sm font-medium backdrop-blur-md shadow-sm"
+            title="Copy link to current view"
+        >
+            {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+            <span>{copied ? 'Copied' : 'Share Link'}</span>
+        </button>
     );
 };
 
@@ -274,8 +297,9 @@ const MainAppLayout = () => {
                     </div>
                     
                     <div className="flex items-center gap-4">
-                        <LanguageSwitcher />
+                        <ShareButton />
                         <div className="h-6 w-px bg-white/10"></div>
+                        <LanguageSwitcher />
                         <div className="relative">
                             <select 
                                 value={region} 
