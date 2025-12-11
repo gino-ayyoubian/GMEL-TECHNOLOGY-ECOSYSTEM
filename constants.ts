@@ -134,12 +134,22 @@ const FINANCIAL_DATA_MAKOO: FinancialData[] = [
     { id: 'npv', component: '10-Year NPV', value: 2950, unit: 'Billion Toman', description: 'Robust project value.' },
 ];
 
-const FINANCIAL_DATA_KURDISTAN: FinancialData[] = [
-    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 633, unit: 'Billion Toman', description: 'Adjusted for logistics in mountainous terrain.' },
-    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 480, unit: 'Billion Toman', description: 'Enhanced by direct industrial heat sales.' },
-    { id: 'payback', component: 'Payback Period', value: 1.5, unit: 'Years', description: 'Rapid return due to high local energy demand.' },
-    { id: 'roi', component: 'Return on Investment (ROI)', value: 48, unit: 'Percent', description: 'Exceptional ROI from dual-output efficiency.' },
-    { id: 'npv', component: '10-Year NPV', value: 3400, unit: 'Billion Toman', description: 'Strategic long-term asset value.' },
+// Specific Data for Kurdistan Region, Iraq
+const FINANCIAL_DATA_KURDISTAN_IRAQ: FinancialData[] = [
+    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 640, unit: 'Billion Toman', description: 'Adjusted for mountainous logistics and infrastructure development.' },
+    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 495, unit: 'Billion Toman', description: 'High revenue from electricity (grid stability) and industrial heat.' },
+    { id: 'payback', component: 'Payback Period', value: 1.6, unit: 'Years', description: 'Rapid return due to high local energy tariffs and demand.' },
+    { id: 'roi', component: 'Return on Investment (ROI)', value: 49, unit: 'Percent', description: 'Exceptional ROI driven by dual-output efficiency.' },
+    { id: 'npv', component: '10-Year NPV', value: 3550, unit: 'Billion Toman', description: 'Strategic long-term asset value in reconstruction zone.' },
+];
+
+// Specific Data for Iranian Kurdistan
+const FINANCIAL_DATA_IRANIAN_KURDISTAN: FinancialData[] = [
+    { id: 'capex', component: 'Pilot CAPEX (5MW)', value: 590, unit: 'Billion Toman', description: 'Optimized for local terrain; focus on Mahabad capabilities.' },
+    { id: 'revenue', component: 'Annual Revenue (5MW)', value: 420, unit: 'Billion Toman', description: 'Revenue derived from AgriCells and district heating integration.' },
+    { id: 'payback', component: 'Payback Period', value: 1.8, unit: 'Years', description: 'Competitive payback via agricultural synergies.' },
+    { id: 'roi', component: 'Return on Investment (ROI)', value: 45, unit: 'Percent', description: 'Solid returns aligned with regional development goals.' },
+    { id: 'npv', component: '10-Year NPV', value: 3150, unit: 'Billion Toman', description: 'Sustainable value creation for local community.' },
 ];
 
 const FINANCIAL_DATA_GENERAL: FinancialData[] = [
@@ -155,9 +165,9 @@ export const getFinancialData = (region: Region): FinancialData[] => {
         case 'Qeshm Free Zone': return FINANCIAL_DATA_QESHM;
         case 'Chabahar Free Zone': return FINANCIAL_DATA_QESHM; // Similar coastal
         case 'Makoo Free Zone': return FINANCIAL_DATA_MAKOO;
-        case 'Iranian Kurdistan': return FINANCIAL_DATA_MAKOO; // Similar terrain
-        case 'Mahabad': return FINANCIAL_DATA_MAKOO;
-        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_KURDISTAN; // Specific data
+        case 'Iranian Kurdistan': return FINANCIAL_DATA_IRANIAN_KURDISTAN; // Specific data
+        case 'Mahabad': return FINANCIAL_DATA_IRANIAN_KURDISTAN; // Maps to Iranian Kurdistan data
+        case 'Kurdistan Region, Iraq': return FINANCIAL_DATA_KURDISTAN_IRAQ; // Specific data
         case 'Oman': return FINANCIAL_DATA_GENERAL;
         case 'Saudi Arabia': return FINANCIAL_DATA_GENERAL;
         case 'United Arab Emirates': return FINANCIAL_DATA_GENERAL;

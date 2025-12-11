@@ -78,6 +78,7 @@ export const Benchmark: React.FC = () => {
     const mapRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
     
+    // Initial state empty to prevent auto-run
     const [region1, setRegion1] = useState<Region | ''>('');
     const [region2, setRegion2] = useState<Region | ''>('');
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);

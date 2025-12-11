@@ -15,6 +15,7 @@ import { Correspondence } from './components/Correspondence';
 import { ProposalGenerator } from './components/ProposalGenerator';
 import { ImageGenerator } from './components/ImageGenerator';
 import { VideoGenerator } from './components/VideoGenerator';
+import { GeminiChat } from './components/GeminiChat';
 import { Login } from './components/auth/Login';
 import { TwoFactorAuth } from './components/auth/TwoFactorAuth';
 import { NDAScreen } from './components/auth/NDAScreen';
@@ -192,6 +193,7 @@ const MainAppLayout = () => {
             { view: 'strategy_modeler', label: t('nav_strategy_modeler'), icon: PenTool },
         ]},
         { group: t('nav_group_generative'), items: [
+            { view: 'chat', label: t('chat_title') || 'Gemini Chat', icon: MessageSquare },
             { view: 'image', label: t('nav_concept'), icon: PenTool },
             { view: 'video', label: t('nav_video_generator'), icon: Video },
         ]},
@@ -234,13 +236,13 @@ const MainAppLayout = () => {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 scrollbar-thin scrollbar-thumb-slate-700/50 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-700/50 scrollbar-track-transparent">
                     {navigation.map((group, idx) => {
                         const accessibleItems = group.items.filter(item => hasPermission(userRole, item.view as View));
                         if (accessibleItems.length === 0) return null;
 
                         return (
-                            <div key={idx}>
+                            <div key={idx} className="mb-2">
                                 {group.group !== 'Overview' && (
                                     <h3 className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 select-none">
                                         {group.group}
@@ -345,6 +347,7 @@ const MainAppLayout = () => {
                                 {activeView === 'proposal_generator' && <ProposalGenerator />}
                                 {activeView === 'image' && <ImageGenerator />}
                                 {activeView === 'video' && <VideoGenerator />}
+                                {activeView === 'chat' && <GeminiChat activeView={activeView} />}
                                 {activeView === 'access_control' && <NDAScreen />}
                                 {activeView === 'audit_logs' && <AuditLogViewer />}
                                 {activeView === 'user_management' && <UserManagement />}

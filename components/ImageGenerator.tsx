@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect } from 'react';
 import { generateImage } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
@@ -55,7 +56,12 @@ export const ImageGenerator: React.FC = () => {
             const result = await generateImage(prompt, aspectRatio);
             setImageUrl(result);
         } catch (e: any) {
-            setError(e.message || t('error_failed_image'));
+            console.error("Image generation error:", e);
+            if (e.message.includes('400') || e.message.toLowerCase().includes('billing') || e.message.toLowerCase().includes('quota')) {
+                setError("Billing must be enabled for the Imagen API to generate high-quality images. Please contact the administrator.");
+            } else {
+                setError(e.message || t('error_failed_image'));
+            }
         } finally {
             setIsLoading(false);
         }

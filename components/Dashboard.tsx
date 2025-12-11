@@ -11,7 +11,7 @@ import { Feedback } from './shared/Feedback';
 import { Spinner } from './shared/Loading';
 import { SkeletonLoader } from './shared/SkeletonLoader';
 import { extractJson } from '../utils/helpers';
-import { Activity } from 'lucide-react';
+import { Activity, ChevronDown, ChevronUp } from 'lucide-react';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
@@ -161,18 +161,17 @@ const ImpactCalculator: React.FC = () => {
         setResults(null);
 
         const prompt = t('impact_generation_prompt', { scale });
-        const result = await generateTextWithThinking(prompt);
-        
         try {
+            const result = await generateTextWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
-                throw new Error("Invalid format received from API");
+                throw new Error("Invalid format received from AI");
             }
-        } catch (e) {
+        } catch (e: any) {
             setError(t('error_generating_impact_analysis'));
-            console.error("Failed to parse impact JSON:", e, "Raw result:", result);
+            console.error("Failed to parse impact JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -253,8 +252,8 @@ const ImpactCalculator: React.FC = () => {
 
 const GMELStatementBanner = () => {
     const { t } = useI18n();
-    const { theme } = useContext(AppContext)!;
     const [isVisible, setIsVisible] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         const hasSeenStatement = sessionStorage.getItem('gmel_statement_seen');
@@ -271,7 +270,7 @@ const GMELStatementBanner = () => {
     if (!isVisible) return null;
 
     return (
-        <div className={`bg-[#0f172a] bg-gradient-to-r from-slate-900 to-slate-950 border border-sky-500/30 rounded-2xl p-8 mb-8 relative animate-pop-in shadow-[0_0_50px_-20px_rgba(14,165,233,0.3)] overflow-hidden`}>
+        <div className={`bg-[#0f172a] bg-gradient-to-r from-slate-900 to-slate-950 border border-sky-500/30 rounded-2xl p-8 mb-8 relative animate-pop-in shadow-[0_0_50px_-20px_rgba(14,165,233,0.3)] overflow-hidden transition-all duration-500`}>
             {/* Background decoration */}
             <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
             
@@ -283,9 +282,25 @@ const GMELStatementBanner = () => {
                 {t('gmel_statement_title')}
             </h2>
             
-            <div className="max-h-96 overflow-y-auto pr-4 text-slate-300 text-sm leading-7 space-y-4 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-sky-900 scrollbar-track-transparent font-light tracking-wide text-justify border-l-2 border-sky-500/30 pl-6">
-                {t('gmel_statement_body')}
+            <div className={`relative overflow-hidden transition-all duration-500 ${isExpanded ? 'max-h-[1000px]' : 'max-h-32'}`}>
+                <div className="text-slate-300 text-sm leading-7 space-y-4 whitespace-pre-wrap font-light tracking-wide text-justify border-l-2 border-sky-500/30 pl-6">
+                    {t('gmel_statement_body')}
+                </div>
+                {!isExpanded && (
+                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none" />
+                )}
             </div>
+            
+            <button 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-4 flex items-center gap-2 text-sky-400 text-sm font-medium hover:text-sky-300 transition-colors"
+            >
+                {isExpanded ? (
+                    <>Show Less <ChevronUp className="w-4 h-4" /></>
+                ) : (
+                    <>Read Full Manifesto <ChevronDown className="w-4 h-4" /></>
+                )}
+            </button>
         </div>
     );
 };
