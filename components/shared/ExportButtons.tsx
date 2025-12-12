@@ -1,6 +1,7 @@
 
 import React, { useContext } from 'react';
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas'; // Import html2canvas to ensure it's available
 import { AppContext } from '../../contexts/AppContext';
 
 interface ExportButtonsProps {
@@ -28,9 +29,15 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({ content, title, isJson, h
             const reportElement = document.createElement('div');
             reportElement.style.width = '210mm';
             reportElement.style.padding = '15mm';
+            reportElement.style.fontFamily = 'Arial, sans-serif';
             reportElement.innerHTML = htmlContent;
             reportElement.style.position = 'absolute';
-            reportElement.style.left = '-2999px';
+            reportElement.style.left = '-9999px';
+            reportElement.style.top = '0';
+            // Ensure background for readability in PDF
+            reportElement.style.backgroundColor = '#ffffff';
+            reportElement.style.color = '#000000';
+            
             document.body.appendChild(reportElement);
             
             doc.html(reportElement, {
@@ -38,16 +45,38 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({ content, title, isJson, h
                     document.body.removeChild(reportElement);
                     doc.save(`${title.replace(/ /g, '_')}.pdf`);
                 },
-                margin: [15, 15, 15, 15],
-                autoPaging: 'slice',
-                html2canvas: { scale: 0.25 }
+                margin: [10, 10, 10, 10],
+                autoPaging: 'text',
+                html2canvas: {
+                    scale: 0.25, // Scale down to fit A4 width nicely with standard CSS pixels
+                    useCORS: true,
+                    logging: false
+                }
             });
 
         } else {
             const doc = new jsPDF();
-            doc.text(title, 10, 10);
+            doc.setFontSize(14);
+            doc.text(title.replace(/_/g, ' '), 10, 15);
+            
+            doc.setFontSize(10);
             const text = isJson ? JSON.stringify(JSON.parse(content), null, 2) : content;
-            doc.text(text, 10, 20, { maxWidth: 180 });
+            
+            // Split text to fit page width
+            const splitText = doc.splitTextToSize(text, 180);
+            
+            let y = 25;
+            const pageHeight = doc.internal.pageSize.height;
+            
+            splitText.forEach((line: string) => {
+                if (y > pageHeight - 10) {
+                    doc.addPage();
+                    y = 15;
+                }
+                doc.text(line, 10, y);
+                y += 5;
+            });
+            
             doc.save(`${title.replace(/ /g, '_')}.pdf`);
         }
     };
@@ -85,10 +114,10 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({ content, title, isJson, h
 
     return (
         <div className="flex items-center gap-2">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mr-2">Admin Tools:</span>
-            <button onClick={handlePdf} className="px-2 py-1 text-xs rounded bg-slate-700/50 hover:bg-red-900/50 hover:text-red-200 border border-slate-600 transition-colors" title="Export as PDF">PDF</button>
-            <button onClick={handleWord} className="px-2 py-1 text-xs rounded bg-slate-700/50 hover:bg-blue-900/50 hover:text-blue-200 border border-slate-600 transition-colors" title="Export as Word">DOC</button>
-            <button onClick={handleTxt} className="px-2 py-1 text-xs rounded bg-slate-700/50 hover:bg-slate-600 border border-slate-600 transition-colors" title="Export as Text">TXT</button>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mr-2">Export:</span>
+            <button onClick={handlePdf} className="px-3 py-1.5 text-xs font-medium rounded bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white border border-slate-600 transition-colors" title="Export as PDF">PDF</button>
+            <button onClick={handleWord} className="px-3 py-1.5 text-xs font-medium rounded bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white border border-slate-600 transition-colors" title="Export as Word">DOC</button>
+            <button onClick={handleTxt} className="px-3 py-1.5 text-xs font-medium rounded bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white border border-slate-600 transition-colors" title="Export as Text">TXT</button>
         </div>
     );
 };

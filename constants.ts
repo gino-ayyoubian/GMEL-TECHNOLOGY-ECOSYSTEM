@@ -1,6 +1,5 @@
 
-import { Patent, FinancialData, Milestone, Region, UserRole, ThemeConfig } from './types';
-import { Language } from './hooks/useI18n';
+import { Patent, FinancialData, Milestone, Region, UserRole, ThemeConfig, Language } from './types';
 
 export const KKM_LOGO_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSI4IiBmaWxsPSIjRkZGRkZGIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaGyPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzBlYTVlOSI+S0tNPC90ZXh0Pjwvc3ZnPg==";
 
@@ -80,6 +79,13 @@ export const USER_CREDENTIALS: Record<string, { password: string, role: UserRole
   'GMEL-KKM-Partner': { password: 'Gmel-investors', role: 'partner', regions: ['Qeshm Free Zone', 'Makoo Free Zone', 'Kurdistan Region, Iraq', 'Oman', 'Iranian Kurdistan'] },
   'GMEL-KKM-Regulator': { password: 'compliance_auth', role: 'regulator' },
   'GMEL-KKM-Guest': { password: 'public_view', role: 'guest' }
+};
+
+export const locales: Record<Language, string> = {
+    en: 'en-US',
+    fa: 'fa-IR',
+    ku: 'ckb-IQ',
+    ar: 'ar-SA',
 };
 
 // --- Rev 2.0 Portfolio Data ---

@@ -1,11 +1,13 @@
 
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { generateGroundedText } from '../services/geminiService';
+import { generateGroundedText, generateMapsGroundedText } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import { Spinner } from './shared/Loading';
 import { Region } from '../types';
+import { AlertCircle, X, MapPin } from 'lucide-react';
 
 // Declare Leaflet's global 'L' to TypeScript
 declare var L: any;
@@ -139,6 +141,8 @@ export const SiteAnalysis: React.FC = () => {
     const [analysis, setAnalysis] = useState<{text: string; sources: any[]}>({text: '', sources: []});
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isLocating, setIsLocating] = useState<boolean>(false);
+    const [mapError, setMapError] = useState<string | null>(null);
 
     // Map initialization
     useEffect(() => {
@@ -155,10 +159,16 @@ export const SiteAnalysis: React.FC = () => {
                 userMarkerRef.current = L.marker(e.latlng).addTo(mapRef.current)
                     .bindPopup("You are here.")
                     .openPopup();
+                setIsLocating(false);
             });
 
             mapRef.current.on('locationerror', (e: any) => {
-                alert(`Location error: ${e.message}`);
+                setIsLocating(false);
+                let errorMessage = "Could not identify your location.";
+                if (e.code === 1) errorMessage = "Permission denied. Please allow location access in your browser.";
+                else if (e.code === 2) errorMessage = "Location unavailable. Please check your network.";
+                else if (e.code === 3) errorMessage = "Location request timed out. Please try again.";
+                setMapError(errorMessage);
             });
         }
 
@@ -254,7 +264,9 @@ export const SiteAnalysis: React.FC = () => {
 
     const handleLocate = () => {
         if (mapRef.current) {
-            mapRef.current.locate({setView: true, maxZoom: 13});
+            setIsLocating(true);
+            setMapError(null);
+            mapRef.current.locate({setView: true, maxZoom: 13, timeout: 10000});
         }
     };
 
@@ -276,11 +288,28 @@ export const SiteAnalysis: React.FC = () => {
                             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-500/50 border border-yellow-500"></span> Low</span>
                         </div>
                      </h2>
-                     <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-lg z-0"></div>
-                     <button onClick={handleLocate} title="Find my location" className="absolute top-20 right-6 z-10 p-2 bg-slate-700 text-white rounded-md shadow-lg hover:bg-slate-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                           <path fillRule="evenodd" d="M10.022 1.13a.5.5 0 0 0-.044 0l-8.5 3a.5.5 0 0 0 .022.976l8.5-3a.5.5 0 0 0 .022-.976zM10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 1a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm-8.478 3.403a.5.5 0 0 0-.022.976l8.5 3a.5.5 0 0 0 .478-.022l8.5-3a.5.5 0 0 0-.022-.976l-8.5 3a.5.5 0 0 0-.022.976l-8.5 3a.5.5 0 0 0-.456 0l-8.5-3z" clipRule="evenodd"/>
-                        </svg>
+                     <div ref={mapContainerRef} className="w-full h-full min-h-[400px] rounded-lg z-0 relative">
+                        {/* Map Error Banner */}
+                        {mapError && (
+                            <div className="absolute top-4 left-4 right-16 z-[400] bg-red-500/90 text-white p-3 rounded-lg shadow-lg flex items-start gap-3 backdrop-blur-sm animate-pop-in border border-red-400">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <div className="flex-grow">
+                                    <p className="text-sm font-semibold">Location Error</p>
+                                    <p className="text-xs opacity-90">{mapError}</p>
+                                </div>
+                                <button onClick={() => setMapError(null)} className="hover:bg-red-600/50 p-1 rounded transition-colors">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+                     </div>
+                     <button 
+                        onClick={handleLocate} 
+                        disabled={isLocating}
+                        title="Find my location" 
+                        className="absolute top-20 right-6 z-10 p-2 bg-slate-700 text-white rounded-md shadow-lg hover:bg-slate-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed border border-slate-600"
+                    >
+                        {isLocating ? <Spinner size="sm" className="text-white" /> : <MapPin className="w-5 h-5" />}
                      </button>
                 </div>
                 

@@ -24,14 +24,15 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { GlobalSearch } from './components/shared/GlobalSearch';
 import { AuditLogViewer } from './components/shared/AuditLogViewer';
 import { UserManagement } from './components/admin/UserManagement';
-import { KKM_LOGO_DATA_URL, ALL_REGIONS } from './constants';
+import { KKM_LOGO_DATA_URL, REGION_THEME_MAP, ALL_REGIONS } from './constants';
 import { useI18n } from './hooks/useI18n';
+import { Spinner } from './components/shared/Loading';
 import { 
   LayoutDashboard, FileText, Activity, Globe, Map, Scale, 
   FlaskConical, PenTool, Lightbulb, Video, MessageSquare, 
-  Menu, X, ShieldCheck, Mail, FileCode, Cpu, LogOut, ClipboardList, Lock, UserCog, Share2, Check, Bell
+  Menu, X, ShieldCheck, Mail, FileCode, Cpu, LogOut, ClipboardList, Lock, UserCog, Share2, Check
 } from 'lucide-react';
-import { View, Region } from './types';
+import { View, Region, Language } from './types';
 import { hasPermission } from './utils/permissions';
 import { AuthService } from './services/authService';
 
@@ -76,67 +77,6 @@ export const LanguageSwitcher = () => {
                             {l.name}
                         </button>
                     ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-const NotificationButton = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const [notifications] = useState([
-        { id: 1, title: 'System Update', message: 'GMEL Vision 2.1 is live with enhanced security features.', time: '2m ago', unread: true },
-        { id: 2, title: 'New Data Available', message: 'Financial projections for Qeshm Free Zone have been updated.', time: '1h ago', unread: true },
-        { id: 3, title: 'Security Alert', message: 'New login detected from authorized IP.', time: '5h ago', unread: false },
-    ]);
-    const unreadCount = notifications.filter(n => n.unread).length;
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("click", handleClickOutside);
-        return () => document.removeEventListener("click", handleClickOutside);
-    }, []);
-
-    return (
-        <div className="relative" ref={dropdownRef}>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="relative flex items-center justify-center p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                aria-label="Notifications"
-            >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900 animate-pulse"></span>
-                )}
-            </button>
-
-            {isOpen && (
-                <div className="absolute end-0 mt-2 w-80 bg-slate-900/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl z-[100] overflow-hidden transform origin-top-end transition-all animate-pop-in">
-                    <div className="p-4 border-b border-white/5 flex justify-between items-center bg-slate-800/50">
-                        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                            <Bell className="w-3 h-3 text-sky-400" /> Notifications
-                        </h3>
-                        {unreadCount > 0 && <span className="text-[10px] bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full font-medium">{unreadCount} New</span>}
-                    </div>
-                    <div className="max-h-72 overflow-y-auto scrollbar-thin">
-                        {notifications.map(n => (
-                            <div key={n.id} className={`p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer ${n.unread ? 'bg-sky-900/10' : ''}`}>
-                                <div className="flex justify-between items-start mb-1">
-                                    <p className={`text-xs font-bold ${n.unread ? 'text-white' : 'text-slate-400'}`}>{n.title}</p>
-                                    <span className="text-[10px] text-slate-500">{n.time}</span>
-                                </div>
-                                <p className="text-xs text-slate-400 leading-relaxed">{n.message}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="p-2 text-center border-t border-white/5 bg-slate-800/30">
-                        <button className="text-[10px] text-slate-500 hover:text-sky-400 transition-colors uppercase tracking-wide font-semibold">Mark all as read</button>
-                    </div>
                 </div>
             )}
         </div>
@@ -359,7 +299,6 @@ const MainAppLayout = () => {
                     
                     <div className="flex items-center gap-4">
                         <ShareButton />
-                        <NotificationButton />
                         <div className="h-6 w-px bg-white/10"></div>
                         <LanguageSwitcher />
                         <div className="relative">

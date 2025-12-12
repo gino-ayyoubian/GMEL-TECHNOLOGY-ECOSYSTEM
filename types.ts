@@ -68,3 +68,5 @@ export interface AuditLogEntry {
     details?: string;
     status: 'SUCCESS' | 'FAILURE';
 }
+
+export type Language = 'en' | 'fa' | 'ku' | 'ar';

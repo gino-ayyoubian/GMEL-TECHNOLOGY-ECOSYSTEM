@@ -1,393 +1,280 @@
 
-export const login_error = "زانیارییەکان هەڵەن.";
-export const login_prompt = "چوونەژوورەوەی پارێزراوی دامەزراوە";
-export const user_id = "ناسنامەی بەکارهێنەر";
-export const user_id_placeholder = "ناسنامەی دامەزراوە";
-export const login_button = "سەلماندن";
-export const forgot_password = "وشەی نهێنیت لەبیرچووە؟";
-export const access_tiers_title = "هەڵبژاردنی ڕۆڵی تاقیکاری";
-
-// Navigation
 export const nav_dashboard = "داشبۆرد";
-export const nav_group_analysis = "مۆدیولەکانی شیکاری";
-export const nav_ip = "نەخشەڕێگای خاوەندارێتی فیکری";
+export const nav_group_analysis = "ئامرازەکانی شیکاری";
+export const nav_ip = "نەخشەڕێگای خاوەندارێتی هزری";
 export const nav_technical = "وردبوونەوەی تەکنیکی";
 export const nav_financials = "شیکاری دارایی";
-export const nav_benchmark = "پێوەری هەرێمی";
-export const nav_site = "شیکاری شوێن";
+export const nav_benchmark = "پێوەری جیهانی";
+export const nav_site = "شیکاری سایت";
 export const nav_comparison = "بەراوردکاری ستراتیژی";
-export const nav_tech_comparison = "بەراوردکاری تەکنیکی";
+export const nav_tech_comparison = "بەراوردکاری تەکنەلۆژیا";
 export const nav_group_strategic = "پلاندانانی ستراتیژی";
-export const nav_simulations = "هاوشێوەکردنی پڕۆژە";
-export const nav_strategy_modeler = "داڕێژەری ستراتیژی";
-export const nav_group_generative = "ژیربێژی داهێنەر";
-export const nav_concept = "بەرهەمهێنەری بیرۆکە";
+export const nav_simulations = "هاوشێوەکردنەکان";
+export const nav_strategy_modeler = "مۆدێلسازی ستراتیژی";
+export const nav_group_generative = "هۆشی دەستکردی بەرهەمهێن";
+export const chat_title = "چاتی جێمینای";
+export const nav_concept = "بەرهەمهێنەری چەمک";
 export const nav_video_generator = "بەرهەمهێنەری ڤیدیۆ";
 export const nav_group_official = "بەڵگەنامە فەرمییەکان";
 export const nav_proposal_generator = "بەرهەمهێنەری پێشنیار";
 export const nav_correspondence = "نامەگۆڕینەوە";
 export const nav_audit_logs = "تۆمارەکانی وردبینی";
-export const nav_access_control = "کۆنترۆڵی دەسەڵات";
-
-// Contact
-export const contact_us = "پەیوەندیمان پێوە بکە";
-export const contact_title = "پەیوەندی گرتن";
-export const contact_description = "پەیوەندی بە تیمی GMEL بکە بۆ پرسیار، هاوبەشی، یان پشتیوانی تەکنیکی.";
+export const nav_access_control = "کۆنترۆڵی دەستگەیشتن";
+export const contact_us = "پەیوەندیمان پێوە بکەن";
+export const contact_title = "پەیوەندیمان پێوە بکەن";
+export const contact_description = "پەیوەندی بکەن بە تیمی نێودەوڵەتی KKM.";
 export const direct_contact_info = "زانیاری پەیوەندی ڕاستەوخۆ";
 export const contact_phone = "تەلەفۆن";
 export const contact_direct_email = "ئیمەیڵ";
-export const contact_gino_linkedin = "پەیوەندی لە LinkedIn";
-
-// General / AI
-export const error_no_analysis = "شیکاری لە ئێستادا بەردەست نییە.";
-export const thinking = "بیر دەکاتەوە...";
+export const error_no_analysis = "هیچ شیکارییەک بەرهەم نەهێنرا.";
+export const thinking = "لە بیرکردنەوەدایە...";
 export const generate_strategic_analysis = "بەرهەمهێنانی شیکاری ستراتیژی";
-export const analyzing = "شیکار دەکات...";
-export const generating = "بەرهەم دەهێنێت...";
-export const sources = "سەرچاوەکان";
-
-// Impact Calculator
-export const impact_generation_prompt = "خەمڵاندنی کاریگەری ئابووری، ژینگەیی و کۆمەڵایەتی وێستگەیەکی وزەی جیۆسێرمالی GMEL بە قەبارەی {scale} مێگاوات هەژمار بکە. وەڵامەکە بە JSON بگەڕێنەوە: economic (metrics[], narrative), environmental (metrics[], narrative), social (metrics[], narrative).";
-export const error_generating_impact_analysis = "بەرهەمهێنانی شیکاری کاریگەری سەرکەوتوو نەبوو.";
+export const impact_generation_prompt = "شیکاری کاریگەری بۆ پڕۆژەیەکی {scale} مێگاواتی دروست بکە.";
+export const error_generating_impact_analysis = "هەڵە لە دروستکردنی شیکاری کاریگەری.";
 export const impact_calculator_title = "ژمێرەری کاریگەری";
-export const impact_calculator_description = "خەمڵاندنی کاریگەری ئەگەری جێبەجێکردنی GMEL لە قەبارە جیاوازەکاندا.";
+export const impact_calculator_description = "هەژمارکردنی کاریگەرییەکانی پڕۆژەکە.";
 export const project_scale_mw = "قەبارەی پڕۆژە (مێگاوات)";
+export const calculating = "لە هەژمارکردندایە...";
 export const calculate_impact = "هەژمارکردنی کاریگەری";
-export const calculating = "هەژمار دەکات...";
-export const calculating_impact = "هەژمارکردنی کاریگەری...";
-export const impact_results_for = "ئەنجامی کاریگەری بۆ {scale} مێگاوات";
+export const calculating_impact = "لە هەژمارکردنی شیکاری کاریگەری...";
+export const impact_results_for = "ئەنجامی کاریگەرییەکان بۆ {scale} مێگاوات";
 export const economic_impact = "کاریگەری ئابووری";
 export const environmental_impact = "کاریگەری ژینگەیی";
 export const social_impact = "کاریگەری کۆمەڵایەتی";
-
-// Dashboard
-export const gmel_statement_title = "مانیفێستی GMEL: دیدگای داهێنەر (جینۆ ئەیووبیان)";
-export const gmel_statement_body = `چینی وزەی جیۆمێتا – وێڕای وزە، بەرەو زیرەکی
-
-١. سەرەتا
-GMEL لە پرسیارێکی بنەڕەتییەوە سەریهەڵدا: ئایا وزە دەکرێت تەنها دەربهێنرێت یان دەبێت تێبگەین لێی؟ ئێمە ئیکۆسیستەمێک وێنا دەکەین کە تێیدا زەوی، داتا، و شناخت مرۆڤ لە تۆڕێکی زیندوو و یەکگرتوودا پێکەوە دەژین. لەم دیدگایەدا، وزە تەنها سووتەمەنی نییە—بەڵکو زمانی هەسارەکەیە، چاوەڕێی وەرگێڕانە بۆ داتا، تێگەیشتن، و کرداری مەبەستدار.
-
-٢. پێناسە و کرۆکی سەرەکی
-GMEL ئیکۆسیستەمێکی فرە ڕەهەندە کە سیستەمەکانی جیۆسێرمال لەگەڵ چینە دیجیتاڵی و شناختییەکان یەک دەخات. هەر گەردیلەیەکی وزە و هەر بیتێکی داتا لە سیستەمێکی خۆ-ئاگا بۆ باشترین ئەنجام کارلێک دەکەن. ئەمە ژێرخانێکی بیرکەرەوەیە کە تێیدا زانستەکانی زەوی، ژیربێژی دەستکرد، و ئابووری بەردەوام بەیەک دەگەن.
-
-٣. بنەما سەرەکییەکان
-• هاوکاری زەوی-دیجیتاڵ: هەر سەرچاوەیەکی سروشتی دووانەیەکی دیجیتاڵی هەیە.
-• داتا وەک وزەی دووەم: داتا وەک سەرچاوەیەکی دەرهێنراو مامەڵەی لەگەڵ دەکرێت، یەکسان بە هێز.
-• بەردەوامی شناختی: بەردەوامی پشت دەبەستێت بە زیرەکی پەرەسەندووی سیستەمەکە.
-
-٤. تەلارسازی
-لە ڕێگەی سێ چینەوە کار دەکات: ژیۆ (فیزیکی)، مێتا (دیجیتاڵ)، و شناختی (ستراتیژی). هەموو چینەکان لە ڕێگەی سیستەمی MetaFlow پەیوەندی دەکەن و لەلایەن بزوێنەری G-Control وێنا دەکرێن.
-
-٥. ئەرک
-نیشاندانی ئەوەی کە ژیربێژی دەستکرد و زەوی دەتوانن پێکەوە پەرە بسێنن—چینێکی یەکگرتوو و زیرەک لە گەشەپێدانی بەردەوام پێکبهێنن. دیدگای ئێمە پێناسەکردنەوەی بەرهەمهێنانی وزەیە وەک پرۆسەی دەرهێنانی واتە—گۆڕینی وزەی جیۆسێرمال بۆ زیرەکی زەوی.
-
---
-پەرەپێدراوە لەلایەن گروپی نێودەوڵەتی KKM و خانەی زانیاری ناوەندی جینۆ ئەیووبیان.`;
-
-export const dashboard_title = "داشبۆرد - {region}";
-export const project_summary = "کورتەی پڕۆژە";
-export const generate_summary = "بەرهەمهێنانی کورتە";
-export const strategic_analysis_prompt = "شیکارییەکی ستراتیژی بۆ پڕۆژەی GMEL لە {region} پێشکەش بکە، بە لەبەرچاوگرتنی ئەم کورتەیە: {summary}. جەخت لەسەر مەترسی و دەرفەتەکان بکەرەوە.";
+export const gmel_statement_title = "دیدگای داهێنەر: مانیفێستی GMEL";
+export const gmel_statement_body = "چینی وزەی جیۆمێتا (GMEL) بازدانێکی یەکلاکەرەوەیە لە دەرەوەی پارادایمەکانی وزەی نەریتی. ئەم ئیکۆسیستەمە، کە لەلایەن داهێنەر سەید جینۆ ئەیوبیانەوە ئیلهام وەرگیراوە، تەنها بریتی نییە لە بەرهەمهێنانی وزە — بەڵکو نەخشەڕێگایەکە بۆ سەروەری تەواوەتی سەرچاوەکان.\n\n١. دروێنەکردنی فرە ڕەهەند: ئێمە لە دامەزراوە تاک دەرچووەکان تێپەڕیووین. GMEL سیستەمەکانی جیۆتێرمڵی بازنە داخراو (CLG) تێکەڵ دەکات بۆ دروێنەکردنی هاوکاری کارەبای بارگەی بنەڕەتی، ئاوی شیرینکراو، هایدرۆجینی سەوز، و کانزا ستراتیژییەکانی وەک لیتیۆم.\n\n٢. سەربەخۆیی تەکنەلۆژی: بە پشت بەستن بە پۆرتفۆلیۆیەکی بەهێز لە ١٤ داهێنانی تایبەت — لە جێگیرکردنی نانۆفلوییدەوە تا سێنسەرەکانی دروێنەکردنی وزە بە زیرەکی دەستکرد — ئێمە دڵنیایی دەدەین کە ژێرخانی هەستیار بە کارا، سەربەخۆ، و پارێزراو دەمێنێتەوە.\n\n٣. هاوژیانی ژینگەیی: بەردەوامی ڕاستەقینە پێویستی بە هیچ سازشێک نییە. تەلارسازیمان بە شێوازی بازنە داخراو لەدەستدانی ئاو و دەرچوونی کاربۆن ناهێڵێت، کە دەیسەلمێنێت پێشکەوتنی پیشەسازی دەتوانێت لەگەڵ پاراستنی ژینگەدا هاوژیان بێت.\n\nئەم دیدگایە ڕێڕەومان دیاری دەکات: گۆڕینی گەرمای زەوی بۆ بناغەی شارستانیەتێکی خۆڕاگر و دوای سەردەمی کاربۆن.";
+export const dashboard_title = "داشبۆرد: {region}";
+export const project_summary = "پوختەی پڕۆژە";
+export const generate_summary = "بەرهەمهێنانی پوختە";
+export const strategic_analysis_prompt = "شیکاری ستراتیژی بۆ {region} لەسەر بنەمای: {summary} پێشکەش بکە.";
 export const generated_strategic_analysis = "شیکاری ستراتیژی";
-export const project_milestones = "قۆناغە گرنگەکانی پڕۆژە";
-export const financial_overview = "تێڕوانینی گشتی دارایی";
+export const project_milestones = "قۆناغەکانی پڕۆژە";
+export const financial_overview = "پێداچوونەوەی دارایی";
 export const financial_chart_legend = "پێوەرە داراییەکان";
-
-// IP Roadmap
-export const patent_analysis_prompt = "شیکاری دیمەنی داهێنان بۆ سیستەمی جیۆسێرمالی بازنەی داخراو بە {language} بکە، بە لەبەرچاوگرتنی داهێنانەکانی GMEL: {gmel_patents_context}. تێکەڵبوونە ئەگەرییەکان دەستنیشان بکە و ستراتیژییەکی یاسایی پێشنیار بکە.";
-export const no_overlaps_found = "هیچ تێکەڵبوونێکی بەرچاو نەدۆزرایەوە.";
-export const competitive_patent_analysis_title = "شیکاری داهێنانی ڕکابەر";
-export const competitive_patent_analysis_desc = "شیکاری دیمەنی جیهانی داهێنان بە بەکارهێنانی ژیربێژی دەستکرد بۆ دەستنیشانکردنی مەترسی و دەرفەتەکان.";
+export const patent_analysis_prompt = "شیکاری تێکچوونی داهێنانەکان بۆ...";
+export const no_overlaps_found = "هیچ تێکچوونێکی بەرچاو نەدۆزرایەوە.";
+export const competitive_patent_analysis_title = "شیکاری داهێنانی کێبڕکێ";
+export const competitive_patent_analysis_desc = "شیکاری بەهێزکراو بە هوشی دەستکرد بۆ ناکۆکییە شاراوەکانی داهێنان.";
 export const analyzing_patents = "شیکارکردنی داهێنانەکان...";
 export const run_patent_analysis_button = "جێبەجێکردنی شیکاری داهێنان";
-export const potential_overlaps_title = "تێکەڵبوونە ئەگەرییەکان";
-export const legal_strategy_title = "ستراتیژی یاسایی پێشنیارکراو";
+export const potential_overlaps_title = "تێکچوونە شاراوەکان";
+export const legal_strategy_title = "ستراتیژی یاسایی";
 export const add_to_compare = "زیادکردن بۆ بەراورد";
-export const patent_comparison_title = "بەراوردکردنی داهێنان";
+export const patent_comparison_title = "بەراوردکردنی داهێنانەکان";
 export const metric = "پێوەر";
-export const ip_roadmap_title = "نەخشەڕێگای خاوەندارێتی فیکری";
-export const ip_roadmap_description = "خشتەی کاتی ستراتیژی و دۆخی پۆرتفۆلیۆی داهێنانەکانی GMEL.";
-export const grid_view = "نیشاندانی تۆڕ";
-export const graph_view = "نیشاندانی گراف";
+export const ip_roadmap_title = "نەخشەڕێگای خاوەندارێتی هزری";
+export const ip_roadmap_description = "نەخشەڕێگای گەشەپێدانی ستراتیژی خاوەندارێتی هزری.";
+export const grid_view = "دیمەنی تۆڕ";
+export const graph_view = "دیمەنی گراف";
 export const compare_selected = "بەراوردکردنی هەڵبژێردراوەکان";
-export const search_placeholder = "گەڕان لە داهێنانەکان...";
-
-// Financials
-export const ipo_analysis_prompt = "پێشبینی خستنەڕووی گشتی سەرەتایی (IPO) بۆ پڕۆژەی GMEL لە {region} ({language}) بەرهەم بهێنە. NPV: {npv}, داهات: {revenue}, ROI: {roi}, گەڕانەوەی سەرمایە: {payback}. وەڵامی JSON: projected_date, pre_ipo_valuation, expected_market_cap, narrative.";
-export const ipo_analysis_title = "پێشبینی IPO";
-export const ipo_analysis_desc = "پێشبینی بەرهەمهێنراو بە ژیربێژی دەستکرد بۆ خستنەڕووی گشتی سەرەتایی.";
+export const search_placeholder = "گەڕان...";
+export const ipo_analysis_prompt = "شیکاری توانای IPO بۆ {region}...";
+export const ipo_analysis_title = "شیکاری IPO";
+export const ipo_analysis_desc = "پێشبینی بۆ خستنەڕووی گشتی سەرەتایی.";
+export const generating = "لە بەرهەمهێناندایە...";
 export const generate_ipo_analysis = "بەرهەمهێنانی شیکاری IPO";
 export const projected_ipo_date = "بەرواری پێشبینیکراوی IPO";
 export const pre_ipo_valuation = "نرخاندنی پێش IPO";
 export const expected_market_cap = "بەهای بازاڕی چاوەڕوانکراو";
 export const analyst_narrative = "گێڕانەوەی شیکەرەوە";
-export const revenue_streams_prompt = "سەرچاوەکانی داهات بۆ وێستگەیەکی 5 مێگاواتی GMEL لە {region} ({language}) شی بکەرەوە. داهاتی گشتی: {revenue}. وەڵامی JSON: table [{stream, percentage, value, assumptions}], narrative.";
-export const revenue_streams_title = "شیکردنەوەی سەرچاوەکانی داهات";
-export const revenue_streams_desc = "شیکردنەوەی وردی سەرچاوەکانی داهاتی پێشبینیکراو بۆ {region}.";
-export const generate_revenue_breakdown = "بەرهەمهێنانی شیکردنەوە";
-export const revenue_stream_chart_title = "دابەشبوونی داهات";
-export const narrative_summary = "کورتەی گێڕانەوە";
+export const revenue_streams_prompt = "دابەشکردنی سەرچاوەکانی داهات بۆ {region}...";
+export const revenue_streams_title = "سەرچاوەکانی داهات";
+export const revenue_streams_desc = "دابەشکردنی سەرچاوەکانی داهات.";
+export const generate_revenue_breakdown = "بەرهەمهێنانی دابەشکاری داهات";
+export const revenue_stream_chart_title = "تێکەڵەی داهات";
+export const narrative_summary = "پوختەی گێڕانەوە";
 export const stream = "سەرچاوە";
 export const contribution = "بەشداری";
 export const projected_value = "بەهای پێشبینیکراو";
 export const assumptions = "گریمانەکان";
-export const funding_prompt = "سەرچاوە داراییە ئەگەرییەکان بۆ پڕۆژەیەکی وزەی نوێبووەوە لە {region} ({language}) دەستنیشان بکە. وەڵامی JSON: venture_capital, government_grants, international_funds. هەر یەکەیان ناو، تەرکیز، گونجانی ئەگەری.";
+export const funding_prompt = "توێژینەوەی سەرچاوەکانی دارایی بۆ {region}...";
 export const focus = "تەرکیز";
-export const potential_fit = "گونجانی ئەگەری";
+export const potential_fit = "گونجانی شاراوە";
 export const funding_sources_title = "سەرچاوەکانی دارایی";
-export const funding_sources_desc = "لیستی دەرفەتە داراییەکان بە پێشنیاری ژیربێژی دەستکرد.";
+export const funding_sources_desc = "دەرفەتە داراییە شاراوەکان.";
+export const analyzing = "لە شیکارکردندایە...";
 export const research_funding = "توێژینەوەی دارایی";
 export const venture_capital = "سەرمایەی مەترسیدار";
 export const government_grants = "بەخشینە حکومییەکان";
-export const international_funds = "سندوقە نێودەوڵەتییەکان";
+export const international_funds = "صندوقە نێودەوڵەتییەکان";
 export const error_negative_value = "بەها ناکرێت نەرێنی بێت.";
-export const market_analysis_prompt = "شیکارییەکی گشتگیری بازاڕ بۆ وزەی جیۆسێرمال لە {region} ({language}) بەرهەم بهێنە.";
+export const market_analysis_prompt = "ئەنجامدانی شیکاری بازاڕ بۆ {region}...";
 export const financial_analysis_title = "شیکاری دارایی";
-export const interactive_financial_model_title = "مۆدێلی دارایی کارلێکەر";
-export const interactive_financial_model_desc = "پارامیتەرە سەرەکییەکان بگۆڕە بۆ بینینی پێشبینییەکان.";
-export const custom_initial_investment = "سەرمایەگوزاری سەرەتایی (ملیار تمەن)";
-export const custom_annual_revenue = "داهاتی ساڵانە (ملیار تمەن)";
+export const interactive_financial_model_title = "مۆدێلی کارلێکەر";
+export const interactive_financial_model_desc = "دەستکاریکردنی پارامیتەرەکان بۆ بینینی کاریگەری دارایی.";
+export const custom_initial_investment = "وەبەرهێنانی سەرەتایی";
+export const custom_annual_revenue = "داهاتی ساڵانە";
 export const calculated_roi = "ROI هەژمارکراو";
-export const calculated_payback = "ماوەی گەڕانەوەی سەرمایە";
+export const calculated_payback = "ماوەی گەڕانەوەی هەژمارکراو";
 export const pessimistic_scenario = "ڕەشبینانە";
 export const baseline_scenario = "بنچینە";
 export const optimistic_scenario = "گەشبینانە";
 export const market_analysis_for = "شیکاری بازاڕ بۆ {region}";
-export const market_analysis_description = "لێکۆڵینەوەی وردی جووڵەی بازاڕی هەرێمی.";
+export const market_analysis_description = "تێگەیشتنی بازاڕ کە بە هوشی دەستکرد بەرهەم هاتووە.";
 export const generate_analysis = "بەرهەمهێنانی شیکاری";
-export const export_secure_pdf = "هەناردەکردنی PDF پارێزراو";
-export const cost_revenue_breakdown = "تێچوو بەرامبەر داهات";
-export const net_revenue_projection_title = "پێشبینی داهاتی پوخت (١٠ ساڵ)";
-
-// Technical
-export const tech_diagram_surface = "ئاستی ڕووی زەوی";
+export const sources = "سەرچاوەکان";
+export const tech_diagram_surface = "ڕووی زەوی";
 export const tech_diagram_power_plant = "وێستگەی کارەبا";
 export const tech_diagram_injection_well = "بیری تێکردن";
 export const tech_diagram_production_well = "بیری بەرهەمهێنان";
 export const tech_diagram_horizontal_laterals = "لقە ئاسۆییەکان";
-export const tech_diagram_cold_fluid = "شلەی سارد (بەرەو خوار)";
-export const tech_diagram_hot_fluid = "شلەی گەرم (بەرەو ژوور)";
-export const tech_diagram_thermosiphon = "کاریگەری تێرمۆسیفۆنی سروشتی";
-export const tech_detail_clg_001 = "دیزاینی سیستەمی بازنەی داخراوی تایبەت بۆ باشترین ئاڵوگۆڕی گەرمی لە بەردە زۆر گەرمەکاندا.";
-export const tech_detail_ns_stab_001 = "تەکنیکەکانی جێگیرکردنی نانۆشلە بۆ پاراستنی گەیاندنی گەرمی و ڕێگریکردن لە نیشتن.";
-export const tech_detail_ehs_002 = "هەستەوەرەکانی کۆکردنەوەی وزە بۆ چاودێری بیر بە شێوەی ڕاستەوخۆ بەبێ کارەبای دەرەکی.";
-export const tech_detail_h2c_004 = "بەرهەمهێنانی هایدرۆجینی سەوزی یەکگرتوو بە بەکارهێنانی گەرمای زیادەی جیۆسێرمال.";
-export const tech_detail_lth_005 = "دەرهێنانی ڕاستەوخۆی لیتیۆم (DLE) لە ئاوە سوێرەکانی جیۆسێرمال بە بەکارهێنانی مادەی هەڵمژەری تایبەت.";
-export const tech_detail_des_006 = "یەکخستنی شیرینکردنی گەرمی بۆ بەرهەمهێنانی ئاوی شیرین شانبەشانی بەرهەمهێنانی کارەبا.";
-export const tech_detail_agr_007 = "کشتوکاڵی ژینگەی کۆنترۆڵکراو (AgriCells) بە بەکارهێنانی گەرمای پاشەڕۆ بۆ گەشەی باشترین بەرهەم.";
-export const tech_detail_ccs_008 = "گرتنی ڕاستەوخۆی هەوا (DAC) و کانزاییکردنی CO2 بە وزەی جیۆسێرمال.";
-export const tech_detail_sgr_009 = "بەڕێوەبردنی تۆڕی زیرەک بۆ دابەشکردنی جێگیری وزەی بنچینەیی.";
-export const tech_detail_egs_010 = "تەکنیکەکانی سیستەمی جیۆسێرمالی پێشکەوتوو بۆ زیادکردنی دزەکردن لە کاتی پێویستدا.";
-export const tech_detail_sco2_011 = "سوڕەکانی وزەی CO2 سەروو شلۆق بۆ گۆڕینی وزە بە کارایی بەرزتر.";
-export const tech_detail_qnt_012 = "بەکارهێنانەکانی کۆمپیوتەری کوانتەم بۆ مۆدێلکردن و باشکردنی ژێرزەوی.";
-export const tech_detail_fed_013 = "فێربوونی فیدراڵی بۆ ڕاهێنانی مۆدێلی ژیربێژی دەستکردی هاوبەش بە پاراستنی نهێنی.";
-export const tech_detail_gmel_core_014 = "پلاتفۆرمی سەرەکی کە هەموو تەکنەلۆژیاکانی GMEL لە ئیکۆسیستەمێکی یەکگرتوودا کۆ دەکاتەوە.";
-export const technical_explanation_prompt = "چەمکی تەکنیکی {topic} بە زمانێکی سادە ڕوون بکەرەوە، بە تەرکیز لەسەر: {detail}.";
+export const tech_diagram_cold_fluid = "شلی سارد";
+export const tech_diagram_hot_fluid = "شلی گەرم";
+export const tech_diagram_thermosiphon = "سێرمۆسیفۆن";
+export const tech_detail_des_006 = "شیرینکردنی گەرمی";
+export const tech_detail_ccs_008 = "گرتنی کاربۆن";
+export const technical_explanation_prompt = "ڕوونکردنەوەی {topic} بە لەبەرچاوگرتنی {detail}...";
 export const error_no_explanation = "ڕوونکردنەوە بەرهەم نەهێنرا.";
-export const technical_diagram_prompt = "دیاگرامێکی تەکنیکی بۆ {topic} دروست بکە.";
-export const error_failed_diagram = "بەرهەمهێنانی دیاگرام شکست ی هێنا.";
-export const technical_title = "وردبوونەوەی تەکنیکی";
-export const technical_description = "ئەندازیاری و داهێنانەکانی پشت GMEL ووردبەرەوە.";
+export const technical_diagram_prompt = "بەرهەمهێنانی دیاگرام بۆ {topic}...";
+export const error_failed_diagram = "بەرهەمهێنانی دیاگرام سەرکەوتوو نەبوو.";
+export const technical_title = "تایبەتمەندییە تەکنیکییەکان";
+export const technical_description = "وردەکاری تەکنیکی تەکنەلۆژیاکانی GMEL.";
 export const generating_explanation = "بەرهەمهێنانی ڕوونکردنەوە...";
 export const explain_more = "ڕوونکردنەوەی زیاتر";
 export const demystify_spec = "سادەکردنەوە";
 export const generating_diagram = "بەرهەمهێنانی دیاگرام...";
 export const generate_diagram = "بەرهەمهێنانی دیاگرام";
 export const detailed_explanation = "ڕوونکردنەوەی ورد";
-
-// Benchmark
-export const error_select_different_regions = "تکایە دوو ناوچەی جیاواز هەڵبژێرە.";
-export const error_generating_comparison = "بەرهەمهێنانی داتای بەراوردکاری شکست ی هێنا.";
-export const benchmark_title = "پێوەری هەرێمی";
-export const benchmark_description = "بەراوردکردنی شوێنە ئەگەرییەکانی پڕۆژە لەگەڵ ستانداردە جیهانییەکان.";
-export const select_region_1 = "هەڵبژاردنی ناوچەی ١";
-export const select_region_2 = "هەڵبژاردنی ناوچەی ٢";
+export const error_select_different_regions = "تکایە ناوچەی جیاواز هەڵبژێرە بۆ بەراوردکردن.";
+export const error_generating_comparison = "هەڵە لە بەرهەمهێنانی بەراوردکاری.";
+export const benchmark_title = "پێوەر";
+export const benchmark_description = "بەراوردکردنی ناوچەکان لەگەڵ پێوەرەکان.";
 export const compare_regions = "بەراوردکردنی ناوچەکان";
-export const benchmark_comparison_prompt = "پتانسیەلی جیۆسێرمالی {region1} و {region2} بەراورد بکە. وەڵامی JSON: table [{metric, region1, region2}], narrative.";
-export const comparison_between = "بەراوردکردن: {region1} بەرامبەر {region2}";
-export const geographical_context_map = "چوارچێوەی جوگرافی";
-
-// Image Generator
-export const image_generator_guide_title = "ڕێبەری نووسینی داواکاری";
-export const image_generator_guide_intro = "ئامۆژگاری بۆ بەرهەمهێنانی وێنەی باشتر:";
+export const comparison_between = "بەراوردکاری: {region1} بەرامبەر {region2}";
+export const geographical_context_map = "نەخشەی چوارچێوەی جوگرافی";
+export const tech_detail_clg_001 = "سیستەمی جیۆتێرمڵی بازنە داخراو";
+export const tech_detail_ns_stab_001 = "جێگیرکردنی نانۆفلویید";
+export const tech_detail_ehs_002 = "سێنسەرەکانی دروێنەکردنی وزە";
+export const tech_detail_h2c_004 = "بەرهەمهێنانی هایدرۆجینی سەوز";
+export const tech_detail_lth_005 = "دەرهێنانی لیتیۆم";
+export const tech_detail_agr_007 = "گەرمکردنی کشتوکاڵی";
+export const tech_detail_sgr_009 = "تێکەڵکردنی تۆڕی زیرەک";
+export const tech_detail_egs_010 = "سیستەمی جیۆتێرمڵی پێشکەوتوو";
+export const tech_detail_sco2_011 = "سوڕی CO2 ی سەروو-شل";
+export const tech_detail_qnt_012 = "باشترکردنی کوانتەم";
+export const tech_detail_fed_013 = "فێربوونی فیدراڵی";
+export const tech_detail_gmel_core_014 = "پلاتفۆرمی سەرەکی";
+export const image_generator_guide_title = "ڕێبەری نووسینی پرۆمپت";
+export const image_generator_guide_intro = "چۆن پرۆمپتی باش بنووسین...";
 export const image_generator_guide_tip1_title = "ورد بە";
-export const image_generator_guide_tip1_body = "لۆنای، ستایل، و گۆشەی کامێرا وەسف بکە.";
-export const image_generator_guide_tip2_title = "دیمەنەکە ئامادە بکە";
-export const image_generator_guide_tip2_body = "ئاماژە بە ژینگە بکە (وەک بیابان، کەنار دەریا).";
-export const image_generator_guide_tip3_title = "وردەکاری تەکنیکی";
-export const image_generator_guide_tip3_body = "پێکهاتەکانی GMEL وەک 'وێستگەی وزەی داهاتووی' لەخۆ بگرە.";
-export const image_generator_guide_tip4_title = "ستایل";
-export const image_generator_guide_tip4_body = "وشە سەرەکییەکان وەک 'واقیعی'، 'سینەمایی'، 'نەخشە'.";
-export const image_generator_guide_tip5_title = "ڕێژەی دیمەن";
-export const image_generator_guide_tip5_body = "ڕێژەی گونجاو بۆ پێداویستییەکانت هەڵبژێرە.";
-export const image_generator_default_prompt = "وێستگەیەکی وزەی جیۆسێرمالی داهاتووی GMEL لە {region}، ڕووناکیی سینەمایی، واقیعی، 4k.";
-export const error_failed_image = "بەرهەمهێنانی وێنە شکست ی هێنا.";
-export const image_generator_title = "بەرهەمهێنەری بیرۆکە";
-export const image_generator_description = "وێناکردنی جێبەجێکردنی GMEL لە {region} بە بەکارهێنانی ژیربێژی دەستکرد.";
-export const image_prompt = "داواکاری وێنە";
-export const image_generator_placeholder = "ئەو وێنەیەی دەتەوێت بەرهەمی بهێنیت وەسف بکە...";
+export const image_generator_guide_tip1_body = "وردەکارییەکان وەسف بکە.";
+export const image_generator_guide_tip2_title = "کەشەکە دیاری بکە";
+export const image_generator_guide_tip2_body = "ڕووناکی و بەرگەهەوا.";
+export const image_generator_guide_tip3_title = "ستایل";
+export const image_generator_guide_tip3_body = "فۆتۆڕیالیستیک، سینەمایی، هتد.";
+export const image_generator_guide_tip4_title = "پێکهاتە";
+export const image_generator_guide_tip4_body = "گۆشەی کامێرا و چوارچێوە.";
+export const image_generator_guide_tip5_title = "دووبارە بکەرەوە";
+export const image_generator_guide_tip5_body = "پرۆمپتەکەت باشتر بکە.";
+export const image_generator_default_prompt = "وێستگەیەکی جیۆتێرمڵی داهاتووی لە {region}...";
+export const error_failed_image = "بەرهەمهێنانی وێنە سەرکەوتوو نەبوو.";
+export const image_generator_title = "بەرهەمهێنەری چەمک";
+export const image_generator_description = "بەرهەمهێنانی چەمکی بینراو بۆ پڕۆژەکە.";
+export const image_prompt = "پرۆمپت";
+export const image_generator_placeholder = "ئەو وێنەیەی دەتەوێت وەسفی بکە...";
 export const aspect_ratio = "ڕێژەی دیمەن";
-export const aspect_ratio_landscape = "ئاسۆیی (16:9)";
-export const aspect_ratio_portrait = "ستوونی (9:16)";
-export const aspect_ratio_square = "چوارگۆشە (1:1)";
-export const aspect_ratio_standard = "ستاندارد (4:3)";
-export const aspect_ratio_tall = "بەرز (3:4)";
+export const aspect_ratio_landscape = "ئاسۆیی (١٦:٩)";
+export const aspect_ratio_portrait = "ستوونی (٩:١٦)";
+export const aspect_ratio_square = "چوارگۆشە (١:١)";
+export const aspect_ratio_standard = "ستاندارد (٤:٣)";
+export const aspect_ratio_tall = "بەرز (٣:٤)";
 export const generate_image = "بەرهەمهێنانی وێنە";
-export const generating_image_message = "خەیاڵکردنی بیرۆکەکەت...";
-export const generated_concept = "بیرۆکەی بەرهەمهاتوو";
-export const footer_disclaimer = "* وێنە بەرهەمهاتووەکان بە ژیربێژی دەستکرد ڕەنگە وردبینییان جیاواز بێت.";
-
-// Chat
-export const chat_greeting = "سڵاو! من یاریدەدەری پڕۆژەی GMELم. دەتوانم وەڵامی پرسیارەکان بدەمەوە دەربارەی پێشنیاری {region}، وردەکاری تەکنیکی، یان پێشبینییە داراییەکان. چۆن دەتوانم ئەمڕۆ یارمەتیت بدەم؟";
-export const error_process_request = "بەداخەوە، هەڵەیەک ڕوویدا لە کاتی جێبەجێکردنی داواکارییەکەت.";
-export const chat_title = "یاریدەدەری پڕۆژە";
+export const generating_image_message = "لە بەرهەمهێنانی چەمکی بینراودایە...";
+export const generated_concept = "چەمکی بەرهەمهاتوو";
+export const footer_disclaimer = "ناوەڕۆکی بەرهەمهاتوو بە هوشی دەستکرد ڕەنگە جیاواز بێت.";
+export const chat_greeting = "سڵاو! من یاریدەدەری GMEL ی تۆم بۆ {region}.";
+export const error_process_request = "نەتوانرا داواکارییەکە جێبەجێ بکرێت.";
 export const chat_placeholder = "پرسیار بکە دەربارەی {region}...";
 export const send = "ناردن";
-
-// Comparison
-export const comparison_prompt = "بەراوردی ناوچەی ئازادی قیشم و ناوچەی ئازادی ماکۆ بکە بۆ گەشەپێدانی جیۆسێرمال ({language}). وەڵامی JSON: table [{metric, qeshm, makoo}], narrative.";
-export const comparison_title = "بەراوردکاری ستراتیژی";
-export const comparison_description = "شیکاری ڕاستەوخۆی ناوچە سەرەکییەکانی پڕۆژە.";
+export const comparison_prompt = "بەراوردکردنی {region1} و {region2}...";
+export const comparison_title = "بەراوردکردنی ناوچە";
+export const comparison_description = "بەراوردکاری ورد لە نێوان ناوچەکان.";
 export const generate_deep_analysis = "بەرهەمهێنانی شیکاری قوڵ";
 export const strategic_implications_title = "لێکەوتە ستراتیژییەکان";
-
-// Site Analysis
-export const site_analysis_prompt = "شیکاری گونجانی جیۆسێرمال بۆ {region} بکە ({language}). تایبەتمەندییە جیۆلۆجییەکان، ژێرخان، و پتانسیەل لەخۆ بگرە.";
-export const error_failed_analysis = "بەرهەمهێنانی شیکاری شکست ی هێنا.";
-export const site_heatmap_prompt = "داتای نەخشەی گەرمی بۆ پلەی گەرمی جیۆسێرمال لە {region} بەرهەم بهێنە. وەڵامی JSON array of [lat, lng, intensity].";
-export const site_analysis_title = "شیکاری شوێن";
-export const site_analysis_description = "هەڵسەنگاندنی جوگرافی و ژێرخانی ورد بۆ {region}.";
-export const generated_map_title = "نەخشەی کارلێکەر: {region}";
-export const site_geothermal_gradient_layer = "پلەی گەرمی جیۆسێرمال";
-export const tectonic_plates = "پلێتە تەکتۆنییەکان";
-export const thermal_zones = "ناوچە گەرمەکان";
-export const generate_site_analysis = "بەرهەمهێنانی شیکاری شوێن";
+export const site_analysis_prompt = "شیکاری مەرجەکانی سایت بۆ {region}...";
+export const error_failed_analysis = "شیکاری سەرکەوتوو نەبوو.";
+export const site_analysis_title = "شیکاری سایت";
+export const site_analysis_description = "شیکاری جیۆمەکان و ژینگەیی بۆ {region}.";
+export const generated_map_title = "نەخشە: {region}";
+export const generate_site_analysis = "بەرهەمهێنانی شیکاری سایت";
 export const geographical_analysis = "شیکاری جوگرافی";
-
-// Feedback
-export const feedback_thanks = "سوپاس بۆ فیدباکەکەت!";
+export const feedback_thanks = "سوپاس بۆ پێشنیارەکەت!";
 export const feedback_prompt = "ئایا ئەمە بەسوود بوو؟";
 export const feedback_yes = "بەڵێ";
 export const feedback_no = "نەخێر";
-
-// Correspondence
-export const letter_generation_prompt = "نامەیەکی فەرمی دەربارەی {subject} بۆ {recipient} سەبارەت بە پڕۆژەی GMEL لە {region} بنووسە. چوارچێوە: {prompt}. زمان: {language}.";
-export const letter_generation_error = "بەرهەمهێنانی نامە شکست ی هێنا.";
-export const correspondence_title = "بەرهەمهێنەری نامەگۆڕینەوە";
-export const correspondence_description = "نووسینی پەیوەندییە فەرمییەکان سەبارەت بە پڕۆژەی GMEL.";
+export const letter_generation_prompt = "نووسینی نامەیەک بۆ {recipient} سەبارەت بە {subject}...";
+export const letter_generation_error = "هەڵە لە بەرهەمهێنانی نامە.";
+export const correspondence_title = "نامەگۆڕینەوە";
+export const correspondence_description = "بەرهەمهێنانی نامەگۆڕینەوەی فەرمی.";
 export const recipient_org = "ڕێکخراوی وەرگر";
 export const recipient_placeholder = "بۆ نموونە وەزارەتی وزە";
 export const subject = "بابەت";
-export const subject_placeholder = "بۆ نموونە پێشکەشکردنی پێشنیار";
-export const letter_prompt = "خاڵە سەرەکییەکان / چوارچێوە";
-export const prompt_placeholder = "وەسفی بکە نامەکە دەبێت چی بگەیەنێت...";
+export const subject_placeholder = "بۆ نموونە پێشنیاری پڕۆژە";
+export const letter_prompt = "خاڵە سەرەکییەکان...";
+export const prompt_placeholder = "لیستی بابەتەکان...";
 export const attachments = "هاوپێچەکان";
 export const generate_letter = "بەرهەمهێنانی نامە";
 export const generated_letter_title = "نامەی بەرهەمهاتوو";
-
-// Auth / NDA
-export const nda_body = "ڕێککەوتنی ئاشکرانەکردن (NDA)\n\nئەم ڕێککەوتنە لە نێوان گروپی نێودەوڵەتی KKM (لایەنی ئاشکراکەر) و بەکارهێنەر (لایەنی وەرگر) ئەنجام دراوە.\n\n1. زانیاری نهێنی: لایەنی وەرگر دان بەوەدا دەنێت کە دەستی دەگات بە زانیاری تایبەت سەبارەت بە پڕۆژەی چینی وزەی جیۆمێتا (GMEL)، لەوانە وردەکاری داهێنان، مۆدێلە داراییەکان، و تایبەتمەندییە تەکنیکییەکان.\n\n2. پابەندبوونەکان: لایەنی وەرگر ڕازی دەبێت کە هەموو زانیارییە نهێنییەکان بە نهێنی بپارێزێت و ئاشکرای نەکات بۆ هیچ لایەنێکی سێیەم بەبێ ڕەزامەندی نووسراوی پێشوەختە.\n\n3. بەکارهێنان: زانیاری نهێنی تەنها دەبێت بۆ مەبەستی هەڵسەنگاندنی پڕۆژەی GMEL بەکاربهێنرێت.\n\n4. ماوە: ئەم ڕێککەوتنە بۆ ماوەی 5 ساڵ لە بەرواری دەستپێکردنەوە کاری پێ دەکرێت.\n\nبە کلیککردن لەسەر 'ڕازیم و واژۆ دەکەم'، دان بەوەدا دەنێیت کە ئەم ڕێککەوتنەت خوێندووەتەوە و تێگەیشتوویت.";
-export const access_control_title = "کۆنترۆڵی دەسەڵات و NDA";
-export const step_3_title = "هەنگاوی ٣: ڕێککەوتنی ئاشکرانەکردن";
+export const nda_body = "ڕێکەوتننامەی ئاشکرا نەکردن...";
+export const access_control_title = "کۆنترۆڵی دەستگەیشتن";
+export const step_3_title = "هەنگاوی ٣: NDA";
 export const full_name_placeholder = "ناوی تەواو";
 export const email_address_placeholder = "ناونیشانی ئیمەیڵ";
-export const nda_title = "مەرجەکانی NDA";
-export const nda_agree = "ڕازیم بە مەرجەکانی ڕێککەوتنی ئاشکرانەکردن";
-export const sign_and_activate = "واژۆکردن و چالاککردنی دەسەڵات";
-export const two_factor_error = "کۆدی سەلماندن هەڵەیە.";
-export const two_factor_title = "سەلماندنی دوو هەنگاوی";
-export const two_factor_prompt = "کۆدی ٦ ژمارەیی بنووسە کە بۆ ئامێرەکەت نێردراوە.";
-export const verification_code_placeholder = "٠٠٠٠٠٠";
-export const verify_button = "سەلماندن";
-export const error_occurred = "هەڵەیەک ڕوویدا";
-export const error_dismiss = "لا بردنی";
-export const error_server_busy = "سێرڤەر سەرقاڵە. تکایە دووبارە هەوڵ بدەرەوە.";
-export const error_network_error = "هەڵەی تۆڕ. تکایە پەیوەندییەکەت بپشکنە.";
-export const password_reset_prompt_step2 = "کۆد نێردرا! تکایە لە خوارەوە بینوسە.";
-export const error_user_not_found = "ناسنامەی بەکارهێنەر نەدۆزرایەوە.";
-export const error_too_many_attempts = "هەوڵی زۆر دراوە. تکایە دواتر هەوڵ بدەرەوە.";
-export const error_code_length = "کۆد دەبێت ٦ ژمارە بێت.";
-export const code_verified = "کۆد بە سەرکەوتوویی سەلمێنرا.";
-export const error_invalid_reset_code = "کۆدی گۆڕینەوە هەڵەیە.";
-export const error_user_id_mismatch = "ناسنامەی بەکارهێنەر یەک ناگرێتەوە.";
-export const error_weak_password = "وشەی نهێنی دەبێت لانی کەم ٨ پیت بێت.";
-export const error_password_mismatch = "وشە نهێنییەکان یەک ناگرنەوە.";
-export const password_reset_success = "وشەی نهێنی بە سەرکەوتوویی گۆڕدرا. گواستنەوە...";
-export const back_to_login = "گەڕانەوە بۆ چوونەژوورەوە";
-export const password_reset_title = "گۆڕینی وشەی نهێنی";
-export const password_reset_prompt_step1 = "ناسنامەی بەکارهێنەر بنووسە بۆ داواکردنی کۆدی گۆڕینەوە.";
-export const send_reset_code = "ناردنی کۆدی گۆڕینەوە";
-export const reset_code = "کۆدی گۆڕینەوە";
-export const verify_code_button = "سەلماندنی کۆد";
-export const secure_reset_instruction = "ناسنامەی بەکارهێنەر دووبارە بنووسەوە و وشەی نهێنی نوێ دابنێ.";
-export const re_enter_user_id = "دووبارە نووسینەوەی ناسنامەی بەکارهێنەر";
-export const new_password = "وشەی نهێنی نوێ";
-export const confirm_new_password = "دووپاتکردنەوەی وشەی نهێنی";
-export const reset_password_button = "گۆڕینی وشەی نهێنی";
-
-// Video Generator
+export const nda_title = "ڕێکەوتننامەی ئاشکرا نەکردن";
+export const nda_agree = "ڕازیم بە مەرجەکان.";
+export const sign_and_activate = "واژۆکردن و چالاککردن";
 export const video_generator_title = "بەرهەمهێنەری ڤیدیۆ";
-export const video_generator_description = "بەرهەمهێنانی ڤیدیۆی چەمکی بۆ پڕۆژەی GMEL بە بەکارهێنانی Google Veo.";
+export const video_generator_description = "بەرهەمهێنانی چەمکی ڤیدیۆ.";
 export const generate_video = "بەرهەمهێنانی ڤیدیۆ";
-
-// Tech Comparison
-export const tech_comparison_drillx_title = "بەراوردکاری تەکنیکی: GMEL-DrillX";
-export const tech_comparison_drillx_desc = "بەراوردکردنی هەڵکۆڵینی خۆکار لەگەڵ ڕێگاکانی باو.";
+export const tech_comparison_drillx_title = "DrillX بەرامبەر نەریتی";
+export const tech_comparison_drillx_desc = "بەراوردکردنی تەکنەلۆژیاکانی حفری.";
 export const compare_technologies = "بەراوردکردنی تەکنەلۆژیاکان";
-export const gmel_drillx_specs = "تایبەتمەندیەکانی GMEL-DrillX";
-export const conventional_rss_specs = "تایبەتمەندیەکانی RSS باو";
-
-// Simulations
-export const gmel_package_prompt = "پاکێجێکی تەکنەلۆژیای GMELی نموونەیی بۆ {region} ({language}) دروست بکە. وەڵامی JSON: recommendedPatents[], synergies, primaryValueProposition, estimatedProfitability.";
-export const visionary_proposal_prompt = "پێشنیارێکی پڕۆژەی دیدگایی بۆ {region} ({language}) بەرهەم بهێنە. وەڵامی JSON: proposalTitle, coreConcept, enablingTechnologies[], potentialImpact, newPatentIdeas[].";
-export const ideal_plan_prompt = "پلانی کار دابڕێژە بەپێی ئەم پاکێجەی GMEL بۆ {region}: {patents}, {synergies}, {valueProp}, {profitability}. زمان: {language}.";
-export const visionary_plan_prompt = "پلانی کارێکی دیدگایی بۆ {region} دابڕێژە بەپێی: {title}, {concept}, {tech}, {impact}, {patentIdeas}. زمان: {language}.";
-export const simulations_title = "هاوشێوەکردنی پڕۆژە";
-export const simulations_description = "مۆدێلکردنی سیناریۆی جیاوازی پڕۆژە و بەرهەمهێنانی پێشنیار.";
-export const gmel_modeler_title = "مۆدێلکەری پڕۆژەی GMELی نموونەیی";
-export const gmel_modeler_description = "پێکهاتەی پێشنیارکراو لەلایەن ژیربێژی دەستکرد بۆ ناوچەکە.";
-export const generate_gmel_package = "بەرهەمهێنانی پاکێجی GMEL";
-export const generating_gmel_package = "دیزاینکردنی پاکێج...";
+export const gmel_drillx_specs = "GMEL DrillX";
+export const conventional_rss_specs = "RSS ی نەریتی";
+export const gmel_package_prompt = "دروستکردنی پاکێجی GMEL بۆ {region}...";
+export const visionary_proposal_prompt = "دروستکردنی پێشنیاری دیدگا بۆ {region}...";
+export const ideal_plan_prompt = "دروستکردنی پلانی بازرگانی بۆ {region}...";
+export const visionary_plan_prompt = "دروستکردنی پلانی بازرگانی دیدگا...";
+export const simulations_title = "هاوشێوەکردنەکان";
+export const simulations_description = "جێبەجێکردنی هاوشێوەکردنی ستراتیژی.";
+export const gmel_modeler_title = "مۆدێلسازی GMEL";
+export const gmel_modeler_description = "مۆدێلسازی پاکێجە ستانداردەکان.";
+export const generate_gmel_package = "بەرهەمهێنانی پاکێج";
 export const recommended_patents = "داهێنانە پێشنیارکراوەکان";
 export const package_synergies = "هەماهەنگییەکان";
 export const primary_value_prop = "پێشنیاری بەهای سەرەکی";
 export const estimated_profitability = "قازانجی خەمڵێنراو";
-export const generating_business_plan = "داڕشتنی پلانی کار...";
-export const generate_business_plan = "بەرهەمهێنانی پلانی کار";
-export const generated_business_plan = "ڕەشنووسی پلانی کار";
-export const visionary_engine_title = "ماتۆڕی پێشنیاری دیدگایی";
-export const visionary_engine_description = "بەرهەمهێنانی چەمکی پێشکەوتووتر لە تەکنەلۆژیای ئێستا.";
-export const generate_visionary_proposal = "بەرهەمهێنانی پێشنیاری دیدگایی";
-export const generating_visionary_proposal = "خەون بینین...";
-export const visionary_proposal_for = "پێشنیاری دیدگایی: {region}";
+export const generating_business_plan = "بەرهەمهێنانی پلانی بازرگانی...";
+export const generate_business_plan = "بەرهەمهێنانی پلانی بازرگانی";
+export const generated_business_plan = "پلانی بازرگانی بەرهەمهاتوو";
+export const visionary_engine_title = "ماتۆڕی دیدگا";
+export const visionary_engine_description = "لێکۆڵینەوە لە ئەگەرەکانی داهاتوو.";
+export const generate_visionary_proposal = "بەرهەمهێنانی پێشنیاری دیدگا";
+export const visionary_proposal_for = "پێشنیاری دیدگا بۆ {region}";
 export const core_concept = "چەمکی سەرەکی";
-export const enabling_tech = "تەکنەلۆژیا تواناکەرکان";
+export const enabling_tech = "تەکنەلۆژیای کاراکەر";
 export const transformative_impact = "کاریگەری گۆڕانکاری";
 export const new_patent_opportunities = "دەرفەتی نوێی داهێنان";
-
-// Strategy Modeler
-export const strategy_modeler_prompt = "ستراتیژی پڕۆژەی هاوبەش (JV) بۆ {region} ({language}) گەشە پێ بدە. وەڵامی JSON: optimal_patent_package, local_value_proposition, tech_transfer_plan, risk_analysis, budget_justification.";
-export const error_generating_strategy = "بەرهەمهێنانی ستراتیژی شکست ی هێنا.";
-export const strategy_modeler_title = "داڕێژەری ستراتیژی";
-export const strategy_modeler_description = "پەرەپێدانی ستراتیژی گشتگیر بۆ پڕۆژەی هاوبەش و چوونی بازاڕ.";
+export const strategy_modeler_prompt = "دروستکردنی ستراتیژی بۆ {region}...";
+export const error_generating_strategy = "هەڵە لە بەرهەمهێنانی ستراتیژی.";
+export const strategy_modeler_title = "مۆدێلسازی ستراتیژی";
+export const strategy_modeler_description = "پەرەپێدانی ستراتیژییەکانی چوونه‌ ناو بازاڕ.";
 export const select_target_region = "دیاریکردنی ناوچەی ئامانج";
-export const generating_strategy = "داڕشتنی ستراتیژی...";
-export const generate_jv_strategy = "بەرهەمهێنانی ستراتیژی JV";
-export const jv_strategy_for = "ستراتیژی JV بۆ {region}";
+export const generating_strategy = "بەرهەمهێنانی ستراتیژی...";
+export const generate_jv_strategy = "بەرهەمهێنانی ستراتیژی هاوبەشی";
+export const jv_strategy_for = "ستراتیژی هاوبەشی بۆ {region}";
 export const optimal_patent_package = "پاکێجی داهێنانی گونجاو";
 export const local_value_proposition = "پێشنیاری بەهای ناوخۆیی";
 export const tech_transfer_plan = "پلانی گواستنەوەی تەکنەلۆژیا";
 export const risk_analysis = "شیکاری مەترسی";
 export const budget_justification = "پاساوی بودجە";
-
-// Proposal Generator
-export const regional_analysis_prompt = "شیکاری {region} بکە بۆ پێشنیاری وزەی جیۆسێرمال ({language}). جەخت بکە سەر پێداویستی وزە، کەشوهەوا، و چوارچێوەی ئابووری.";
-export const error_generating_proposal = "بەرهەمهێنانی پێشنیار شکست ی هێنا.";
-export const executive_summary = "کورتەی جێبەجێکردن";
+export const regional_analysis_prompt = "شیکاری ناوچەی {region}...";
+export const error_generating_proposal = "هەڵە لە بەرهەمهێنانی پێشنیار.";
+export const executive_summary = "پوختەی جێبەجێکردن";
 export const regional_analysis = "شیکاری هەرێمی";
-export const technical_modeling = "مۆدێلکردنی تەکنیکی";
+export const technical_modeling = "مۆدێلسازی تەکنیکی";
 export const financial_analysis = "شیکاری دارایی";
-export const innovation_and_patent_layer = "چینی داهێنان و خاوەندارێتی فیکری";
+export const innovation_and_patent_layer = "چینی داهێنان و مافی داهێنان";
 export const strategy_model = "مۆدێلی ستراتیژی";
 export const risk_and_roadmap = "مەترسی و نەخشەڕێگا";
 export const gmel_patent_reference = "سەرچاوەی داهێنانی GMEL";
@@ -398,11 +285,55 @@ export const select_proposal_region = "دیاریکردنی ناوچە";
 export const generating_proposal = "نووسینی پێشنیار...";
 export const generate_proposal = "بەرهەمهێنانی پێشنیار";
 export const generated_proposal_title = "پێشنیار: {region}";
-
-// Audit Log
+export const optimization_title = "باشترکردنی ستراتیژی و زیرەکی بازرگانی";
+export const optimization_badge = "تەنها مۆڵەتی بەڕێوەبەر";
+export const generate_optimization = "جێبەجێکردنی ئەلگۆریتمەکانی باشترکردن";
+export const generating_optimization = "شیکردنەوەی ئاراستە بازرگانییەکان...";
+export const optimization_prompt = "وەک ئەفسەری باڵای ستراتیژی ڕەفتار بکە. شیکاری پڕۆژەی GMEL لە {region} بکە ({language}). \n\nچوارچێوە:\n- پۆرتفۆلیۆی ١٤ داهێنان: {patents}\n- بنچینەی دارایی: {financials}\n\nئەرک: پاشکۆیەکی ستراتیژی ئاست بەرز پێشکەش بکە کە تەرکیز دەکاتە سەر:\n١. **ستراتیژییەکانی باشترکردن:** چۆنێتی دەستکاریکردنی مۆدێلی تەکنیکی یان دارایی بۆ باشترکردنی ئابووری و قازانج لەم ناوچە تایبەتەدا.\n٢. **ڕاکێشانی بازرگانی:** گۆشە گێڕانەوەییە تایبەتەکان بۆ ڕاکێشانی سەرچاوە مرۆییە ناوخۆییەکان و تێپەڕاندنی مەرجە یاسایی/سیاسییەکان.\n٣. **بەڕێوەبردنی دەرچووەکان:** ستراتیژییەک بۆ بەڕێوەبردنی دەرچووی فرە بەرهەم (کارەبا/ئاو/هایدرۆجین/لیتیۆم) بەپێی شێوازەکانی داواکاری بازاڕی ناوخۆیی.";
+export const optimization_result_title = "پاشکۆی ستراتیژی";
 export const audit_log_title = "تۆمارەکانی وردبینی";
+export const login_error = "چوونەژوورەوە سەرکەوتوو نەبوو.";
+export const login_button = "چوونەژوورەوە";
+export const login_prompt = "تکایە بۆ بەردەوامبوون وەرە ژوورەوە.";
+export const user_id_placeholder = "ناسیاری بەکارهێنەر";
+export const forgot_password = "وشەی تێپەڕت بیرچووە؟";
+export const access_tiers_title = "ئاستەکانی دەستگەیشتن";
+export const two_factor_error = "کۆد هەڵەیە.";
+export const two_factor_title = "سەلماندنی دوو قۆناغی";
+export const two_factor_prompt = "کۆدی پشتڕاستکردنەوە بنووسە.";
+export const verification_code_placeholder = "کۆد";
+export const verify_button = "سەلماندن";
+export const password_reset_prompt_step2 = "کۆد نێردرا.";
+export const error_user_not_found = "بەکارهێنەر نەدۆزرایەوە.";
+export const error_too_many_attempts = "هەوڵی زۆر دراوە.";
+export const code_verified = "کۆد سەلمێندرا.";
+export const error_invalid_reset_code = "کۆد هەڵەیە.";
+export const error_user_id_mismatch = "ناسیاری بەکارهێنەر یەک ناگرێتەوە.";
+export const error_weak_password = "وشەی تێپەڕ لاوازە.";
+export const error_password_mismatch = "وشەکانی تێپەڕ یەک ناگرنەوە.";
+export const password_reset_success = "وشەی تێپەڕ بە سەرکەوتوویی گۆڕدرا.";
+export const back_to_login = "گەڕانەوە بۆ چوونەژوورەوە";
+export const password_reset_title = "گۆڕینی وشەی تێپەڕ";
+export const password_reset_prompt_step1 = "ناسیاری بەکارهێنەر بنووسە بۆ وەرگرتنی کۆد.";
+export const user_id = "ناسیاری بەکارهێنەر";
+export const send_reset_code = "ناردنی کۆدی گۆڕین";
+export const reset_code = "کۆدی گۆڕین";
+export const verify_code_button = "سەلماندنی کۆد";
+export const secure_reset_instruction = "وشەی تێپەڕی نوێ بنووسە.";
+export const re_enter_user_id = "دووبارە نوسینەوەی ناسیاری بەکارهێنەر";
+export const new_password = "وشەی تێپەڕی نوێ";
+export const confirm_new_password = "تأکیدکردنەوەی وشەی تێپەڕ";
+export const reset_password_button = "گۆڕینی وشەی تێپەڕ";
 export const timestamp = "کات";
 export const user = "بەکارهێنەر";
 export const action = "کردار";
 export const status = "دۆخ";
 export const details = "وردەکاری";
+export const error_occurred = "هەڵەیەک ڕوویدا";
+export const error_dismiss = "لابردن";
+export const export_secure_pdf = "هەناردەکردنی PDF ی پارێزراو";
+export const cost_revenue_breakdown = "وردەکاری تێچوو/داهات";
+export const net_revenue_projection_title = "پێشبینی داهاتی پوخت";
+export const benchmark_comparison_prompt = "بەراوردکردنی ناوچەکان...";
+export const select_region_1 = "دیاریکردنی ناوچەی ١";
+export const select_region_2 = "دیاریکردنی ناوچەی ٢";

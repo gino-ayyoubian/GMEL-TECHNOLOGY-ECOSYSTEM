@@ -3,7 +3,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { generateGroundedText, generateTextWithThinking } from '../services/geminiService';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
-import { KKM_LOGO_DATA_URL, ALL_REGIONS } from '../constants';
+import { KKM_LOGO_DATA_URL, ALL_REGIONS, PATENT_PORTFOLIO, CORE_PATENT, getFinancialData } from '../constants';
 import { Region } from '../types';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import ExportButtons from './shared/ExportButtons';
@@ -11,6 +11,7 @@ import { canEdit } from '../utils/permissions';
 import { extractJson } from '../utils/helpers';
 import { Spinner } from './shared/Loading';
 import { AuditService } from '../services/auditService';
+import { Lock, TrendingUp, Briefcase, Zap } from 'lucide-react';
 
 interface ProposalData {
     gmel_proposal: {
@@ -59,8 +60,13 @@ export const ProposalGenerator: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [generationProgress, setGenerationProgress] = useState<string | null>(null);
 
+    // Optimization State (Admin Only)
+    const [optimizationData, setOptimizationData] = useState<string | null>(null);
+    const [isOptimizing, setIsOptimizing] = useState(false);
+
     useEffect(() => {
         setProposalData(null);
+        setOptimizationData(null);
         setError(null);
     }, [targetRegion, lang, setError]);
 
@@ -69,6 +75,7 @@ export const ProposalGenerator: React.FC = () => {
         setIsLoading(true);
         setError(null);
         setProposalData(null);
+        setOptimizationData(null);
         const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
         
         try {
@@ -120,6 +127,36 @@ export const ProposalGenerator: React.FC = () => {
         }
     };
 
+    const handleOptimization = async () => {
+        if (userRole !== 'admin') return;
+        setIsOptimizing(true);
+        setError(null);
+        const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
+
+        try {
+            // Aggregate all data for the Thinking Model
+            const patentsContext = [CORE_PATENT, ...PATENT_PORTFOLIO].map(p => `${p.code}: ${p.title} (${p.application})`).join('; ');
+            const financialContext = getFinancialData(targetRegion).map(f => `${f.component}: ${f.value} ${f.unit}`).join(', ');
+
+            const prompt = t('optimization_prompt', {
+                region: targetRegion,
+                language: langName,
+                patents: patentsContext,
+                financials: financialContext
+            });
+
+            const result = await generateTextWithThinking(prompt);
+            setOptimizationData(result);
+            AuditService.log(currentUser || 'user', 'STRATEGIC_OPTIMIZATION', `Generated admin insights for ${targetRegion}`);
+
+        } catch (e: any) {
+            setError("Failed to generate strategic optimization.");
+            console.error(e);
+        } finally {
+            setIsOptimizing(false);
+        }
+    };
+
     const getProposalAsHtml = (): string => {
         if (!proposalData) return '';
         const data = proposalData.gmel_proposal;
@@ -165,6 +202,16 @@ export const ProposalGenerator: React.FC = () => {
         html += createSection(t('risk_and_roadmap'), data.risk_and_roadmap);
         html += createSection(t('gmel_patent_reference'), data.gmel_patent_reference);
         html += createSection(t('ownership_statement'), data.ownership_statement);
+        
+        // Append Admin Optimization if available
+        if (optimizationData) {
+             html += `
+                <div style="margin-top: 15mm; padding: 10mm; background-color: #fef2f2; border: 1px solid #ef4444; border-radius: 5px; page-break-before: always;">
+                    <h2 style="font-size: 16pt; font-weight: bold; color: #b91c1c; margin-bottom: 5mm; text-align: center;">CONFIDENTIAL: ${t('optimization_result_title')}</h2>
+                    <div style="font-size: 10pt; white-space: pre-wrap;">${optimizationData.replace(/\n/g, '<br/>')}</div>
+                </div>
+             `;
+        }
     
         html += '</div>';
         return html;
@@ -197,6 +244,11 @@ export const ProposalGenerator: React.FC = () => {
         textContent += createTextSection(t('risk_and_roadmap'), data.risk_and_roadmap);
         textContent += createTextSection(t('gmel_patent_reference'), data.gmel_patent_reference);
         textContent += createTextSection(t('ownership_statement'), data.ownership_statement);
+        
+        if (optimizationData) {
+            textContent += "\n\n!!! CONFIDENTIAL ADMIN ADDENDUM !!!\n\n";
+            textContent += optimizationData;
+        }
         
         return textContent;
     };
@@ -260,6 +312,64 @@ export const ProposalGenerator: React.FC = () => {
                         <ProposalSection title={t('gmel_patent_reference')} content={proposalData.gmel_proposal.gmel_patent_reference} />
                         <ProposalSection title={t('ownership_statement')} content={proposalData.gmel_proposal.ownership_statement} />
                     </div>
+
+                    {/* Admin-Only Strategic Optimization Section */}
+                    {userRole === 'admin' && (
+                        <div className="mt-12 bg-gradient-to-br from-slate-900 via-[#1a0f0f] to-slate-900 border border-amber-900/50 rounded-2xl p-8 relative overflow-hidden shadow-2xl">
+                            {/* Decorative Background */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-600/5 rounded-full blur-3xl pointer-events-none -mt-20 -mr-20"></div>
+                            
+                            <div className="flex justify-between items-center mb-6 relative z-10">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <Lock className="w-5 h-5 text-amber-500" />
+                                        <span className="text-xs font-bold uppercase tracking-widest text-amber-500">{t('optimization_badge')}</span>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white">{t('optimization_title')}</h2>
+                                </div>
+                                <button
+                                    onClick={handleOptimization}
+                                    disabled={isOptimizing}
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-700 to-red-900 hover:from-amber-600 hover:to-red-800 text-white font-bold rounded-lg transition-all shadow-lg border border-amber-500/30 disabled:opacity-50"
+                                >
+                                    {isOptimizing ? <Spinner size="sm" className="text-white" /> : <TrendingUp className="w-4 h-4" />}
+                                    {isOptimizing ? t('generating_optimization') : t('generate_optimization')}
+                                </button>
+                            </div>
+
+                            {isOptimizing && (
+                                <div className="py-12 text-center relative z-10">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-amber-500 blur-xl opacity-20 animate-pulse"></div>
+                                            <Briefcase className="w-12 h-12 text-amber-500 animate-bounce" />
+                                        </div>
+                                        <p className="text-amber-200/70 font-mono text-sm">Synthesizing 14 Patents & Regional Economics...</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {optimizationData && (
+                                <div className="space-y-6 relative z-10 animate-fade-in">
+                                    <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-amber-500/20">
+                                        <div className="flex items-center gap-3 mb-4 border-b border-amber-500/20 pb-2">
+                                            <Zap className="w-5 h-5 text-amber-400" />
+                                            <h3 className="text-lg font-bold text-amber-100">{t('optimization_result_title')}</h3>
+                                            <div className="ml-auto">
+                                                <SpeakerIcon text={optimizationData} />
+                                            </div>
+                                        </div>
+                                        <div className="text-slate-300 whitespace-pre-wrap leading-relaxed font-light text-sm">
+                                            {optimizationData}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-amber-500/50 text-center italic">
+                                        This section contains sensitive strategic output. Authorized eyes only.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 

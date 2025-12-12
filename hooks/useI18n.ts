@@ -1,18 +1,11 @@
+
 import { useContext } from 'react';
 import { AppContext } from '../contexts/AppContext';
+import { Language } from '../types';
 import * as en from '../i18n/en';
 import * as fa from '../i18n/fa';
 import * as ku from '../i18n/ku';
 import * as ar from '../i18n/ar';
-
-export type Language = 'en' | 'fa' | 'ku' | 'ar';
-
-export const locales: Record<Language, string> = {
-    en: 'en-US',
-    fa: 'fa-IR',
-    ku: 'ckb-IQ',
-    ar: 'ar-SA',
-}
 
 const translations: Record<Language, Partial<Record<keyof typeof en, string>>> = { en, fa, ku, ar };
 

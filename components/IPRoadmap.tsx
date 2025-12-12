@@ -12,6 +12,7 @@ import { AppContext } from '../contexts/AppContext';
 import { extractJson } from '../utils/helpers';
 import { Spinner } from './shared/Loading';
 import { AuditService } from '../services/auditService';
+import { Download } from 'lucide-react';
 
 interface PatentOverlap {
     patent_identifier: string;
@@ -307,7 +308,7 @@ const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({
 
 export const IPRoadmap: React.FC = () => {
     const { t } = useI18n();
-    const { lang } = useContext(AppContext)!;
+    const { lang, userRole } = useContext(AppContext)!;
     const [searchQuery, setSearchQuery] = useState('');
     const [levelFilter, setLevelFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -368,6 +369,33 @@ export const IPRoadmap: React.FC = () => {
         [comparisonSelection, patents]
     );
 
+    const handleExportCSV = () => {
+        const headers = ['Code', 'Title', 'Level', 'Application', 'Status', 'KPI', 'Progress'];
+        const rows = patents.map(p => [
+            p.code,
+            `"${p.title.replace(/"/g, '""')}"`,
+            p.level,
+            `"${p.application.replace(/"/g, '""')}"`,
+            p.status,
+            `"${p.kpi ? p.kpi.replace(/"/g, '""') : ''}"`,
+            `${p.progress}%`
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(r => r.join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `GMEL_Patent_Portfolio_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -375,19 +403,31 @@ export const IPRoadmap: React.FC = () => {
                     <h1 className="text-3xl font-bold text-white">{t('ip_roadmap_title')}</h1>
                     <p className="text-slate-400 mt-1">{t('ip_roadmap_description')}</p>
                 </div>
-                <div className="flex bg-slate-900 p-1 rounded-lg border border-white/10">
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${viewMode === 'grid' ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        {t('grid_view')}
-                    </button>
-                    <button
-                        onClick={() => setViewMode('graph')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${viewMode === 'graph' ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        {t('graph_view')}
-                    </button>
+                <div className="flex items-center gap-3">
+                    {userRole === 'admin' && (
+                        <button
+                            onClick={handleExportCSV}
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-lg text-sm font-semibold transition-all"
+                            title="Download CSV"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Export CSV</span>
+                        </button>
+                    )}
+                    <div className="flex bg-slate-900 p-1 rounded-lg border border-white/10">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${viewMode === 'grid' ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            {t('grid_view')}
+                        </button>
+                        <button
+                            onClick={() => setViewMode('graph')}
+                            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${viewMode === 'graph' ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            {t('graph_view')}
+                        </button>
+                    </div>
                 </div>
             </div>
             

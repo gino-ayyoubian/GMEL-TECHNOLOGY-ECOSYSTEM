@@ -1,13 +1,12 @@
 
 import React, { useState, createContext, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Region, View, UserRole, ThemeConfig } from '../types';
-import { Language, locales } from '../hooks/useI18n';
-import { THEMES, REGION_THEME_MAP, ALL_REGIONS } from '../constants';
+import { Region, View, UserRole, ThemeConfig, Language } from '../types';
+import { THEMES, REGION_THEME_MAP, ALL_REGIONS, locales } from '../constants';
 import { AuthService } from '../services/authService';
 
 export type AuthStep = 'language' | 'login' | '2fa' | 'nda' | 'granted' | 'resetPassword';
 
-interface AppContextType {
+export interface AppContextType {
   authStep: AuthStep;
   setAuthStep: (step: AuthStep) => void;
   currentUser: string | null;
