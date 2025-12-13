@@ -268,6 +268,7 @@ export const local_value_proposition = "عرض القيمة المحلي";
 export const tech_transfer_plan = "خطة نقل التكنولوجيا";
 export const risk_analysis = "تحليل المخاطر";
 export const budget_justification = "تبرير الميزانية";
+export const strategic_roadmap = "خارطة الطريق الاستراتيجية";
 export const regional_analysis_prompt = "تحليل المنطقة {region}...";
 export const error_generating_proposal = "خطأ في إنشاء المقترح.";
 export const executive_summary = "الملخص التنفيذي";

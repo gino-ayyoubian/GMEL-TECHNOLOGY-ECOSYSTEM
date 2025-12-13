@@ -268,6 +268,7 @@ export const local_value_proposition = "پێشنیاری بەهای ناوخۆی
 export const tech_transfer_plan = "پلانی گواستنەوەی تەکنەلۆژیا";
 export const risk_analysis = "شیکاری مەترسی";
 export const budget_justification = "پاساوی بودجە";
+export const strategic_roadmap = "نەخشەڕێگای ستراتیژی";
 export const regional_analysis_prompt = "شیکاری ناوچەی {region}...";
 export const error_generating_proposal = "هەڵە لە بەرهەمهێنانی پێشنیار.";
 export const executive_summary = "پوختەی جێبەجێکردن";

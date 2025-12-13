@@ -268,6 +268,7 @@ export const local_value_proposition = "ارزش پیشنهادی محلی";
 export const tech_transfer_plan = "برنامه انتقال فناوری";
 export const risk_analysis = "تحلیل ریسک";
 export const budget_justification = "توجیه بودجه";
+export const strategic_roadmap = "نقشه راه استراتژیک";
 export const regional_analysis_prompt = "تحلیل منطقه {region}...";
 export const error_generating_proposal = "خطا در تولید پروپوزال.";
 export const executive_summary = "خلاصه مدیریتی";

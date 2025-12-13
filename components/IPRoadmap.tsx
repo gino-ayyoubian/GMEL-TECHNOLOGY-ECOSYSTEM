@@ -12,7 +12,7 @@ import { AppContext } from '../contexts/AppContext';
 import { extractJson } from '../utils/helpers';
 import { Spinner } from './shared/Loading';
 import { AuditService } from '../services/auditService';
-import { Download } from 'lucide-react';
+import { Download, Search, Zap } from 'lucide-react';
 
 interface PatentOverlap {
     patent_identifier: string;
@@ -81,50 +81,61 @@ const CompetitiveAnalysis: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-semibold text-white">{t('competitive_patent_analysis_title')}</h2>
-            <p className="text-slate-400 mt-2 mb-4 max-w-3xl">{t('competitive_patent_analysis_desc')}</p>
-            <button
-                onClick={handleRunAnalysis}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800/50 disabled:cursor-not-allowed"
-            >
-                {isLoading && <Spinner size="sm" className="text-white" />}
-                {isLoading ? t('analyzing_patents') : t('run_patent_analysis_button')}
-            </button>
+        <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 mt-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                <div>
+                    <h2 className="text-2xl font-semibold text-white flex items-center gap-2">
+                        <Zap className="w-6 h-6 text-amber-400" />
+                        {t('competitive_patent_analysis_title')}
+                    </h2>
+                    <p className="text-slate-400 mt-1 max-w-2xl">{t('competitive_patent_analysis_desc')}</p>
+                </div>
+                <button
+                    onClick={handleRunAnalysis}
+                    disabled={isLoading}
+                    className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-amber-900/20 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+                >
+                    {isLoading ? <Spinner size="sm" className="text-white" /> : <Search className="w-5 h-5" />}
+                    {isLoading ? t('analyzing_patents') : t('run_patent_analysis_button')}
+                </button>
+            </div>
             
             {analysis && (
-                <div className="mt-6 space-y-6 animate-fade-in">
-                    <ExportButtons content={JSON.stringify(analysis, null, 2)} title="Competitive_Patent_Analysis" />
+                <div className="mt-6 space-y-6 animate-fade-in border-t border-white/10 pt-6">
+                    <div className="flex justify-end">
+                        <ExportButtons content={JSON.stringify(analysis, null, 2)} title="Competitive_Patent_Analysis" />
+                    </div>
                     {analysis.potential_overlaps.length > 0 && (
                         <div>
                             <h3 className="text-xl font-semibold text-white mb-4">{t('potential_overlaps_title')}</h3>
-                            <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 {analysis.potential_overlaps.map((overlap, index) => (
-                                    <div key={index} className="bg-slate-900/80 p-4 rounded-lg border border-white/5 hover:border-sky-500/30 transition-colors">
-                                        <h4 className="font-bold text-sky-400">{overlap.title}</h4>
-                                        <p className="text-sm text-slate-400">
-                                            <span className="font-semibold">Assignee:</span> {overlap.assignee} | <span className="font-semibold">Date:</span> {overlap.publication_date || 'N/A'}
+                                    <div key={index} className="bg-slate-800/50 p-5 rounded-lg border border-white/5 hover:border-amber-500/30 transition-all group">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="font-bold text-sky-400 text-lg">{overlap.title}</h4>
+                                            <span className="text-xs font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded">{overlap.patent_identifier}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-400 mt-1">
+                                            <span className="font-semibold text-slate-300">Assignee:</span> {overlap.assignee}
                                         </p>
-                                        <p className="text-sm text-slate-500 mt-1">
-                                            <span className="font-semibold">Identifier:</span> {overlap.patent_identifier}
-                                        </p>
+                                        <div className="mt-3 p-3 bg-amber-900/10 rounded border border-amber-500/10 group-hover:bg-amber-900/20 transition-colors">
+                                            <p className="text-sm text-amber-200">
+                                                <span className="font-semibold uppercase text-xs tracking-wider">Overlap Risk:</span> {overlap.potential_overlap_with_gmel}
+                                            </p>
+                                            <p className="text-sm text-slate-300 mt-1">{overlap.overlap_description}</p>
+                                        </div>
                                         {overlap.link_to_source && overlap.link_to_source !== 'N/A' && (
-                                            <a href={overlap.link_to_source} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:underline mt-1 inline-block">
-                                                View Source Document &rarr;
+                                            <a href={overlap.link_to_source} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:text-sky-300 hover:underline mt-2 inline-flex items-center gap-1">
+                                                View Source <span className="text-xs">&rarr;</span>
                                             </a>
                                         )}
-                                        <p className="text-sm mt-2 text-slate-300">{overlap.summary}</p>
-                                        <p className="text-sm mt-2 p-2 bg-amber-900/20 rounded border border-amber-500/20">
-                                            <span className="font-semibold text-amber-300">Potential Overlap with {overlap.potential_overlap_with_gmel}:</span> <span className="text-slate-300">{overlap.overlap_description}</span>
-                                        </p>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
-                     <div>
-                        <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                     <div className="bg-slate-800/30 p-6 rounded-xl border border-white/5">
+                        <h3 className="text-xl font-semibold text-white mb-3 flex items-center">
                             {t('legal_strategy_title')}
                             <SpeakerIcon text={analysis.legal_strategy} />
                         </h3>
@@ -486,7 +497,7 @@ export const IPRoadmap: React.FC = () => {
                     </div>
                 </>
             ) : (
-                <div className="bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-white/10 overflow-x-auto min-h-[600px]">
+                <div className="bg-slate-900/40 backdrop-blur-sm p-1 rounded-xl border border-white/10 overflow-hidden">
                     <PatentInfographic 
                         patents={patents}
                         selectedPatents={comparisonSelection}
