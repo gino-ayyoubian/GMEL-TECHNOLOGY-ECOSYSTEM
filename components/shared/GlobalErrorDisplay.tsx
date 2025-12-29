@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import { AppContext } from '../src/contexts/AppContext';
-import { useI18n } from '../src/hooks/useI18n';
+import { AppContext } from '../../src/contexts/AppContext';
+import { useI18n } from '../../src/hooks/useI18n';
 
 export const GlobalErrorDisplay: React.FC = () => {
     const { error, setError } = useContext(AppContext)!;

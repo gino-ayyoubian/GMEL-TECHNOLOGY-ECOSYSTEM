@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../src/contexts/AppContext';
+import { AppContext } from '../../src/contexts/AppContext';
 import { AuthService } from '../../services/authService';
-import { UserRole } from '../src/types';
-import { useI18n } from '../src/hooks/useI18n';
+import { UserRole } from '../../src/types';
+import { useI18n } from '../../src/hooks/useI18n';
 import { ShieldCheck, UserCog, Ban, CheckCircle } from 'lucide-react';
 
 export const UserManagement: React.FC = () => {

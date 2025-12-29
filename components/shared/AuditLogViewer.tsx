@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { AuditService } from '../../services/auditService';
-import { AuditLogEntry } from '../src/types';
-import { useI18n } from '../src/hooks/useI18n';
-import { AppContext } from '../src/contexts/AppContext';
+import { AuditLogEntry } from '../../src/types';
+import { useI18n } from '../../src/hooks/useI18n';
+import { AppContext } from '../../src/contexts/AppContext';
 
 export const AuditLogViewer: React.FC = () => {
     const { t } = useI18n();

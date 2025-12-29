@@ -1,7 +1,7 @@
 
 import React, { useState, useContext, useEffect } from 'react';
-import { AppContext } from '../src/contexts/AppContext';
-import { useI18n } from '../src/hooks/useI18n';
+import { AppContext } from '../../src/contexts/AppContext';
+import { useI18n } from '../../src/hooks/useI18n';
 import { AuthService } from '../../services/authService';
 
 export const TwoFactorAuth: React.FC = () => {

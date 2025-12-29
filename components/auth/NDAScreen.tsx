@@ -1,7 +1,7 @@
 
 import React, { useState, useContext } from 'react';
-import { useI18n } from '../src/hooks/useI18n';
-import { AppContext } from '../src/contexts/AppContext';
+import { useI18n } from '../../src/hooks/useI18n';
+import { AppContext } from '../../src/contexts/AppContext';
 
 export const NDAScreen: React.FC = () => {
     const { t } = useI18n();
