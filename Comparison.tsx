@@ -4,37 +4,7 @@ import { generateTextWithThinking, generateJsonWithThinking } from '../services/
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    let start = -1;
-
-    if (firstBrace === -1 && firstBracket === -1) return null;
-    if (firstBrace === -1) start = firstBracket;
-    else if (firstBracket === -1) start = firstBrace;
-    else start = Math.min(firstBrace, firstBracket);
-    
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
-    let end = -1;
-    
-    if (lastBrace === -1 && lastBracket === -1) return null;
-    if (lastBrace === -1) end = lastBracket;
-    else if (lastBracket === -1) end = lastBrace;
-    else end = Math.max(lastBrace, lastBracket);
-    
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON string:", jsonString, error);
-        return null;
-    }
-};
+import { extractJson } from '../utils/helpers';
 
 interface ComparisonData {
     metric: string;
@@ -78,10 +48,10 @@ export const Comparison: React.FC = () => {
                 setComparisonData(parsedResult.table);
                 setNarrative(parsedResult.narrative);
             } else {
-                 throw new Error("Invalid format received");
+                 throw new Error("Invalid format received from AI. Please try again.");
             }
         } catch (e: any) {
-            console.error("Failed to parse comparison JSON:", e);
+            console.error("Failed to generate comparison:", e);
             setError(e.message || t('error_generating_comparison'));
         } finally {
             setIsLoading(false);

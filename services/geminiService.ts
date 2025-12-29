@@ -48,8 +48,9 @@ const getAiClient = () => {
 };
 
 // ... existing generateText functions ...
+// FIX: Using gemini-3-flash-preview for basic text tasks per guidelines
 // @ts-ignore
-export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash' | 'gemini-flash-lite-latest' = 'gemini-2.5-flash'): Promise<string> => {
+export const generateText = async (prompt: string, modelName: 'gemini-3-flash-preview' | 'gemini-flash-lite-latest' = 'gemini-3-flash-preview'): Promise<string> => {
   try {
     return await withRetries(async () => {
         const ai = getAiClient();
@@ -68,12 +69,13 @@ export const generateText = async (prompt: string, modelName: 'gemini-2.5-flash'
   }
 };
 
+// FIX: Using gemini-3-pro-preview for complex reasoning tasks with thinking budget
 export const generateTextWithThinking = async (prompt: string): Promise<string> => {
   try {
     const responseText = await withRetries(async () => {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-pro',
+          model: 'gemini-3-pro-preview',
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 32768 }
@@ -100,12 +102,13 @@ export const generateTextWithThinking = async (prompt: string): Promise<string> 
   }
 };
 
+// FIX: Using gemini-3-pro-preview for complex JSON generation with thinking
 export const generateJsonWithThinking = async (prompt: string): Promise<string> => {
   try {
     const jsonText = await withRetries(async () => {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-pro',
+          model: 'gemini-3-pro-preview',
           contents: prompt,
           config: {
             responseMimeType: "application/json",
@@ -133,12 +136,13 @@ export const generateJsonWithThinking = async (prompt: string): Promise<string> 
   }
 };
 
+// FIX: Using gemini-3-flash-preview for grounded search tasks
 export const generateGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
     return await withRetries(async () => {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3-flash-preview',
           contents: prompt,
           config: {
             tools: [{ googleSearch: {} }],
@@ -170,6 +174,7 @@ export const generateGroundedText = async (prompt: string): Promise<{text: strin
   }
 };
 
+// FIX: Using gemini-2.5-flash as maps grounding is specifically supported in the 2.5 series per guidelines
 export const generateMapsGroundedText = async (prompt: string): Promise<{text: string; sources: any[]}> => {
   try {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -233,12 +238,13 @@ export const generateMapsGroundedText = async (prompt: string): Promise<{text: s
   }
 };
 
+// FIX: Using gemini-3-flash-preview for structured JSON data output
 export const generateJsonData = async (prompt: string): Promise<[number, number, number][]> => {
     try {
         const jsonStr = await withRetries(async () => {
             const ai = getAiClient();
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-flash-preview',
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
@@ -270,6 +276,7 @@ export const generateJsonData = async (prompt: string): Promise<[number, number,
     }
 };
 
+// FIX: Using gemini-3-pro-preview for complex financial projections
 export const generateFinancialData = async (region: string, lang: string): Promise<FinancialData[]> => {
   const cacheKey = `${region}_${lang}`;
   if (financialDataCache.has(cacheKey)) {
@@ -293,7 +300,7 @@ export const generateFinancialData = async (region: string, lang: string): Promi
     const jsonStr = await withRetries(async () => {
         const ai = getAiClient();
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-pro',
+          model: 'gemini-3-pro-preview',
           contents: prompt,
           config: {
             responseMimeType: "application/json",
@@ -337,6 +344,7 @@ export const generateFinancialData = async (region: string, lang: string): Promi
   }
 };
 
+// FIX: Using gemini-3-pro-preview for technical benchmarking comparisons
 export const generateBenchmarkComparison = async (region1: string, region2: string, langName: string): Promise<any> => {
     try {
         const prompt = `Compare the geothermal potential of '${region1}' and '${region2}'. 
@@ -352,7 +360,7 @@ export const generateBenchmarkComparison = async (region1: string, region2: stri
         const jsonStr = await withRetries(async () => {
             const ai = getAiClient();
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-pro',
+                model: 'gemini-3-pro-preview',
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
@@ -369,8 +377,7 @@ export const generateBenchmarkComparison = async (region1: string, region2: stri
     }
 };
 
-// ... existing localization and video generation functions
-// (generateLocalizedPatents, generateLocalizedMilestones, generateImage, generateVideo, etc. remain unchanged)
+// FIX: Using gemini-3-flash-preview for translations
 export const generateLocalizedPatents = async (lang: string): Promise<Patent[]> => {
     if (lang === 'en') return [CORE_PATENT, ...PATENT_PORTFOLIO];
     
@@ -398,7 +405,7 @@ export const generateLocalizedPatents = async (lang: string): Promise<Patent[]> 
         const jsonStr = await withRetries(async () => {
             const ai = getAiClient();
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-flash-preview',
                 contents: prompt,
                 config: { responseMimeType: "application/json" }
             });
@@ -414,6 +421,7 @@ export const generateLocalizedPatents = async (lang: string): Promise<Patent[]> 
     }
 };
 
+// FIX: Using gemini-3-flash-preview for milestones translations
 export const generateLocalizedMilestones = async (lang: string): Promise<Milestone[]> => {
     if (lang === 'en') return PROJECT_MILESTONES;
 
@@ -429,7 +437,7 @@ export const generateLocalizedMilestones = async (lang: string): Promise<Milesto
         const jsonStr = await withRetries(async () => {
             const ai = getAiClient();
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-flash-preview',
                 contents: prompt,
                 config: { responseMimeType: "application/json" }
             });
@@ -445,24 +453,28 @@ export const generateLocalizedMilestones = async (lang: string): Promise<Milesto
     }
 }
 
-
+// FIX: Implementation changed to use gemini-2.5-flash-image with generateContent as recommended by guidelines for default image generation
 export const generateImage = async (prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '16:9'): Promise<string> => {
   try {
     return await withRetries(async () => {
         const ai = getAiClient();
-        const response = await ai.models.generateImages({
-          model: 'imagen-4.0-generate-001',
-          prompt: prompt,
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: { parts: [{ text: prompt }] },
           config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/jpeg',
-            aspectRatio: aspectRatio,
+            imageConfig: {
+              aspectRatio: aspectRatio,
+            },
           },
         });
 
-        if (response.generatedImages && response.generatedImages.length > 0) {
-          const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
-          return `data:image/jpeg;base64,${base64ImageBytes}`;
+        if (response.candidates && response.candidates[0]?.content?.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              const base64EncodeString: string = part.inlineData.data;
+              return `data:image/png;base64,${base64EncodeString}`;
+            }
+          }
         }
         throw new Error("Model did not return an image.");
     });
@@ -519,6 +531,7 @@ export const getVideoOperation = async (operation: any): Promise<any> => {
     }
 };
 
+// FIX: Using gemini-3-flash-preview for conversational chat
 export const continueChat = async (history: ChatMessage[]): Promise<string> => {
     const geminiHistory: Content[] = history.slice(0, -1).map(msg => ({
         role: msg.role,
@@ -534,7 +547,7 @@ export const continueChat = async (history: ChatMessage[]): Promise<string> => {
         return await withRetries(async () => {
             const ai = getAiClient();
             const chat: Chat = ai.chats.create({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-flash-preview',
                 history: geminiHistory,
             });
             const response: GenerateContentResponse = await chat.sendMessage({ message: lastMessage.text });
@@ -548,4 +561,30 @@ export const continueChat = async (history: ChatMessage[]): Promise<string> => {
         }
         throw new Error("An unknown error occurred in the chat.");
     }
+};
+
+export const fetchPatentUpdates = async (currentPatents: Patent[]): Promise<Patent[]> => {
+    // Simulate network request latency
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Simulate updates
+    return currentPatents.map(p => {
+        // Randomly bump progress for some patents
+        const progressBump = Math.random() > 0.7 ? Math.floor(Math.random() * 5) + 1 : 0;
+        const newProgress = Math.min(100, p.progress + progressBump);
+        
+        // Randomly update status text if progress changed significantly
+        let newStatus = p.status;
+        if (progressBump > 0 && Math.random() > 0.8) {
+             if (p.status.includes('Phase 1')) newStatus = 'Phase 1 (Review)';
+             else if (p.status.includes('Phase 2')) newStatus = 'Phase 2 (Approved)';
+             else newStatus = `${p.status} (Updated)`;
+        }
+
+        return {
+            ...p,
+            progress: newProgress,
+            status: newStatus
+        };
+    });
 };

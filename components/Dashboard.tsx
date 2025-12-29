@@ -12,7 +12,8 @@ import { Feedback } from './shared/Feedback';
 import { Spinner } from './shared/Loading';
 import { SkeletonLoader } from './shared/SkeletonLoader';
 import { extractJson } from '../utils/helpers';
-import { Activity } from 'lucide-react';
+// FIX: Added AlertCircle to imports from lucide-react
+import { Activity, AlertCircle } from 'lucide-react';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
 
@@ -153,10 +154,10 @@ const ImpactCalculator: React.FC = () => {
             if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
-                throw new Error("Invalid format received from AI");
+                throw new Error("Invalid format received from AI. The response could not be parsed into valid impact categories.");
             }
         } catch (e: any) {
-            setError(t('error_generating_impact_analysis'));
+            setError(`${t('error_generating_impact_analysis')}: ${e.message}`);
             console.error("Failed to parse impact JSON:", e);
         } finally {
             setIsLoading(false);
@@ -201,7 +202,10 @@ const ImpactCalculator: React.FC = () => {
                  </button>
             </div>
             
-            {error && <p className="text-red-400 text-center bg-red-900/10 p-2 rounded">{error}</p>}
+            {error && <div className="text-red-400 text-center bg-red-900/10 p-4 rounded-xl border border-red-900/30 flex items-center justify-center gap-3">
+                <AlertCircle className="w-5 h-5" />
+                <span>{error}</span>
+            </div>}
 
             {isLoading && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -312,8 +316,6 @@ export const Dashboard: React.FC = () => {
         const fetchInitialData = async () => {
             setIsFinancialLoading(true);
             try {
-                // If language is English, we can use the static data immediately, but async ensures consistency
-                // Actually, to support 'language selection' properly, we should always try to generate if not English.
                 if (lang === 'en') {
                     setFinancialData(getFinancialData(region));
                 } else {
@@ -322,7 +324,6 @@ export const Dashboard: React.FC = () => {
                 }
             } catch (e: any) {
                 console.error("Failed to fetch dashboard data", e);
-                // Fallback
                 setFinancialData(getFinancialData(region));
                 if (lang !== 'en') {
                     setError("Could not retrieve localized financial data. Showing English fallback.");

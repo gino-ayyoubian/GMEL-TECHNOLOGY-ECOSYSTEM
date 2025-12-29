@@ -3,10 +3,10 @@ import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getFinancialData, KKM_LOGO_DATA_URL } from '../constants';
+import { getFinancialData, KKM_LOGO_DATA_URL, ALL_REGIONS } from '../constants';
 import { generateGroundedText, generateJsonWithThinking, generateFinancialData } from '../services/geminiService';
 import { wsService } from '../services/webSocketService';
-import { FinancialData } from '../types';
+import { FinancialData, Region } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { Feedback } from './shared/Feedback';
@@ -15,7 +15,8 @@ import ExportButtons from './shared/ExportButtons';
 import { extractJson } from '../utils/helpers';
 import { Spinner } from './shared/Loading';
 import { SkeletonLoader } from './shared/SkeletonLoader';
-import { Activity, Radio } from 'lucide-react';
+import { Activity, Radio, BarChart3, Scale } from 'lucide-react';
+import { hasPermission, getAccessLevel } from '../utils/permissions';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6', '#10b981', '#6366f1'];
 
@@ -42,11 +43,14 @@ interface IPOData {
 }
 
 const IPOAnalysis: React.FC = () => {
-    const { region, setError, supportedLangs, lang } = useContext(AppContext)!;
+    const { region, setError, supportedLangs, lang, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
     const financialData = useMemo(() => getFinancialData(region), [region]);
     const [ipoData, setIpoData] = useState<IPOData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const canView = hasPermission(userRole, 'financials');
+    if (!canView) return null;
 
     useEffect(() => {
         setIpoData(null);
@@ -147,11 +151,14 @@ interface RevenueStreamsData {
 }
 
 const RevenueStreamsAnalysis: React.FC = () => {
-    const { region, setError, supportedLangs, lang } = useContext(AppContext)!;
+    const { region, setError, supportedLangs, lang, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
     const financialData = useMemo(() => getFinancialData(region), [region]);
     const [data, setData] = useState<RevenueStreamsData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const canView = hasPermission(userRole, 'financials');
+    if (!canView) return null;
 
     useEffect(() => {
         setData(null);
@@ -170,7 +177,7 @@ const RevenueStreamsAnalysis: React.FC = () => {
             const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.table && parsed.narrative) {
-                // Sanitize numeric values to avoid .toFixed() errors on strings
+                // Ensure percentage and value are numbers
                 parsed.table = parsed.table.map((item: any) => ({
                     ...item,
                     percentage: typeof item.percentage === 'string' ? parseFloat(item.percentage.replace(/[^0-9.-]/g, '')) || 0 : Number(item.percentage) || 0,
@@ -190,7 +197,7 @@ const RevenueStreamsAnalysis: React.FC = () => {
     return (
         <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
             <h2 className="text-xl font-semibold mb-2 text-white">{t('revenue_streams_title')}</h2>
-            <p className="text-sm text-slate-400 mb-6">{t('revenue_streams_desc', { region })}</p>
+            <p className="text-sm text-slate-400 mb-6">{t('revenue_streams_desc')}</p>
             
             {!data && (
                 <button 
@@ -271,34 +278,155 @@ const RevenueStreamsAnalysis: React.FC = () => {
     );
 }
 
+const FinancialComparison: React.FC = () => {
+    const { region, lang, setError } = useContext(AppContext)!;
+    const { t } = useI18n();
+    const [compareRegion, setCompareRegion] = useState<Region | ''>('');
+    const [data1, setData1] = useState<FinancialData[]>([]);
+    const [data2, setData2] = useState<FinancialData[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setData1(getFinancialData(region));
+    }, [region]);
+
+    const handleCompare = async (target: Region) => {
+        if (!target) {
+            setData2([]);
+            setCompareRegion('');
+            return;
+        }
+        setCompareRegion(target);
+        setIsLoading(true);
+        try {
+            // Check if we have constant data first
+            let fetchedData = getFinancialData(target);
+            // If it's the general fallback, let's see if Gemini can do better
+            if (fetchedData[0]?.unit === 'Million USD' && target !== 'Oman') {
+                fetchedData = await generateFinancialData(target, lang);
+            }
+            setData2(fetchedData);
+        } catch (e: any) {
+            setError("Failed to generate comparative financial data.");
+            setData2(getFinancialData(target));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const metrics = [
+        { id: 'capex', label: t('financial_metric_capex') },
+        { id: 'revenue', label: t('financial_metric_revenue') },
+        { id: 'payback', label: t('financial_metric_payback') },
+        { id: 'roi', label: t('financial_metric_roi') },
+        { id: 'npv', label: t('financial_metric_npv') },
+    ];
+
+    return (
+        <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-lg">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <Scale className="w-6 h-6 text-sky-400" />
+                        {t('compare_financials_title')}
+                    </h2>
+                    <p className="text-slate-400 text-sm mt-1">Cross-regional head-to-head financial analysis.</p>
+                </div>
+                <div className="w-full md:w-64">
+                    <select 
+                        value={compareRegion} 
+                        onChange={(e) => handleCompare(e.target.value as Region)}
+                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-sm text-white py-2.5 px-3 focus:ring-sky-500"
+                    >
+                        <option value="">{t('select_region_to_compare')}</option>
+                        {ALL_REGIONS.filter(r => r !== region).map(r => (
+                            <option key={r} value={r}>{r}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {isLoading ? (
+                <SkeletonLoader variant="table" />
+            ) : data2.length > 0 ? (
+                <div className="overflow-x-auto rounded-xl border border-white/10">
+                    <table className="min-w-full divide-y divide-white/5">
+                        <thead className="bg-slate-800/50">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">{t('metric')}</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-sky-400 uppercase tracking-wider">{region}</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-orange-400 uppercase tracking-wider">{compareRegion}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 bg-transparent">
+                            {metrics.map(m => {
+                                const val1 = data1.find(d => d.id === m.id);
+                                const val2 = data2.find(d => d.id === m.id);
+                                return (
+                                    <tr key={m.id} className="hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 text-sm font-medium text-white">{m.label}</td>
+                                        <td className="px-6 py-4 text-sm font-mono text-slate-300">
+                                            {val1 ? `${val1.value.toLocaleString()} ${val1.unit}` : '-'}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-mono text-slate-300">
+                                            {val2 ? `${val2.value.toLocaleString()} ${val2.unit}` : '-'}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="text-center py-12 border border-dashed border-white/10 rounded-xl bg-white/5">
+                    <BarChart3 className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-500 text-sm">Select a second region to initialize comparative modeling.</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// FIX: Added missing FundingSourcesAnalysis component implementation
+interface FundingSource {
+    source: string;
+    focus: string;
+    potential_fit: string;
+}
+
+interface FundingData {
+    table: FundingSource[];
+    narrative: string;
+}
+
 const FundingSourcesAnalysis: React.FC = () => {
     const { region, setError, supportedLangs, lang, userRole } = useContext(AppContext)!;
     const { t } = useI18n();
-    const [fundingData, setFundingData] = useState<any>(null);
+    const [data, setData] = useState<FundingData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    if (userRole !== 'admin') {
-        return null;
-    }
+    const canView = hasPermission(userRole, 'financials');
+    if (!canView) return null;
 
     useEffect(() => {
-        setFundingData(null);
+        setData(null);
         setError(null);
     }, [region, lang, setError]);
 
     const handleGenerate = async () => {
         setIsLoading(true);
         setError(null);
-        setFundingData(null);
+        setData(null);
         const langName = supportedLangs.find(l => l.code === lang)?.name || 'English';
+        const prompt = t('funding_prompt', { region, language: langName });
+        
         try {
-            const prompt = t('funding_prompt', { region, language: langName });
-            const result = await generateGroundedText(prompt);
-            const parsed = extractJson(result.text);
-            if (parsed && parsed.venture_capital) {
-                setFundingData(parsed);
+            const result = await generateJsonWithThinking(prompt);
+            const parsed = extractJson(result);
+            if (parsed && parsed.table && parsed.narrative) {
+                setData(parsed);
             } else {
-                throw new Error("Invalid funding data format received from AI.");
+                throw new Error("Invalid format received from AI.");
             }
         } catch (e: any) {
             setError(e.message || "Failed to research funding sources.");
@@ -306,61 +434,63 @@ const FundingSourcesAnalysis: React.FC = () => {
             setIsLoading(false);
         }
     };
-    
-    const FundingCategory: React.FC<{ title: string; sources: any[]; color: string }> = ({ title, sources, color }) => (
-        <div className="bg-slate-800/30 p-6 rounded-xl border border-white/5">
-            <h3 className={`text-xl font-semibold mb-4 ${color}`}>{title}</h3>
-            <div className="space-y-4">
-                {sources.map((source, index) => (
-                    <div key={index} className="bg-slate-900/50 p-4 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
-                        <h4 className="font-bold text-white text-lg">{source.name}</h4>
-                        <div className="mt-2 space-y-1">
-                            <p className="text-sm text-slate-300"><span className="text-slate-500 font-medium uppercase text-xs mr-2">{t('focus')}:</span> {source.focus}</p>
-                            <p className="text-sm text-slate-300"><span className="text-slate-500 font-medium uppercase text-xs mr-2">{t('potential_fit')}:</span> {source.potential_fit}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 
     return (
         <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-bold text-white">{t('funding_sources_title')}</h2>
-            <p className="text-slate-400 mt-2 mb-6 max-w-3xl">{t('funding_sources_desc')}</p>
+            <h2 className="text-xl font-semibold mb-2 text-white">{t('funding_sources_title')}</h2>
+            <p className="text-sm text-slate-400 mb-6">{t('funding_sources_desc')}</p>
             
-            {!fundingData && (
+            {!data && (
                 <button 
                     onClick={handleGenerate} 
                     disabled={isLoading}
-                    className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-colors disabled:bg-sky-800 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-sky-800 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     {isLoading ? <Spinner size="sm" className="text-white" /> : null}
                     {isLoading ? t('analyzing') : t('research_funding')}
                 </button>
             )}
 
-            {isLoading && !fundingData && (
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <SkeletonLoader variant="card" count={3} height="300px" />
+            {isLoading && !data && (
+                <div className="mt-6 space-y-6">
+                    <SkeletonLoader variant="table" />
+                    <SkeletonLoader variant="text" count={3} />
                 </div>
             )}
-            
-            {fundingData && (
-                <div className="mt-8 space-y-6 animate-fade-in">
-                    <ExportButtons content={JSON.stringify(fundingData, null, 2)} title={`Funding_Sources_${region}`} isJson={true} />
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <FundingCategory title={t('venture_capital')} sources={fundingData.venture_capital} color="text-teal-400" />
-                        <FundingCategory title={t('government_grants')} sources={fundingData.government_grants} color="text-sky-400" />
-                        <FundingCategory title={t('international_funds')} sources={fundingData.international_funds} color="text-amber-400" />
+
+            {data && (
+                <div className="mt-6 space-y-6 animate-fade-in">
+                    <ExportButtons content={JSON.stringify(data, null, 2)} title={`Funding_Sources_${region}`} isJson={true} />
+                    <div className="overflow-x-auto rounded-lg border border-slate-700">
+                        <table className="min-w-full divide-y divide-slate-700">
+                            <thead className="bg-slate-800/80">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Source</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">{t('focus')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">{t('potential_fit')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-slate-900/40 divide-y divide-slate-800/50">
+                                {data.table.map((row, index) => (
+                                    <tr key={index} className="hover:bg-slate-800/30 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap font-medium text-white">{row.source}</td>
+                                        <td className="px-6 py-4 text-slate-300 text-sm">{row.focus}</td>
+                                        <td className="px-6 py-4 text-slate-400 text-sm">{row.potential_fit}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                    <Feedback sectionId={`funding-analysis-${region}`} />
+                    <div className="bg-slate-800/30 p-6 rounded-xl border border-white/5">
+                        <h4 className="text-lg font-semibold text-white mb-2 flex items-center">{t('analyst_narrative')} <SpeakerIcon text={data.narrative} /></h4>
+                        <p className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{data.narrative}</p>
+                    </div>
+                    <Feedback sectionId={`funding-sources-${region}`} />
                 </div>
             )}
         </div>
     );
 };
-
 
 export const Financials: React.FC = () => {
     const { region, lang, userRole, setError, supportedLangs } = useContext(AppContext)!;
@@ -369,6 +499,9 @@ export const Financials: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [financialData, setFinancialData] = useState<FinancialData[]>(() => getFinancialData(region));
     const [isLive, setIsLive] = useState(true);
+
+    const accessLevel = getAccessLevel(userRole, 'financials');
+    const canExport = accessLevel === 'full' && userRole === 'admin';
     
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -388,40 +521,31 @@ export const Financials: React.FC = () => {
         setAnalysis({text: '', sources: []});
     }, [region, lang]);
 
-    // WebSocket Connection for Live Data
     useEffect(() => {
         if (!isLive) {
             wsService.disconnect();
             return;
         }
-
         wsService.connect(region);
-
         const handleUpdate = (updates: {id: string, value: number}[]) => {
             setFinancialData(prevData => prevData.map(item => {
                 const update = updates.find(u => u.id === item.id);
                 return update ? { ...item, value: update.value } : item;
             }));
         };
-
         wsService.subscribe('financial_update', handleUpdate);
-
         return () => {
             wsService.unsubscribe('financial_update', handleUpdate);
         };
     }, [region, isLive]);
 
-    // Initialize state with values, will be updated by useEffect below
     const [customAnnualRevenue, setCustomAnnualRevenue] = useState(0);
     const [customInitialInvestment, setCustomInitialInvestment] = useState(0);
     const [inputErrors, setInputErrors] = useState({ investment: '', revenue: '' });
 
-    // Sync state for interactive inputs when financialData updates (from region change or WebSocket)
     useEffect(() => {
         const currentInvestment = financialData.find(d => d.id === 'capex')?.value || 575;
         const currentRevenue = financialData.find(d => d.id === 'revenue')?.value || 390;
-        
-        // Only update if not currently editing (basic heuristic, could be improved)
         if (isLive) {
             setCustomInitialInvestment(currentInvestment);
             setCustomAnnualRevenue(currentRevenue);
@@ -429,7 +553,7 @@ export const Financials: React.FC = () => {
     }, [financialData, isLive]);
     
     const handleInvestmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setIsLive(false); // Pause live updates when user interacts
+        setIsLive(false);
         const value = e.target.value;
         if (value === '') {
             setCustomInitialInvestment(0);
@@ -448,7 +572,7 @@ export const Financials: React.FC = () => {
     };
 
     const handleRevenueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setIsLive(false); // Pause live updates when user interacts
+        setIsLive(false);
         const value = e.target.value;
         if (value === '') {
             setCustomAnnualRevenue(0);
@@ -469,7 +593,6 @@ export const Financials: React.FC = () => {
     const calculatedPayback = useMemo(() => (customAnnualRevenue > 0 ? (customInitialInvestment / customAnnualRevenue) : Infinity), [customInitialInvestment, customAnnualRevenue]);
     const calculatedROI = useMemo(() => (customInitialInvestment > 0 ? (customAnnualRevenue / customInitialInvestment) * 100 : Infinity), [customInitialInvestment, customAnnualRevenue]);
     
-    // Fix: Use IDs for filtering to handle translated data correctly
     const barChartData = useMemo(() => {
         return financialData
             .filter(d => ['capex', 'revenue', 'npv'].includes(d.id))
@@ -479,7 +602,6 @@ export const Financials: React.FC = () => {
             }));
     }, [financialData]);
 
-    // Fix: Use IDs for filtering pie chart data to handle translations
     const pieData = useMemo(() => {
         const costs = financialData.filter(d => d.id === 'capex').map(d => ({ name: d.component, value: d.value }));
         const revs = financialData.filter(d => d.id === 'revenue').map(d => ({ name: d.component, value: d.value }));
@@ -492,7 +614,6 @@ export const Financials: React.FC = () => {
         const pessimisticRevenue = customAnnualRevenue * 0.8;
         const optimisticInvestment = customInitialInvestment * 0.9;
         const pessimisticInvestment = customInitialInvestment * 1.1;
-
         for (let i = 0; i < 11; i++) {
             data.push({ 
                 year: i,
@@ -540,31 +661,22 @@ export const Financials: React.FC = () => {
 
     const handleExport = () => {
         const doc = new jsPDF();
-        
-        // Simple header
         doc.setFontSize(18);
         doc.text(`Financial Analysis: ${region}`, 14, 22);
-        
         doc.setFontSize(12);
         doc.text("Core Financial Metrics", 14, 32);
-        
-        // Prepare table data
         const tableData = financialData.map(item => [
             item.component,
             `${item.value} ${item.unit}`,
             item.description
         ]);
-        
         autoTable(doc, {
             startY: 36,
             head: [['Metric', 'Value', 'Description']],
             body: tableData,
         });
-        
-        // Custom scenario data
         const finalY = (doc as any).lastAutoTable.finalY + 10;
         doc.text("Interactive Scenario Parameters", 14, finalY);
-        
         autoTable(doc, {
             startY: finalY + 4,
             head: [['Parameter', 'Value']],
@@ -575,12 +687,11 @@ export const Financials: React.FC = () => {
                 ['Calculated Payback', isFinite(calculatedPayback) ? `${calculatedPayback.toFixed(1)} Years` : 'N/A']
             ]
         });
-
         doc.save(`GMEL_Financial_Analysis_${region.replace(/\s/g, '_')}.pdf`);
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">{t('financial_analysis_title')}</h1>
                 <div className="flex items-center gap-4">
@@ -596,7 +707,7 @@ export const Financials: React.FC = () => {
                             Live Market Data
                         </label>
                     </div>
-                    {userRole === 'admin' && (
+                    {canExport && (
                         <div className="flex items-center gap-2">
                              <button 
                                 onClick={handleExport}
@@ -625,7 +736,7 @@ export const Financials: React.FC = () => {
                                     dataKey="value" 
                                     name={financialData[0]?.unit} 
                                     radius={[4, 4, 0, 0]}
-                                    isAnimationActive={!isLive} // Reduce jitter
+                                    isAnimationActive={!isLive}
                                 >
                                     {barChartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -640,7 +751,6 @@ export const Financials: React.FC = () => {
                         <h2 className="text-xl font-semibold text-white">{t('interactive_financial_model_title')}</h2>
                         <p className="text-sm text-slate-400 mt-1">{t('interactive_financial_model_desc')}</p>
                     </div>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <div className="relative group">
                             <label htmlFor="customInitialInvestment" className="block text-sm font-medium text-slate-300 mb-2">{t('custom_initial_investment')}</label>
@@ -693,6 +803,8 @@ export const Financials: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <FinancialComparison />
 
             <RevenueStreamsAnalysis />
 

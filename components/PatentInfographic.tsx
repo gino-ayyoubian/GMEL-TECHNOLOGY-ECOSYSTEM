@@ -1,10 +1,11 @@
 
 import React, { useContext, useMemo } from 'react';
+import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
 import { Patent } from '../types';
 import { AppContext } from '../contexts/AppContext';
 
 interface PatentInfographicProps {
-    patents: Patent[];
+    patents?: Patent[];
     selectedPatents?: string[];
     onToggleSelection?: (code: string) => void;
 }
@@ -40,9 +41,21 @@ const PatentNode: React.FC<{ patent: Patent, isSelected?: boolean, onToggle?: (c
     
     return (
         <div 
-            className={`group w-48 p-3 rounded-xl border ${colors.border} ${colors.bg} shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-sky-500/20 hover:z-50 cursor-pointer ${isSelected ? 'ring-2 ring-white scale-105' : ''}`}
+            className={`group w-48 p-3 rounded-xl border ${colors.border} ${colors.bg} shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-sky-500/20 hover:z-50 cursor-pointer ${isSelected ? 'ring-2 ring-white scale-105' : ''} relative`}
             onClick={handleClick}
         >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-900/95 backdrop-blur border border-white/10 rounded-lg text-left opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[60] shadow-2xl">
+                <p className="text-xs font-bold text-white mb-1">{patent.title}</p>
+                <p className="text-[10px] text-slate-300 mb-2 leading-relaxed line-clamp-3">{patent.application}</p>
+                {patent.kpi && (
+                    <div className="text-[10px] font-mono text-sky-400 bg-sky-900/30 px-2 py-1 rounded w-fit">
+                        KPI: {patent.kpi}
+                    </div>
+                )}
+                <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-r border-b border-white/10 transform rotate-45"></div>
+            </div>
+
             {onToggle && (
                 <div className="absolute -top-2 -right-2 z-20" onClick={(e) => e.stopPropagation()}>
                     <input 
@@ -79,6 +92,9 @@ interface GraphNode extends Patent {
 
 export const PatentInfographic: React.FC<PatentInfographicProps> = ({ patents, selectedPatents = [], onToggleSelection }) => {
     
+    // Default to constant patents if none provided
+    const displayPatents = patents || [CORE_PATENT, ...PATENT_PORTFOLIO];
+
     // Graph Configuration
     const width = 1000;
     const height = 800;
@@ -86,10 +102,10 @@ export const PatentInfographic: React.FC<PatentInfographicProps> = ({ patents, s
     const centerY = height / 2;
 
     const nodes = useMemo(() => {
-        const cores = patents.filter(p => p.level === 'Core');
-        const derivatives = patents.filter(p => p.level === 'Derivatives');
-        const applied = patents.filter(p => p.level === 'Applied');
-        const strategic = patents.filter(p => p.level === 'Strategic');
+        const cores = displayPatents.filter(p => p.level === 'Core');
+        const derivatives = displayPatents.filter(p => p.level === 'Derivatives');
+        const applied = displayPatents.filter(p => p.level === 'Applied');
+        const strategic = displayPatents.filter(p => p.level === 'Strategic');
 
         const allNodes: GraphNode[] = [];
 
@@ -128,7 +144,7 @@ export const PatentInfographic: React.FC<PatentInfographicProps> = ({ patents, s
         placeNodes(strategic, 480, applied); // Slightly outside but visible
 
         return allNodes;
-    }, [patents]);
+    }, [displayPatents]);
 
     // Generate connections (Links)
     // Hierarchy: Core -> Derivatives -> Applied -> Strategic

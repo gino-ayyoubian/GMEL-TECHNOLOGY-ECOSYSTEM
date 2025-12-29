@@ -77,11 +77,11 @@ export const projected_ipo_date = "تاريخ الاكتتاب المتوقع";
 export const pre_ipo_valuation = "التقييم قبل الاكتتاب";
 export const expected_market_cap = "القيمة السوقية المتوقعة";
 export const analyst_narrative = "سرد المحلل";
-export const revenue_streams_prompt = "تفصيل مصادر الإيرادات لـ {region}...";
-export const revenue_streams_title = "تدفقات الإيرادات";
-export const revenue_streams_desc = "تفصيل مصادر الإيرادات.";
+export const revenue_streams_prompt = "تحليل مصادر الإيرادات لمحطة GMEL الحرارية الأرضية في {region} (الإيرادات السنوية: {revenue}). قسّمها إلى: كهرباء، مياه، هيدروجين، ليقيوم. أرجع JSON مع 'table' و 'narrative'. اللغة: {language}.";
+export const revenue_streams_title = "مصادر الإيرادات المتعددة";
+export const revenue_streams_desc = "تفصيل الإيرادات من الكهرباء والمياه والهيدروجين والليقيوم.";
 export const generate_revenue_breakdown = "إنشاء تفصيل الإيرادات";
-export const revenue_stream_chart_title = "مزيج الإيرادات";
+export const revenue_stream_chart_title = "تكوين الإيرادات";
 export const narrative_summary = "ملخص سردي";
 export const stream = "التدفق";
 export const contribution = "المساهمة";
@@ -338,3 +338,10 @@ export const net_revenue_projection_title = "توقعات صافي الإيرا�
 export const benchmark_comparison_prompt = "مقارنة المناطق...";
 export const select_region_1 = "تحديد المنطقة 1";
 export const select_region_2 = "تحديد المنطقة 2";
+export const compare_financials_title = "مقارنة مالية مباشرة";
+export const select_region_to_compare = "اختر منطقة للمقارنة";
+export const financial_metric_capex = "النفقات الرأسمالية التجريبية (5 ميجاوات)";
+export const financial_metric_revenue = "الإيرادات السنوية (5 ميجاوات)";
+export const financial_metric_payback = "فترة الاسترداد";
+export const financial_metric_roi = "العائد على الاستثمار (ROI)";
+export const financial_metric_npv = "صافي القيمة الحالية لمدة 10 سنوات";

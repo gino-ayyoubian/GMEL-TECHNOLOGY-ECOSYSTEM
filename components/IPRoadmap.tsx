@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useContext, useEffect, useRef } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { generateGroundedText, generateLocalizedPatents } from '../services/geminiService';
+import { generateGroundedText, generateLocalizedPatents, fetchPatentUpdates } from '../services/geminiService';
 import { CORE_PATENT, PATENT_PORTFOLIO } from '../constants';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
@@ -12,7 +12,7 @@ import { AppContext } from '../contexts/AppContext';
 import { extractJson } from '../utils/helpers';
 import { Spinner } from './shared/Loading';
 import { AuditService } from '../services/auditService';
-import { Download, Search, Zap } from 'lucide-react';
+import { Download, Search, Zap, RefreshCw, Handshake } from 'lucide-react';
 
 interface PatentOverlap {
     patent_identifier: string;
@@ -29,6 +29,62 @@ interface AnalysisResult {
     potential_overlaps: PatentOverlap[];
     legal_strategy: string;
 }
+
+interface LicensingDeal {
+    partner: string;
+    status: 'Initial Talks' | 'Due Diligence' | 'Contract Drafting' | 'Signed';
+    contact: string;
+    region: string;
+}
+
+const mockLicensingDeals: LicensingDeal[] = [
+    { partner: 'Shell Geothermal', status: 'Due Diligence', contact: 'Dr. A. Weber (Head of Ventures)', region: 'EU' },
+    { partner: 'Eni S.p.A', status: 'Initial Talks', contact: 'M. Rossi (Innovation Lead)', region: 'Italy' },
+    { partner: 'Saudi Aramco', status: 'Contract Drafting', contact: 'K. Al-Fahad (Renewables Div)', region: 'KSA' },
+];
+
+const LicensingTracker: React.FC = () => {
+    const { t } = useI18n();
+    return (
+        <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 mt-8">
+            <h2 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                <Handshake className="w-6 h-6 text-emerald-400" />
+                {t('licensing_tracker_title')}
+            </h2>
+            <div className="overflow-x-auto rounded-xl border border-white/5">
+                <table className="min-w-full divide-y divide-white/5">
+                    <thead className="bg-slate-800/50">
+                        <tr>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">{t('licensing_partner')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">{t('licensing_region')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">{t('licensing_status')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">{t('licensing_contact')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 bg-transparent">
+                        {mockLicensingDeals.map((deal, idx) => (
+                            <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-white">{deal.partner}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">{deal.region}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${
+                                        deal.status === 'Signed' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                        deal.status === 'Contract Drafting' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                                        deal.status === 'Due Diligence' ? 'bg-sky-500/20 text-sky-400 border-sky-500/30' :
+                                        'bg-slate-700 text-slate-300 border-slate-600'
+                                    }`}>
+                                        {deal.status}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400 font-mono text-xs">{deal.contact}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
 
 const CompetitiveAnalysis: React.FC = () => {
     const { lang, setError, currentUser, userRole } = useContext(AppContext)!;
@@ -319,7 +375,7 @@ const ComparisonModal: React.FC<{ patents: Patent[], onClose: () => void }> = ({
 
 export const IPRoadmap: React.FC = () => {
     const { t } = useI18n();
-    const { lang, userRole } = useContext(AppContext)!;
+    const { lang, userRole, currentUser } = useContext(AppContext)!;
     const [searchQuery, setSearchQuery] = useState('');
     const [levelFilter, setLevelFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -330,6 +386,7 @@ export const IPRoadmap: React.FC = () => {
     
     const [patents, setPatents] = useState<Patent[]>([CORE_PATENT, ...PATENT_PORTFOLIO]);
     const [isPatentsLoading, setIsPatentsLoading] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     useEffect(() => {
         const fetchPatents = async () => {
@@ -346,6 +403,19 @@ export const IPRoadmap: React.FC = () => {
         };
         fetchPatents();
     }, [lang]);
+
+    const handleSync = async () => {
+        setIsSyncing(true);
+        try {
+            const updated = await fetchPatentUpdates(patents);
+            setPatents(updated);
+            AuditService.log(currentUser || 'user', 'PATENT_SYNC', 'Synced portfolio with external data');
+        } catch (e) {
+            console.error("Sync failed", e);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const filteredAndSortedPatents = useMemo(() => {
         let filtered = patents.filter(p => {
@@ -415,6 +485,15 @@ export const IPRoadmap: React.FC = () => {
                     <p className="text-slate-400 mt-1">{t('ip_roadmap_description')}</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleSync}
+                        disabled={isSyncing}
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+                        title={t('fetch_patent_updates')}
+                    >
+                        <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                        <span className="hidden sm:inline">{isSyncing ? t('updating_patents') : t('fetch_patent_updates')}</span>
+                    </button>
                     {userRole === 'admin' && (
                         <button
                             onClick={handleExportCSV}
@@ -422,7 +501,7 @@ export const IPRoadmap: React.FC = () => {
                             title="Download CSV"
                         >
                             <Download className="w-4 h-4" />
-                            <span>Export CSV</span>
+                            <span className="hidden sm:inline">Export CSV</span>
                         </button>
                     )}
                     <div className="flex bg-slate-900 p-1 rounded-lg border border-white/10">
@@ -510,6 +589,7 @@ export const IPRoadmap: React.FC = () => {
                 <ComparisonModal patents={patentsForComparison} onClose={() => setShowComparisonModal(false)} />
             )}
 
+            <LicensingTracker />
             <CompetitiveAnalysis />
         </div>
     );

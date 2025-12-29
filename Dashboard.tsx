@@ -1,46 +1,17 @@
+
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-// FIX: Changed import from static FINANCIAL_DATA to dynamic getFinancialData function.
 import { getFinancialData, PROJECT_MILESTONES, getProjectSummaryPrompt } from '../constants';
-import { generateTextWithThinking, generateGroundedText } from '../services/geminiService';
+import { generateJsonWithThinking, generateGroundedText } from '../services/geminiService';
 import { Milestone } from '../types';
 import { AppContext } from '../contexts/AppContext';
 import { useI18n } from '../hooks/useI18n';
 import { SpeakerIcon } from './shared/SpeakerIcon';
 import { Feedback } from './shared/Feedback';
+import { extractJson } from '../utils/helpers';
+import { Activity } from 'lucide-react';
 
 const COLORS = ['#0ea5e9', '#0369a1', '#f97316', '#f59e0b', '#8b5cf6'];
-
-// Helper to extract a JSON object from a string that might contain markdown or other text.
-const extractJson = (text: string): any | null => {
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
-    let start = -1;
-
-    if (firstBrace === -1 && firstBracket === -1) return null;
-    if (firstBrace === -1) start = firstBracket;
-    else if (firstBracket === -1) start = firstBrace;
-    else start = Math.min(firstBrace, firstBracket);
-    
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
-    let end = -1;
-    
-    if (lastBrace === -1 && lastBracket === -1) return null;
-    if (lastBrace === -1) end = lastBracket;
-    else if (lastBracket === -1) end = lastBrace;
-    else end = Math.max(lastBrace, lastBracket);
-    
-    if (start === -1 || end === -1 || end < start) return null;
-
-    const jsonString = text.substring(start, end + 1);
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Failed to parse extracted JSON string:", jsonString, error);
-        return null;
-    }
-};
 
 const DataCard: React.FC<{ title: string; value: string; description: string; icon: React.ReactNode; }> = ({ title, value, description, icon }) => (
   <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-700/50 hover:border-sky-500 cursor-pointer">
@@ -59,8 +30,8 @@ const ThinkingButton: React.FC<{ prompt: string, onResult: (result: string) => v
 
     const handleClick = async () => {
         setIsLoading(true);
-        const result = await generateTextWithThinking(prompt);
-        onResult(result ? `${result}` : t('error_no_analysis'));
+        const result = await generateGroundedText(prompt);
+        onResult(result.text ? `${result.text}` : t('error_no_analysis'));
         setIsLoading(false);
     };
 
@@ -168,18 +139,18 @@ const ImpactCalculator: React.FC = () => {
         setResults(null);
 
         const prompt = t('impact_generation_prompt', { scale });
-        const result = await generateTextWithThinking(prompt);
         
         try {
+            const result = await generateJsonWithThinking(prompt);
             const parsed = extractJson(result);
             if (parsed && parsed.economic && parsed.environmental && parsed.social) {
                 setResults(parsed);
             } else {
-                throw new Error("Invalid format received from API");
+                throw new Error("Invalid format received from AI. The response could not be parsed into valid impact categories.");
             }
-        } catch (e) {
-            setError(t('error_generating_impact_analysis'));
-            console.error("Failed to parse impact JSON:", e, "Raw result:", result);
+        } catch (e: any) {
+            setError(t('error_generating_impact_analysis') + ": " + e.message);
+            console.error("Failed to parse impact JSON:", e);
         } finally {
             setIsLoading(false);
         }
@@ -289,19 +260,16 @@ const GMELStatementBanner = () => {
 
 
 export const Dashboard: React.FC = () => {
-    // FIX: Add lang from AppContext to pass to getProjectSummaryPrompt
     const { region, lang } = useContext(AppContext)!;
     const { t } = useI18n();
     const [strategicAnalysis, setStrategicAnalysis] = useState('');
     const [summary, setSummary] = useState('');
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
-    // FIX: Financial data is now dynamically retrieved based on the current region.
     const financialData = useMemo(() => getFinancialData(region), [region]);
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true);
-        // FIX: Pass the 'lang' variable to the getProjectSummaryPrompt function call.
         const prompt = getProjectSummaryPrompt(region, lang);
         const result = await generateGroundedText(prompt);
         setSummary(result.text);
@@ -332,7 +300,6 @@ export const Dashboard: React.FC = () => {
       <h1 className="text-3xl font-bold text-white">{t('dashboard_title', { region })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {/* FIX: Use the dynamic financialData variable instead of the static import. */}
         {financialData.map((item, index) => (
           <DataCard 
             key={index}
