@@ -1,9 +1,9 @@
 
 import React, { useState, useMemo, useContext, useEffect, useRef } from 'react';
-import { AppContext } from '../../contexts/AppContext';
-import { useI18n } from '../../hooks/useI18n';
-import { CORE_PATENT, PATENT_PORTFOLIO, getFinancialData, PROJECT_MILESTONES } from '../../constants';
-import { getTechDetails } from '../../utils/techDetails';
+import { AppContext } from '../src/contexts/AppContext';
+import { useI18n } from '../src/hooks/useI18n';
+import { CORE_PATENT, PATENT_PORTFOLIO, getFinancialData, PROJECT_MILESTONES } from '../src/constants';
+import { getTechDetails } from '../src/utils/techDetails';
 
 interface SearchResult {
     type: 'IP' | 'Financial' | 'Technical' | 'Milestone';

@@ -2,7 +2,7 @@
 import React, { useContext } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas'; // Import html2canvas to ensure it's available
-import { AppContext } from '../../contexts/AppContext';
+import { AppContext } from '../src/contexts/AppContext';
 
 interface ExportButtonsProps {
     content: string;

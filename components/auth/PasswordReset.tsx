@@ -1,7 +1,7 @@
 
 import React, { useState, useContext } from 'react';
-import { AppContext } from '../../contexts/AppContext';
-import { useI18n } from '../../hooks/useI18n';
+import { AppContext } from '../src/contexts/AppContext';
+import { useI18n } from '../src/hooks/useI18n';
 import { AuthService } from '../../services/authService';
 
 const MAX_ATTEMPTS = 3;

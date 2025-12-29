@@ -1,10 +1,10 @@
 
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { AppContext } from '../../contexts/AppContext';
-import { useI18n } from '../../hooks/useI18n';
+import { AppContext } from '../src/contexts/AppContext';
+import { useI18n } from '../src/hooks/useI18n';
 import { AuthService } from '../../services/authService';
-import { USER_CREDENTIALS } from '../../constants';
-import { UserRole } from '../../types';
+import { USER_CREDENTIALS } from '../src/constants';
+import { UserRole } from '../src/types';
 import { ShieldCheck, Briefcase, Eye, Lock, User, ChevronDown, Scale, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 
 // --- Enterprise Role Definitions ---

@@ -1,6 +1,6 @@
 
 import React, { ErrorInfo, ReactNode, ContextType } from 'react';
-import { AppContext } from '../../contexts/AppContext';
+import { AppContext } from '../src/contexts/AppContext';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;

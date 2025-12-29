@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AppContext } from '../../contexts/AppContext';
+import { AppContext } from '../src/contexts/AppContext';
 
 export const SpeakerIcon: React.FC<{ text: string }> = ({ text }) => {
     const { narrateText } = useContext(AppContext)!;
